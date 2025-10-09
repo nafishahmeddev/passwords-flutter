@@ -9,30 +9,43 @@ import 'field_widget_builder.dart';
 
 class AccountEditScreen extends StatelessWidget {
   final AccountRepository repository;
-  final int accountId;
+  final int? accountId; // Made nullable for create mode
+  final bool isCreateMode;
 
   const AccountEditScreen({
     super.key,
     required this.repository,
-    required this.accountId,
+    this.accountId,
+    this.isCreateMode = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) =>
-          AccountEditCubit(repository: repository, accountId: accountId)
-            ..loadFields(),
-      child: _AccountEditBody(repository: repository, accountId: accountId),
+      create: (_) => AccountEditCubit(
+        repository: repository,
+        accountId: accountId,
+        isCreateMode: isCreateMode,
+      )..loadFields(),
+      child: _AccountEditBody(
+        repository: repository,
+        accountId: accountId,
+        isCreateMode: isCreateMode,
+      ),
     );
   }
 }
 
 class _AccountEditBody extends StatefulWidget {
   final AccountRepository repository;
-  final int accountId;
+  final int? accountId;
+  final bool isCreateMode;
 
-  const _AccountEditBody({required this.repository, required this.accountId});
+  const _AccountEditBody({
+    required this.repository,
+    this.accountId,
+    this.isCreateMode = false,
+  });
 
   @override
   _AccountEditBodyState createState() => _AccountEditBodyState();
@@ -77,7 +90,7 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Edit Account'),
+        title: Text(widget.isCreateMode ? 'Create Account' : 'Edit Account'),
         actions: [
           IconButton(
             icon: Icon(Icons.save),
@@ -110,33 +123,6 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
             } else {
               // Update controllers if account data changed
               _updateControllers(state.account);
-            }
-
-            if (state.fields.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.add_circle_outline,
-                      size: 64,
-                      color: Colors.grey,
-                    ),
-                    SizedBox(height: 16),
-                    Text(
-                      'No fields yet',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'Tap the + button to add your first field',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
-                    ),
-                  ],
-                ),
-              );
             }
 
             return ListView(
@@ -222,18 +208,47 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
                     ),
                   ),
                 ),
-                // Fields list
-                ...state.fields.map((field) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 16.0),
-                    child: FieldWidgetBuilder.buildFieldWidget(
-                      context,
-                      field,
-                      context.read<AccountEditCubit>(),
-                      () => _confirmDeleteField(context, field),
+                // Fields list or empty message
+                if (state.fields.isEmpty)
+                  Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 32),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.add_circle_outline,
+                            size: 48,
+                            color: Colors.grey,
+                          ),
+                          SizedBox(height: 16),
+                          Text(
+                            'No fields yet',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            'Tap the + button to add your first field',
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(color: Colors.grey),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
                     ),
-                  );
-                }).toList(),
+                  )
+                else
+                  ...state.fields.map((field) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0),
+                      child: FieldWidgetBuilder.buildFieldWidget(
+                        context,
+                        field,
+                        context.read<AccountEditCubit>(),
+                        () => _confirmDeleteField(context, field),
+                      ),
+                    );
+                  }).toList(),
               ],
             );
           } else if (state is AccountEditSaving) {
@@ -277,8 +292,7 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
       builder: (dialogContext) {
         return AddFieldDialog(
           formCubit: context.read<AccountEditCubit>(),
-          accountId: widget.accountId,
-          // onFieldAdded callback removed since addField updates form state directly
+          // accountId will be determined from cubit state
         );
       },
     );

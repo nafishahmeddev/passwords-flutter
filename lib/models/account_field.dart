@@ -89,4 +89,24 @@ class AccountField {
       metadata: parsedMetadata,
     );
   }
+
+  AccountField copyWith({
+    int? id,
+    int? accountId,
+    String? label,
+    AccountFieldType? type,
+    bool? requiredField,
+    int? order,
+    Map<String, String>? metadata,
+  }) {
+    return AccountField(
+      id: id ?? this.id,
+      accountId: accountId ?? this.accountId,
+      label: label ?? this.label,
+      type: type ?? this.type,
+      requiredField: requiredField ?? this.requiredField,
+      order: order ?? this.order,
+      metadata: metadata ?? this.metadata,
+    );
+  }
 }

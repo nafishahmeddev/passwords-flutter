@@ -50,6 +50,7 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
                   builder: (_) => AccountEditScreen(
                     repository: widget.repository,
                     accountId: widget.account.id!,
+                    isCreateMode: false,
                   ),
                 ),
               );

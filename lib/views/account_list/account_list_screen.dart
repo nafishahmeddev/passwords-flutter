@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../cubits/account_cubit.dart';
-import '../../models/account.dart';
 import '../account_detail/account_detail_screen.dart';
+import '../account_edit/account_edit_screen.dart';
 
 class AccountListScreen extends StatelessWidget {
   @override
@@ -53,11 +53,21 @@ class AccountListScreen extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
         onPressed: () async {
-          // Temporary: Add a sample account
-          final now = DateTime.now().millisecondsSinceEpoch;
-          context.read<AccountCubit>().addAccount(
-            Account(name: 'Sample Account', createdAt: now, updatedAt: now),
+          // Navigate to create new account
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => AccountEditScreen(
+                repository: context.read<AccountCubit>().repository,
+                isCreateMode: true,
+              ),
+            ),
           );
+          // Refresh the account list after creating a new account
+          if (result != null || result == null) {
+            // Always refresh
+            context.read<AccountCubit>().loadAccounts();
+          }
         },
       ),
     );

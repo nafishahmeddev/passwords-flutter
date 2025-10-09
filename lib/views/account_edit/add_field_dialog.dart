@@ -4,14 +4,15 @@ import '../../cubits/account_edit_cubit.dart';
 
 class AddFieldDialog extends StatefulWidget {
   final AccountEditCubit formCubit;
-  final int accountId;
-  final VoidCallback? onFieldAdded; // Made optional
+  final int?
+  accountId; // Made optional - will get from cubit state if not provided
+  final VoidCallback? onFieldAdded;
 
   const AddFieldDialog({
     Key? key,
     required this.formCubit,
-    required this.accountId,
-    this.onFieldAdded, // Optional now
+    this.accountId,
+    this.onFieldAdded,
   }) : super(key: key);
 
   @override
@@ -123,8 +124,14 @@ class AddFieldDialogState extends State<AddFieldDialog> {
                 .reduce((a, b) => a > b ? a : b)
           : 0;
 
+      // Get accountId from widget parameter or from cubit state
+      final accountId =
+          widget.accountId ??
+          (currentState as AccountEditLoaded).account.id ??
+          0;
+
       final newField = AccountField(
-        accountId: widget.accountId,
+        accountId: accountId,
         label: _labelController.text.trim(),
         type: AccountFieldType.fromString(_selectedType),
         requiredField: _isRequired,
