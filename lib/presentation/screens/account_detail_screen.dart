@@ -21,41 +21,60 @@ class AccountDetailScreen extends StatefulWidget {
 
 class _AccountDetailScreenState extends State<AccountDetailScreen> {
   Future<List<AccountField>>? _fieldsFuture;
+  Account? _currentAccount;
 
   @override
   void initState() {
     super.initState();
+    _currentAccount = widget.account;
     _loadFields();
   }
 
   void _loadFields() {
     setState(() {
-      _fieldsFuture = widget.repository.getFields(widget.account.id!);
+      _fieldsFuture = widget.repository.getFields(_currentAccount!.id!);
     });
+  }
+
+  Future<void> _loadAccount() async {
+    try {
+      final accounts = await widget.repository.getAccounts();
+      final updatedAccount = accounts.firstWhere(
+        (acc) => acc.id == _currentAccount!.id,
+      );
+      setState(() {
+        _currentAccount = updatedAccount;
+      });
+    } catch (e) {
+      // Handle error if needed
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.account.name),
+        title: Text(_currentAccount?.name ?? widget.account.name),
         actions: [
           IconButton(
             icon: Icon(Icons.edit),
             onPressed: () async {
               // Navigate to edit screen and refresh when returning
-              await Navigator.push(
+              final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (_) => AccountEditScreen(
                     repository: widget.repository,
-                    accountId: widget.account.id!,
+                    accountId: _currentAccount!.id!,
                     isCreateMode: false,
                   ),
                 ),
               );
-              // Refresh the data when returning from edit screen
-              _loadFields();
+              // Data will refresh automatically via event system
+              if (result == true) {
+                await _loadAccount();
+                _loadFields();
+              }
             },
           ),
         ],

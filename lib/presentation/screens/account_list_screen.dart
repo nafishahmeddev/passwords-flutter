@@ -54,7 +54,7 @@ class AccountListScreen extends StatelessWidget {
         child: Icon(Icons.add),
         onPressed: () async {
           // Navigate to create new account
-          final result = await Navigator.push(
+          await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (_) => AccountEditScreen(
@@ -63,11 +63,7 @@ class AccountListScreen extends StatelessWidget {
               ),
             ),
           );
-          // Refresh the account list after creating a new account
-          if (result != null || result == null) {
-            // Always refresh
-            context.read<AccountCubit>().loadAccounts();
-          }
+          // Account list will refresh automatically via event system
         },
       ),
     );

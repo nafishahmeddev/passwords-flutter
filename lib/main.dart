@@ -24,7 +24,10 @@ class MyApp extends StatelessWidget {
       create: (_) => AccountCubit(repository: repository)..loadAccounts(),
       child: MaterialApp(
         title: 'Passwords',
-        theme: ThemeData(primarySwatch: Colors.blue),
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          brightness: Brightness.dark,
+        ),
         home: AccountListScreen(),
       ),
     );

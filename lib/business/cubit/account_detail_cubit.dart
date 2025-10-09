@@ -1,16 +1,27 @@
+import 'dart:async';
 import 'package:bloc/bloc.dart';
 import '../../data/models/account.dart';
 import '../../data/models/account_field.dart';
 import '../../data/repositories/account_repository.dart';
+import 'account_event.dart';
+import 'account_event_bus.dart';
 
 part 'account_detail_state.dart';
 
 class AccountDetailCubit extends Cubit<AccountDetailState> {
   final AccountRepository repository;
   final int accountId;
+  StreamSubscription? _eventSubscription;
 
   AccountDetailCubit({required this.repository, required this.accountId})
-    : super(AccountDetailInitial());
+    : super(AccountDetailInitial()) {
+    // Listen to account events and refresh if this account is affected
+    _eventSubscription = AccountEventBus().events.listen((event) {
+      if (event is AccountUpdated && event.account.id == accountId) {
+        loadFields(); // Refresh this account's details
+      }
+    });
+  }
 
   Future<void> loadFields() async {
     try {
@@ -51,5 +62,11 @@ class AccountDetailCubit extends Cubit<AccountDetailState> {
     } catch (e) {
       emit(AccountDetailError('Failed to update account'));
     }
+  }
+
+  @override
+  Future<void> close() {
+    _eventSubscription?.cancel();
+    return super.close();
   }
 }

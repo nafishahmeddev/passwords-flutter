@@ -97,7 +97,10 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
             onPressed: () async {
               try {
                 await context.read<AccountEditCubit>().saveChanges();
-                Navigator.pop(context);
+                Navigator.pop(
+                  context,
+                  true,
+                ); // Return true to indicate changes were saved
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text('Failed to save changes: $e')),

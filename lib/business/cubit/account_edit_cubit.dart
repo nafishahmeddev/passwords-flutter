@@ -2,6 +2,8 @@ import 'package:bloc/bloc.dart';
 import '../../data/models/account.dart';
 import '../../data/models/account_field.dart';
 import '../../data/repositories/account_repository.dart';
+import 'account_event.dart';
+import 'account_event_bus.dart';
 
 part 'account_edit_state.dart';
 
@@ -147,6 +149,14 @@ class AccountEditCubit extends Cubit<AccountEditState> {
         // Reload from database to get updated IDs and confirm save
         await loadFields();
         emit((state as AccountEditLoaded).copyWith(hasUnsavedChanges: false));
+
+        // Publish event for other parts of the app to react
+        final savedAccount = (state as AccountEditLoaded).account;
+        if (isCreateMode) {
+          AccountEventBus().publish(AccountCreated(savedAccount));
+        } else {
+          AccountEventBus().publish(AccountUpdated(savedAccount));
+        }
       } catch (e) {
         emit(AccountEditError('Failed to save changes: $e'));
       }
