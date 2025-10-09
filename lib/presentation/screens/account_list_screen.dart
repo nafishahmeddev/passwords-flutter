@@ -2,8 +2,83 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../business/cubit/account_cubit.dart';
 import '../../data/templates/account_templates.dart';
+import '../widgets/account_list_item.dart';
 import 'account_detail_screen.dart';
 import 'account_form_screen.dart';
+
+class AccountSearchDelegate extends SearchDelegate<String> {
+  final List<dynamic> accounts;
+
+  AccountSearchDelegate(this.accounts);
+
+  @override
+  List<Widget> buildActions(BuildContext context) {
+    return [
+      IconButton(
+        icon: Icon(Icons.clear),
+        onPressed: () {
+          query = '';
+        },
+      ),
+    ];
+  }
+
+  @override
+  Widget buildLeading(BuildContext context) {
+    return IconButton(
+      icon: Icon(Icons.arrow_back),
+      onPressed: () {
+        close(context, '');
+      },
+    );
+  }
+
+  @override
+  Widget buildResults(BuildContext context) {
+    final results = accounts.where(
+      (account) =>
+          account.name.toLowerCase().contains(query.toLowerCase()) ||
+          (account.note?.toLowerCase().contains(query.toLowerCase()) ?? false),
+    );
+
+    return ListView(
+      children: results
+          .map(
+            (account) => ListTile(
+              title: Text(account.name),
+              subtitle: Text(account.note ?? ''),
+              onTap: () {
+                close(context, account.id);
+              },
+            ),
+          )
+          .toList(),
+    );
+  }
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    final suggestions = accounts.where(
+      (account) =>
+          account.name.toLowerCase().contains(query.toLowerCase()) ||
+          (account.note?.toLowerCase().contains(query.toLowerCase()) ?? false),
+    );
+
+    return ListView(
+      children: suggestions
+          .map(
+            (account) => ListTile(
+              title: Text(account.name),
+              subtitle: Text(account.note ?? ''),
+              onTap: () {
+                close(context, account.id);
+              },
+            ),
+          )
+          .toList(),
+    );
+  }
+}
 
 class AccountListScreen extends StatefulWidget {
   @override
@@ -11,7 +86,36 @@ class AccountListScreen extends StatefulWidget {
 }
 
 class _AccountListScreenState extends State<AccountListScreen> {
-  String _searchQuery = '';
+  void _showOptionsMenu(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(Icons.settings),
+                title: Text('Settings'),
+                onTap: () {
+                  Navigator.pop(context);
+                  // TODO: Navigate to settings
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.info),
+                title: Text('About'),
+                onTap: () {
+                  Navigator.pop(context);
+                  // TODO: Show about dialog
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   Future<void> _showAccountTypeDialog(BuildContext context) async {
     final selectedType = await showDialog<String>(
@@ -86,70 +190,47 @@ class _AccountListScreenState extends State<AccountListScreen> {
     }
   }
 
-  Future<void> _showDeleteConfirmationDialog(
-    BuildContext context,
-    account,
-  ) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Row(
-            children: [
-              Icon(Icons.warning, color: Colors.orange),
-              const SizedBox(width: 8),
-              Text('Delete Account'),
-            ],
-          ),
-          content: Text(
-            'Are you sure you want to delete "${account.name}"? This action cannot be undone.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-              ),
-              child: Text('Delete'),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (confirmed == true) {
-      context.read<AccountCubit>().deleteAccount(account.id);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Accounts')),
+      appBar: AppBar(
+        title: Text('Passwords'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.search),
+            onPressed: () async {
+              final state = context.read<AccountCubit>().state;
+              if (state is AccountLoaded) {
+                final result = await showSearch(
+                  context: context,
+                  delegate: AccountSearchDelegate(state.accounts),
+                );
+                if (result != null && result.isNotEmpty) {
+                  // Navigate to the selected account's detail screen
+                  final account = state.accounts.firstWhere(
+                    (a) => a.id == result,
+                  );
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AccountDetailScreen(
+                        account: account,
+                        repository: context.read<AccountCubit>().repository,
+                      ),
+                    ),
+                  );
+                }
+              }
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.more_vert),
+            onPressed: () => _showOptionsMenu(context),
+          ),
+        ],
+      ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Search accounts...',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-              ),
-              onChanged: (value) {
-                setState(() {
-                  _searchQuery = value.toLowerCase();
-                });
-              },
-            ),
-          ),
           Expanded(
             child: BlocBuilder<AccountCubit, AccountState>(
               builder: (context, state) {
@@ -159,18 +240,10 @@ class _AccountListScreenState extends State<AccountListScreen> {
                   if (state.accounts.isEmpty) {
                     return Center(child: Text('No accounts found'));
                   }
-                  final filteredAccounts = state.accounts
-                      .where(
-                        (a) =>
-                            a.name.toLowerCase().contains(_searchQuery) ||
-                            (a.note?.toLowerCase().contains(_searchQuery) ??
-                                false),
-                      )
-                      .toList();
-                  final favoriteAccounts = filteredAccounts
+                  final favoriteAccounts = state.accounts
                       .where((a) => a.isFavorite)
                       .toList();
-                  final allAccounts = filteredAccounts;
+                  final allAccounts = state.accounts;
                   return ListView(
                     children: [
                       if (favoriteAccounts.isNotEmpty) ...[
@@ -178,201 +251,82 @@ class _AccountListScreenState extends State<AccountListScreen> {
                           padding: const EdgeInsets.all(16.0),
                           child: Text(
                             'Favorites',
-                            style: Theme.of(context).textTheme.headlineSmall,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey,
+                            ),
                           ),
                         ),
-                        ...favoriteAccounts.map(
-                          (account) => ListTile(
-                            contentPadding: EdgeInsets.fromLTRB(
-                              16.0,
-                              0.0,
-                              0,
-                              0.0,
-                            ),
-                            title: Text(account.name),
-                            subtitle: Text(account.note ?? ''),
-                            trailing: PopupMenuButton<String>(
-                              onSelected: (value) {
-                                if (value == 'edit') {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => AccountFormScreen(
-                                        repository: context
-                                            .read<AccountCubit>()
-                                            .repository,
-                                        accountId: account.id,
-                                        isCreateMode: false,
-                                      ),
-                                    ),
-                                  );
-                                } else if (value == 'favorite') {
-                                  context.read<AccountCubit>().toggleFavorite(
-                                    account.id,
-                                  );
-                                } else if (value == 'delete') {
-                                  _showDeleteConfirmationDialog(
-                                    context,
-                                    account,
-                                  );
-                                }
-                              },
-                              itemBuilder: (BuildContext context) => [
-                                PopupMenuItem<String>(
-                                  value: 'favorite',
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        account.isFavorite
-                                            ? Icons.star
-                                            : Icons.star_border,
-                                        color: Colors.amber,
-                                      ),
-                                      SizedBox(width: 8),
-                                      Text(
-                                        account.isFavorite
-                                            ? 'Unfavorite'
-                                            : 'Favorite',
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                PopupMenuItem<String>(
-                                  value: 'edit',
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.edit, color: Colors.blue),
-                                      SizedBox(width: 8),
-                                      Text('Edit'),
-                                    ],
-                                  ),
-                                ),
-                                PopupMenuItem<String>(
-                                  value: 'delete',
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.delete, color: Colors.red),
-                                      SizedBox(width: 8),
-                                      Text('Delete'),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => AccountDetailScreen(
-                                    account: account,
-                                    repository: context
-                                        .read<AccountCubit>()
-                                        .repository,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
+                        ...favoriteAccounts.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final account = entry.value;
+                          final isFirst = index == 0;
+                          final isLast = index == favoriteAccounts.length - 1;
+
+                          BorderRadius borderRadius;
+                          if (favoriteAccounts.length == 1) {
+                            borderRadius = BorderRadius.circular(12);
+                          } else if (isFirst) {
+                            borderRadius = BorderRadius.only(
+                              topLeft: Radius.circular(12),
+                              topRight: Radius.circular(12),
+                            );
+                          } else if (isLast) {
+                            borderRadius = BorderRadius.only(
+                              bottomLeft: Radius.circular(12),
+                              bottomRight: Radius.circular(12),
+                            );
+                          } else {
+                            borderRadius = BorderRadius.zero;
+                          }
+
+                          return AccountListItem(
+                            account: account,
+                            borderRadius: borderRadius,
+                          );
+                        }),
                         Divider(),
                       ],
                       Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Text(
-                          'All Accounts',
-                          style: Theme.of(context).textTheme.headlineSmall,
+                          'ALL ACCOUNTS',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey,
+                          ),
                         ),
                       ),
-                      ...allAccounts.map(
-                        (account) => ListTile(
-                          contentPadding: EdgeInsets.fromLTRB(
-                            16.0,
-                            0.0,
-                            0,
-                            0.0,
-                          ),
-                          title: Text(account.name),
-                          subtitle: Text(account.note ?? ''),
-                          trailing: PopupMenuButton<String>(
-                            onSelected: (value) {
-                              if (value == 'edit') {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => AccountFormScreen(
-                                      repository: context
-                                          .read<AccountCubit>()
-                                          .repository,
-                                      accountId: account.id,
-                                      isCreateMode: false,
-                                    ),
-                                  ),
-                                );
-                              } else if (value == 'favorite') {
-                                context.read<AccountCubit>().toggleFavorite(
-                                  account.id,
-                                );
-                              } else if (value == 'delete') {
-                                _showDeleteConfirmationDialog(context, account);
-                              }
-                            },
-                            itemBuilder: (BuildContext context) => [
-                              PopupMenuItem<String>(
-                                value: 'favorite',
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      account.isFavorite
-                                          ? Icons.star
-                                          : Icons.star_border,
-                                      color: Colors.amber,
-                                    ),
-                                    SizedBox(width: 8),
-                                    Text(
-                                      account.isFavorite
-                                          ? 'Unfavorite'
-                                          : 'Favorite',
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              PopupMenuItem<String>(
-                                value: 'edit',
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.edit, color: Colors.blue),
-                                    SizedBox(width: 8),
-                                    Text('Edit'),
-                                  ],
-                                ),
-                              ),
-                              PopupMenuItem<String>(
-                                value: 'delete',
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.delete, color: Colors.red),
-                                    SizedBox(width: 8),
-                                    Text('Delete'),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => AccountDetailScreen(
-                                  account: account,
-                                  repository: context
-                                      .read<AccountCubit>()
-                                      .repository,
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
+                      ...allAccounts.asMap().entries.map((entry) {
+                        final index = entry.key;
+                        final account = entry.value;
+                        final isFirst = index == 0;
+                        final isLast = index == allAccounts.length - 1;
+
+                        BorderRadius borderRadius;
+                        if (allAccounts.length == 1) {
+                          borderRadius = BorderRadius.circular(12);
+                        } else if (isFirst) {
+                          borderRadius = BorderRadius.only(
+                            topLeft: Radius.circular(12),
+                            topRight: Radius.circular(12),
+                          );
+                        } else if (isLast) {
+                          borderRadius = BorderRadius.only(
+                            bottomLeft: Radius.circular(12),
+                            bottomRight: Radius.circular(12),
+                          );
+                        } else {
+                          borderRadius = BorderRadius.zero;
+                        }
+
+                        return AccountListItem(
+                          account: account,
+                          borderRadius: borderRadius,
+                        );
+                      }),
                     ],
                   );
                 } else if (state is AccountError) {
