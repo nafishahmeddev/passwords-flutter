@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import '../../business/cubit/account_cubit.dart';
 import '../screens/account_detail_screen.dart';
 import '../screens/account_form_screen.dart';
@@ -86,7 +87,7 @@ class AccountListItem extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
-                    Icons.lock,
+                    Symbols.password,
                     color: Theme.of(context).colorScheme.onPrimaryContainer,
                     size: 20,
                   ),
@@ -100,7 +101,7 @@ class AccountListItem extends StatelessWidget {
                       Text(
                         account.name,
                         style: TextStyle(
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w400,
                           fontSize: 16,
                           color: Theme.of(context).colorScheme.onSurface,
                         ),

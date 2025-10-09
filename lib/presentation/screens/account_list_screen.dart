@@ -250,10 +250,11 @@ class _AccountListScreenState extends State<AccountListScreen> {
                         Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: Text(
-                            'Favorites',
+                            'FAVORITES',
                             style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              letterSpacing: 1.05,
                               color: Colors.grey,
                             ),
                           ),
@@ -266,16 +267,16 @@ class _AccountListScreenState extends State<AccountListScreen> {
 
                           BorderRadius borderRadius;
                           if (favoriteAccounts.length == 1) {
-                            borderRadius = BorderRadius.circular(12);
+                            borderRadius = BorderRadius.circular(18);
                           } else if (isFirst) {
                             borderRadius = BorderRadius.only(
-                              topLeft: Radius.circular(12),
-                              topRight: Radius.circular(12),
+                              topLeft: Radius.circular(18),
+                              topRight: Radius.circular(18),
                             );
                           } else if (isLast) {
                             borderRadius = BorderRadius.only(
-                              bottomLeft: Radius.circular(12),
-                              bottomRight: Radius.circular(12),
+                              bottomLeft: Radius.circular(18),
+                              bottomRight: Radius.circular(18),
                             );
                           } else {
                             borderRadius = BorderRadius.zero;
@@ -286,15 +287,14 @@ class _AccountListScreenState extends State<AccountListScreen> {
                             borderRadius: borderRadius,
                           );
                         }),
-                        Divider(),
                       ],
                       Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Text(
                           'ALL ACCOUNTS',
                           style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
                             color: Colors.grey,
                           ),
                         ),
@@ -307,16 +307,16 @@ class _AccountListScreenState extends State<AccountListScreen> {
 
                         BorderRadius borderRadius;
                         if (allAccounts.length == 1) {
-                          borderRadius = BorderRadius.circular(12);
+                          borderRadius = BorderRadius.circular(18);
                         } else if (isFirst) {
                           borderRadius = BorderRadius.only(
-                            topLeft: Radius.circular(12),
-                            topRight: Radius.circular(12),
+                            topLeft: Radius.circular(18),
+                            topRight: Radius.circular(18),
                           );
                         } else if (isLast) {
                           borderRadius = BorderRadius.only(
-                            bottomLeft: Radius.circular(12),
-                            bottomRight: Radius.circular(12),
+                            bottomLeft: Radius.circular(18),
+                            bottomRight: Radius.circular(18),
                           );
                         } else {
                           borderRadius = BorderRadius.zero;
