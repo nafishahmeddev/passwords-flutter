@@ -56,7 +56,6 @@ class _AccountEditBody extends StatefulWidget {
 
 class _AccountEditBodyState extends State<_AccountEditBody> {
   TextEditingController? _nameController;
-  TextEditingController? _descriptionController;
   TextEditingController? _noteController;
 
   @override
@@ -68,23 +67,18 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
   @override
   void dispose() {
     _nameController?.dispose();
-    _descriptionController?.dispose();
     _noteController?.dispose();
     super.dispose();
   }
 
   void _initializeControllers(Account account) {
     _nameController = TextEditingController(text: account.name);
-    _descriptionController = TextEditingController(
-      text: account.description ?? '',
-    );
     _noteController = TextEditingController(text: account.note ?? '');
   }
 
   void _updateControllers(Account account) {
     if (_nameController != null) {
       _nameController!.text = account.name;
-      _descriptionController!.text = account.description ?? '';
       _noteController!.text = account.note ?? '';
     }
   }
@@ -158,24 +152,6 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
                           onChanged: (value) {
                             final updatedAccount = state.account.copyWith(
                               name: value,
-                            );
-                            context.read<AccountFormCubit>().updateAccount(
-                              updatedAccount,
-                            );
-                          },
-                        ),
-                        SizedBox(height: 12),
-                        TextField(
-                          controller: _descriptionController,
-                          decoration: InputDecoration(
-                            labelText: 'Description (Optional)',
-                            border: OutlineInputBorder(),
-                            prefixIcon: Icon(Icons.description),
-                          ),
-                          maxLines: 2,
-                          onChanged: (value) {
-                            final updatedAccount = state.account.copyWith(
-                              description: value.isEmpty ? null : value,
                             );
                             context.read<AccountFormCubit>().updateAccount(
                               updatedAccount,

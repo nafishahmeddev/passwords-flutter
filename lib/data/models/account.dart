@@ -5,7 +5,6 @@ enum LogoType { file, url, icon }
 class Account {
   String id;
   String name;
-  String? description;
   String? note;
   LogoType? logoType;
   String? logo;
@@ -16,7 +15,6 @@ class Account {
   Account({
     String? id,
     required this.name,
-    this.description,
     this.note,
     this.logoType,
     this.logo,
@@ -28,7 +26,6 @@ class Account {
   Map<String, dynamic> toMap() => {
     'id': id,
     'name': name,
-    'description': description,
     'note': note,
     'logoType': logoType?.name,
     'logo': logo,
@@ -40,7 +37,6 @@ class Account {
   factory Account.fromMap(Map<String, dynamic> map) => Account(
     id: map['id'] as String,
     name: map['name'],
-    description: map['description'],
     note: map['note'],
     logoType: map['logoType'] != null
         ? LogoType.values.byName(map['logoType'])
@@ -54,7 +50,6 @@ class Account {
   Account copyWith({
     Object? id,
     String? name,
-    String? description,
     String? note,
     LogoType? logoType,
     String? logo,
@@ -65,7 +60,6 @@ class Account {
     return Account(
       id: id != null ? id as String : this.id,
       name: name ?? this.name,
-      description: description ?? this.description,
       note: note ?? this.note,
       logoType: logoType ?? this.logoType,
       logo: logo ?? this.logo,

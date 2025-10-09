@@ -25,8 +25,8 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Passwords',
         theme: ThemeData(
-          primarySwatch: Colors.blue,
-          brightness: Brightness.dark,
+          colorSchemeSeed: Colors.green,
+          brightness: Brightness.light,
         ),
         home: AccountListScreen(),
       ),

@@ -58,10 +58,10 @@ class AccountListItem extends StatelessWidget {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 1.0),
       child: Material(
-        elevation: 2,
+        elevation: 0,
         borderRadius: borderRadius,
         clipBehavior: Clip.antiAlias,
-        color: Theme.of(context).colorScheme.surfaceContainerLow,
+        color: Theme.of(context).colorScheme.surfaceContainer,
         child: InkWell(
           onTap: () {
             Navigator.push(

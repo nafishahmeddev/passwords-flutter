@@ -24,7 +24,6 @@ class DBHelper {
           CREATE TABLE Account(
             id TEXT PRIMARY KEY,
             name TEXT NOT NULL,
-            description TEXT,
             note TEXT,
             logoType TEXT,
             logo TEXT,
