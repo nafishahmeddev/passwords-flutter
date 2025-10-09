@@ -52,6 +52,87 @@ class AccountListScreen extends StatelessWidget {
     }
   }
 
+  void _showAccountOptions(BuildContext context, account) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(Icons.edit, color: Colors.blue),
+                title: Text('Edit Account'),
+                onTap: () {
+                  Navigator.pop(context); // Close the bottom sheet
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AccountFormScreen(
+                        repository: context.read<AccountCubit>().repository,
+                        accountId: account.id,
+                        isCreateMode: false,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.delete, color: Colors.red),
+                title: Text('Delete Account'),
+                onTap: () {
+                  Navigator.pop(context); // Close the bottom sheet
+                  _showDeleteConfirmationDialog(context, account);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _showDeleteConfirmationDialog(
+    BuildContext context,
+    account,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.warning, color: Colors.orange),
+              const SizedBox(width: 8),
+              Text('Delete Account'),
+            ],
+          ),
+          content: Text(
+            'Are you sure you want to delete "${account.name}"? This action cannot be undone.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      context.read<AccountCubit>().deleteAccount(account.id!);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,26 +149,23 @@ class AccountListScreen extends StatelessWidget {
               itemCount: state.accounts.length,
               itemBuilder: (context, index) {
                 final account = state.accounts[index];
-                return ListTile(
-                  title: Text(account.name),
-                  subtitle: Text(account.note ?? ''),
-                  trailing: IconButton(
-                    icon: Icon(Icons.delete),
-                    onPressed: () {
-                      context.read<AccountCubit>().deleteAccount(account.id!);
+                return GestureDetector(
+                  onLongPress: () => _showAccountOptions(context, account),
+                  child: ListTile(
+                    title: Text(account.name),
+                    subtitle: Text(account.note ?? ''),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => AccountDetailScreen(
+                            account: account,
+                            repository: context.read<AccountCubit>().repository,
+                          ),
+                        ),
+                      );
                     },
                   ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => AccountDetailScreen(
-                          account: account,
-                          repository: context.read<AccountCubit>().repository,
-                        ),
-                      ),
-                    );
-                  },
                 );
               },
             );
