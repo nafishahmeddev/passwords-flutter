@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import '../../business/cubit/account_cubit.dart';
 import '../../data/templates/account_templates.dart';
 import '../widgets/account_list_item.dart';
@@ -15,7 +16,7 @@ class AccountSearchDelegate extends SearchDelegate<String> {
   List<Widget> buildActions(BuildContext context) {
     return [
       IconButton(
-        icon: Icon(Icons.clear),
+        icon: Icon(Icons.close),
         onPressed: () {
           query = '';
         },

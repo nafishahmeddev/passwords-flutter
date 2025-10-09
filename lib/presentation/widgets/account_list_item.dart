@@ -61,7 +61,7 @@ class AccountListItem extends StatelessWidget {
         elevation: 2,
         borderRadius: borderRadius,
         clipBehavior: Clip.antiAlias,
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        color: Theme.of(context).colorScheme.surfaceContainerLow,
         child: InkWell(
           onTap: () {
             Navigator.push(
@@ -75,7 +75,7 @@ class AccountListItem extends StatelessWidget {
             );
           },
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+            padding: EdgeInsets.only(left: 16.0, top: 12.0, bottom: 12.0),
             child: Row(
               children: [
                 // Logo/Icon
@@ -84,10 +84,10 @@ class AccountListItem extends StatelessWidget {
                   height: 40,
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(100),
                   ),
                   child: Icon(
-                    Symbols.password,
+                    Icons.password,
                     color: Theme.of(context).colorScheme.onPrimaryContainer,
                     size: 20,
                   ),
@@ -126,6 +126,7 @@ class AccountListItem extends StatelessWidget {
                 ),
                 // Menu Button
                 PopupMenuButton<String>(
+                  icon: Icon(Icons.more_vert, size: 22),
                   onSelected: (value) {
                     if (value == 'edit') {
                       Navigator.push(
@@ -151,7 +152,6 @@ class AccountListItem extends StatelessWidget {
                         children: [
                           Icon(
                             account.isFavorite ? Icons.star : Icons.star_border,
-                            color: Colors.amber,
                           ),
                           SizedBox(width: 8),
                           Text(account.isFavorite ? 'Unfavorite' : 'Favorite'),
@@ -162,7 +162,7 @@ class AccountListItem extends StatelessWidget {
                       value: 'edit',
                       child: Row(
                         children: [
-                          Icon(Icons.edit, color: Colors.blue),
+                          Icon(Icons.edit),
                           SizedBox(width: 8),
                           Text('Edit'),
                         ],
@@ -172,7 +172,7 @@ class AccountListItem extends StatelessWidget {
                       value: 'delete',
                       child: Row(
                         children: [
-                          Icon(Icons.delete, color: Colors.red),
+                          Icon(Icons.delete),
                           SizedBox(width: 8),
                           Text('Delete'),
                         ],
