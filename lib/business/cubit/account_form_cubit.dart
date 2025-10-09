@@ -11,11 +11,13 @@ class AccountFormCubit extends Cubit<AccountFormState> {
   final AccountRepository repository;
   final int? accountId; // Made nullable for create mode
   final bool isCreateMode;
+  final List<AccountField>? templateFields; // Template fields for create mode
 
   AccountFormCubit({
     required this.repository,
     this.accountId,
     this.isCreateMode = false,
+    this.templateFields,
   }) : super(AccountFormInitial()) {
     if (!isCreateMode && accountId == null) {
       throw ArgumentError('accountId is required when not in create mode');
@@ -27,10 +29,11 @@ class AccountFormCubit extends Cubit<AccountFormState> {
     try {
       emit(AccountFormLoading());
       if (isCreateMode) {
-        // Create mode: start with empty account and no fields
+        // Create mode: start with empty account and template fields (if provided)
         final now = DateTime.now().millisecondsSinceEpoch;
         final newAccount = Account(name: '', createdAt: now, updatedAt: now);
-        emit(AccountFormLoaded(newAccount, []));
+        final fields = templateFields ?? [];
+        emit(AccountFormLoaded(newAccount, fields));
       } else {
         // Edit mode: load existing account and fields
         final account = await repository.getAccounts().then(

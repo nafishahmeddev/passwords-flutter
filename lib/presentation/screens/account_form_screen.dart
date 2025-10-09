@@ -11,12 +11,14 @@ class AccountFormScreen extends StatelessWidget {
   final AccountRepository repository;
   final int? accountId; // Made nullable for create mode
   final bool isCreateMode;
+  final List<AccountField>? templateFields; // Template fields for create mode
 
   const AccountFormScreen({
     super.key,
     required this.repository,
     this.accountId,
     this.isCreateMode = false,
+    this.templateFields,
   });
 
   @override
@@ -26,6 +28,7 @@ class AccountFormScreen extends StatelessWidget {
         repository: repository,
         accountId: accountId,
         isCreateMode: isCreateMode,
+        templateFields: templateFields,
       )..loadFields(),
       child: _AccountEditBody(
         repository: repository,

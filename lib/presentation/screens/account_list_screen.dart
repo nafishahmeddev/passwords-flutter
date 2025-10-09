@@ -54,12 +54,21 @@ class AccountListScreen extends StatelessWidget {
         child: Icon(Icons.add),
         onPressed: () async {
           // Navigate to create new account
+          // Example of how to pass template fields:
+          // final templateFields = [
+          //   AccountField(label: 'Username', value: '', type: 'text'),
+          //   AccountField(label: 'Password', value: '', type: 'password'),
+          //   AccountField(label: 'Website', value: '', type: 'website'),
+          // ];
+          // (Import AccountField from '../../data/models/account_field.dart')
+
           await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (_) => AccountFormScreen(
                 repository: context.read<AccountCubit>().repository,
                 isCreateMode: true,
+                // templateFields: templateFields, // Uncomment to use template fields
               ),
             ),
           );
