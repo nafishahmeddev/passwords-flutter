@@ -44,4 +44,28 @@ class Account {
     createdAt: map['createdAt'],
     updatedAt: map['updatedAt'],
   );
+
+  Account copyWith({
+    int? id,
+    String? name,
+    String? description,
+    String? note,
+    String? logoUrl,
+    String? logoFile,
+    String? logoIcon,
+    int? createdAt,
+    int? updatedAt,
+  }) {
+    return Account(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      note: note ?? this.note,
+      logoUrl: logoUrl ?? this.logoUrl,
+      logoFile: logoFile ?? this.logoFile,
+      logoIcon: logoIcon ?? this.logoIcon,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
 }

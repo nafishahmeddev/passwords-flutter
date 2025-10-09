@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../cubits/account_edit_cubit.dart';
+import '../../models/account.dart';
 import '../../models/account_field.dart';
 import '../../repositories/account_repository.dart';
 import 'add_field_dialog.dart';
@@ -38,6 +39,40 @@ class _AccountEditBody extends StatefulWidget {
 }
 
 class _AccountEditBodyState extends State<_AccountEditBody> {
+  TextEditingController? _nameController;
+  TextEditingController? _descriptionController;
+  TextEditingController? _noteController;
+
+  @override
+  void initState() {
+    super.initState();
+    // Controllers will be initialized when state is loaded
+  }
+
+  @override
+  void dispose() {
+    _nameController?.dispose();
+    _descriptionController?.dispose();
+    _noteController?.dispose();
+    super.dispose();
+  }
+
+  void _initializeControllers(Account account) {
+    _nameController = TextEditingController(text: account.name);
+    _descriptionController = TextEditingController(
+      text: account.description ?? '',
+    );
+    _noteController = TextEditingController(text: account.note ?? '');
+  }
+
+  void _updateControllers(Account account) {
+    if (_nameController != null) {
+      _nameController!.text = account.name;
+      _descriptionController!.text = account.description ?? '';
+      _noteController!.text = account.note ?? '';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,6 +104,14 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
           if (state is AccountEditLoading) {
             return Center(child: CircularProgressIndicator());
           } else if (state is AccountEditLoaded) {
+            // Initialize controllers if not already done
+            if (_nameController == null) {
+              _initializeControllers(state.account);
+            } else {
+              // Update controllers if account data changed
+              _updateControllers(state.account);
+            }
+
             if (state.fields.isEmpty) {
               return Center(
                 child: Column(
@@ -98,17 +141,100 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
 
             return ListView(
               padding: EdgeInsets.all(16),
-              children: state.fields.map((field) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 16.0),
-                  child: FieldWidgetBuilder.buildFieldWidget(
-                    context,
-                    field,
-                    context.read<AccountEditCubit>(),
-                    () => _confirmDeleteField(context, field),
+              children: [
+                // Account editing section
+                Card(
+                  margin: EdgeInsets.only(bottom: 16),
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Account Details',
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 16),
+                        TextField(
+                          controller: _nameController,
+                          decoration: InputDecoration(
+                            labelText: 'Account Name',
+                            border: OutlineInputBorder(),
+                            prefixIcon: Icon(Icons.account_circle),
+                          ),
+                          onChanged: (value) {
+                            final updatedAccount = state.account.copyWith(
+                              name: value,
+                            );
+                            context.read<AccountEditCubit>().updateAccount(
+                              updatedAccount,
+                            );
+                          },
+                        ),
+                        SizedBox(height: 12),
+                        TextField(
+                          controller: _descriptionController,
+                          decoration: InputDecoration(
+                            labelText: 'Description (Optional)',
+                            border: OutlineInputBorder(),
+                            prefixIcon: Icon(Icons.description),
+                          ),
+                          maxLines: 2,
+                          onChanged: (value) {
+                            final updatedAccount = state.account.copyWith(
+                              description: value.isEmpty ? null : value,
+                            );
+                            context.read<AccountEditCubit>().updateAccount(
+                              updatedAccount,
+                            );
+                          },
+                        ),
+                        SizedBox(height: 12),
+                        TextField(
+                          controller: _noteController,
+                          decoration: InputDecoration(
+                            labelText: 'Note (Optional)',
+                            border: OutlineInputBorder(),
+                            prefixIcon: Icon(Icons.note),
+                          ),
+                          maxLines: 3,
+                          onChanged: (value) {
+                            final updatedAccount = state.account.copyWith(
+                              note: value.isEmpty ? null : value,
+                            );
+                            context.read<AccountEditCubit>().updateAccount(
+                              updatedAccount,
+                            );
+                          },
+                        ),
+                      ],
+                    ),
                   ),
-                );
-              }).toList(),
+                ),
+                // Fields section header
+                Padding(
+                  padding: EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    'Fields',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                // Fields list
+                ...state.fields.map((field) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    child: FieldWidgetBuilder.buildFieldWidget(
+                      context,
+                      field,
+                      context.read<AccountEditCubit>(),
+                      () => _confirmDeleteField(context, field),
+                    ),
+                  );
+                }).toList(),
+              ],
             );
           } else if (state is AccountEditSaving) {
             return Center(
