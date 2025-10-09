@@ -52,46 +52,6 @@ class AccountListScreen extends StatelessWidget {
     }
   }
 
-  void _showAccountOptions(BuildContext context, account) {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: Icon(Icons.edit, color: Colors.blue),
-                title: Text('Edit Account'),
-                onTap: () {
-                  Navigator.pop(context); // Close the bottom sheet
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => AccountFormScreen(
-                        repository: context.read<AccountCubit>().repository,
-                        accountId: account.id,
-                        isCreateMode: false,
-                      ),
-                    ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.delete, color: Colors.red),
-                title: Text('Delete Account'),
-                onTap: () {
-                  Navigator.pop(context); // Close the bottom sheet
-                  _showDeleteConfirmationDialog(context, account);
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   Future<void> _showDeleteConfirmationDialog(
     BuildContext context,
     account,
@@ -149,23 +109,62 @@ class AccountListScreen extends StatelessWidget {
               itemCount: state.accounts.length,
               itemBuilder: (context, index) {
                 final account = state.accounts[index];
-                return GestureDetector(
-                  onLongPress: () => _showAccountOptions(context, account),
-                  child: ListTile(
-                    title: Text(account.name),
-                    subtitle: Text(account.note ?? ''),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => AccountDetailScreen(
-                            account: account,
-                            repository: context.read<AccountCubit>().repository,
+                return ListTile(
+                  title: Text(account.name),
+                  subtitle: Text(account.note ?? ''),
+                  trailing: PopupMenuButton<String>(
+                    onSelected: (value) {
+                      if (value == 'edit') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => AccountFormScreen(
+                              repository: context
+                                  .read<AccountCubit>()
+                                  .repository,
+                              accountId: account.id,
+                              isCreateMode: false,
+                            ),
                           ),
-                        ),
-                      );
+                        );
+                      } else if (value == 'delete') {
+                        _showDeleteConfirmationDialog(context, account);
+                      }
                     },
+                    itemBuilder: (BuildContext context) => [
+                      PopupMenuItem<String>(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            Icon(Icons.edit, color: Colors.blue),
+                            SizedBox(width: 8),
+                            Text('Edit'),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem<String>(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            Icon(Icons.delete, color: Colors.red),
+                            SizedBox(width: 8),
+                            Text('Delete'),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => AccountDetailScreen(
+                          account: account,
+                          repository: context.read<AccountCubit>().repository,
+                        ),
+                      ),
+                    );
+                  },
                 );
               },
             );
