@@ -1,0 +1,65 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../cubits/account_cubit.dart';
+import '../../models/account.dart';
+import '../account_detail/account_detail_screen.dart';
+
+class AccountListScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Accounts')),
+      body: BlocBuilder<AccountCubit, AccountState>(
+        builder: (context, state) {
+          if (state is AccountLoading) {
+            return Center(child: CircularProgressIndicator());
+          } else if (state is AccountLoaded) {
+            if (state.accounts.isEmpty) {
+              return Center(child: Text('No accounts found'));
+            }
+            return ListView.builder(
+              itemCount: state.accounts.length,
+              itemBuilder: (context, index) {
+                final account = state.accounts[index];
+                return ListTile(
+                  title: Text(account.name),
+                  subtitle: Text(account.note ?? ''),
+                  trailing: IconButton(
+                    icon: Icon(Icons.delete),
+                    onPressed: () {
+                      context.read<AccountCubit>().deleteAccount(account.id!);
+                    },
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => AccountDetailScreen(
+                          account: account,
+                          repository: context.read<AccountCubit>().repository,
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            );
+          } else if (state is AccountError) {
+            return Center(child: Text(state.message));
+          }
+          return Center(child: Text('Press + to add account'));
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add),
+        onPressed: () async {
+          // Temporary: Add a sample account
+          final now = DateTime.now().millisecondsSinceEpoch;
+          context.read<AccountCubit>().addAccount(
+            Account(name: 'Sample Account', createdAt: now, updatedAt: now),
+          );
+        },
+      ),
+    );
+  }
+}
