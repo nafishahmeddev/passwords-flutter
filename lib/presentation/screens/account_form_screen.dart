@@ -247,14 +247,19 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
                   ...state.fields.map((field) {
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 16.0),
-                      child: FieldWidgetBuilder.buildFieldWidget(
-                        context,
-                        field,
-                        context.read<AccountFormCubit>(),
-                        () => _confirmDeleteField(context, field),
+                      child: Builder(
+                        builder: (dialogContext) =>
+                            FieldWidgetBuilder.buildFieldWidget(
+                              dialogContext,
+                              field,
+                              context.read<AccountFormCubit>(),
+                              () {
+                                _confirmDeleteField(dialogContext, field);
+                              },
+                            ),
                       ),
                     );
-                  }).toList(),
+                  }),
               ],
             );
           } else if (state is AccountFormSaving) {
@@ -324,7 +329,7 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
             ),
             onPressed: () async {
               Navigator.pop(context);
-              await _deleteField(context, field);
+              await _deleteField(field);
             },
             child: Text('Delete'),
           ),
@@ -333,7 +338,7 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
     );
   }
 
-  Future<void> _deleteField(BuildContext context, AccountField field) async {
+  Future<void> _deleteField(AccountField field) async {
     try {
       // Remove the field from form state (will be persisted when saved)
       context.read<AccountFormCubit>().removeField(field.id);

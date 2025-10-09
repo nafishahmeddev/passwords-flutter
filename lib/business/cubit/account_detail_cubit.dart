@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:bloc/bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/models/account.dart';
 import '../../data/models/account_field.dart';
 import '../../data/repositories/account_repository.dart';

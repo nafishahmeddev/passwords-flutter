@@ -1,4 +1,4 @@
-import 'package:bloc/bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/models/account.dart';
 import '../../data/models/account_field.dart';
 import '../../data/repositories/account_repository.dart';
@@ -12,6 +12,9 @@ class AccountFormCubit extends Cubit<AccountFormState> {
   final String? accountId; // Made nullable for create mode
   final bool isCreateMode;
   final List<AccountField>? templateFields; // Template fields for create mode
+
+  List<AccountField> _originalFields =
+      []; // Track original fields for deletion detection
 
   AccountFormCubit({
     required this.repository,
@@ -40,6 +43,9 @@ class AccountFormCubit extends Cubit<AccountFormState> {
           (accounts) => accounts.firstWhere((acc) => acc.id == accountId),
         );
         final fields = await repository.getFields(accountId!);
+        _originalFields = List.from(
+          fields,
+        ); // Store original fields for deletion detection
         emit(AccountFormLoaded(account, fields));
       }
     } catch (e) {
@@ -135,6 +141,15 @@ class AccountFormCubit extends Cubit<AccountFormState> {
             ),
           );
           savedAccountId = accountId!;
+        }
+
+        // Delete fields that were removed
+        final currentFieldIds = currentState.fields.map((f) => f.id).toSet();
+        final fieldsToDelete = _originalFields
+            .where((field) => !currentFieldIds.contains(field.id))
+            .toList();
+        for (final field in fieldsToDelete) {
+          await repository.deleteField(field.id);
         }
 
         // Save all fields to database using upsert logic
