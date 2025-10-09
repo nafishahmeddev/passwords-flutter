@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../data/models/account_field.dart';
-import '../../business/cubit/account_edit_cubit.dart';
+import '../../business/cubit/account_form_cubit.dart';
 
 class AddFieldDialog extends StatefulWidget {
-  final AccountEditCubit formCubit;
+  final AccountFormCubit formCubit;
   final int?
   accountId; // Made optional - will get from cubit state if not provided
   final VoidCallback? onFieldAdded;
@@ -118,7 +118,7 @@ class AddFieldDialogState extends State<AddFieldDialog> {
       // Get the current highest order from the form state
       final currentState = widget.formCubit.state;
       final maxOrder =
-          currentState is AccountEditLoaded && currentState.fields.isNotEmpty
+          currentState is AccountFormLoaded && currentState.fields.isNotEmpty
           ? currentState.fields
                 .map((f) => f.order)
                 .reduce((a, b) => a > b ? a : b)
@@ -127,7 +127,7 @@ class AddFieldDialogState extends State<AddFieldDialog> {
       // Get accountId from widget parameter or from cubit state
       final accountId =
           widget.accountId ??
-          (currentState as AccountEditLoaded).account.id ??
+          (currentState as AccountFormLoaded).account.id ??
           0;
 
       final newField = AccountField(

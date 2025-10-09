@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../data/models/account_field.dart';
-import '../../business/cubit/account_edit_cubit.dart';
+import '../../business/cubit/account_form_cubit.dart';
 import 'credential_field.dart';
 import 'password_field.dart';
 import 'text_field.dart';
@@ -10,7 +10,7 @@ class FieldWidgetBuilder {
   static Widget buildFieldWidget(
     BuildContext context,
     AccountField field,
-    AccountEditCubit formCubit,
+    AccountFormCubit formCubit,
     VoidCallback onDelete,
   ) {
     switch (field.type) {

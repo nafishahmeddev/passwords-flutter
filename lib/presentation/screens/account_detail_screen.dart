@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../data/models/account.dart';
 import '../../data/models/account_field.dart';
 import '../../data/repositories/account_repository.dart';
-import 'account_edit_screen.dart';
+import 'account_form_screen.dart';
 
 class AccountDetailScreen extends StatefulWidget {
   final Account account;
@@ -63,7 +63,7 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
               final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => AccountEditScreen(
+                  builder: (_) => AccountFormScreen(
                     repository: widget.repository,
                     accountId: _currentAccount!.id!,
                     isCreateMode: false,

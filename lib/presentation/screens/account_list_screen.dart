@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../business/cubit/account_cubit.dart';
 import 'account_detail_screen.dart';
-import 'account_edit_screen.dart';
+import 'account_form_screen.dart';
 
 class AccountListScreen extends StatelessWidget {
   @override
@@ -57,7 +57,7 @@ class AccountListScreen extends StatelessWidget {
           await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => AccountEditScreen(
+              builder: (_) => AccountFormScreen(
                 repository: context.read<AccountCubit>().repository,
                 isCreateMode: true,
               ),

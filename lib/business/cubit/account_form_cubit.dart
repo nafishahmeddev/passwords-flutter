@@ -5,18 +5,18 @@ import '../../data/repositories/account_repository.dart';
 import 'account_event.dart';
 import 'account_event_bus.dart';
 
-part 'account_edit_state.dart';
+part 'account_form_state.dart';
 
-class AccountEditCubit extends Cubit<AccountEditState> {
+class AccountFormCubit extends Cubit<AccountFormState> {
   final AccountRepository repository;
   final int? accountId; // Made nullable for create mode
   final bool isCreateMode;
 
-  AccountEditCubit({
+  AccountFormCubit({
     required this.repository,
     this.accountId,
     this.isCreateMode = false,
-  }) : super(AccountEditInitial()) {
+  }) : super(AccountFormInitial()) {
     if (!isCreateMode && accountId == null) {
       throw ArgumentError('accountId is required when not in create mode');
     }
@@ -25,34 +25,34 @@ class AccountEditCubit extends Cubit<AccountEditState> {
   // Load account and fields from database into form state
   Future<void> loadFields() async {
     try {
-      emit(AccountEditLoading());
+      emit(AccountFormLoading());
       if (isCreateMode) {
         // Create mode: start with empty account and no fields
         final now = DateTime.now().millisecondsSinceEpoch;
         final newAccount = Account(name: '', createdAt: now, updatedAt: now);
-        emit(AccountEditLoaded(newAccount, []));
+        emit(AccountFormLoaded(newAccount, []));
       } else {
         // Edit mode: load existing account and fields
         final account = await repository.getAccounts().then(
           (accounts) => accounts.firstWhere((acc) => acc.id == accountId),
         );
         final fields = await repository.getFields(accountId!);
-        emit(AccountEditLoaded(account, fields));
+        emit(AccountFormLoaded(account, fields));
       }
     } catch (e) {
-      emit(AccountEditError('Failed to load account and fields'));
+      emit(AccountFormError('Failed to load account and fields'));
     }
   }
 
   // Update a field in memory only (doesn't persist to database)
   void updateField(AccountField updatedField) {
-    if (state is AccountEditLoaded) {
-      final currentState = state as AccountEditLoaded;
+    if (state is AccountFormLoaded) {
+      final currentState = state as AccountFormLoaded;
       final updatedFields = currentState.fields.map((field) {
         return field.id == updatedField.id ? updatedField : field;
       }).toList();
       emit(
-        AccountEditLoaded(
+        AccountFormLoaded(
           currentState.account,
           updatedFields,
           hasUnsavedChanges: true,
@@ -63,12 +63,12 @@ class AccountEditCubit extends Cubit<AccountEditState> {
 
   // Add a new field to the form
   void addField(AccountField newField) {
-    if (state is AccountEditLoaded) {
-      final currentState = state as AccountEditLoaded;
+    if (state is AccountFormLoaded) {
+      final currentState = state as AccountFormLoaded;
       final updatedFields = List<AccountField>.from(currentState.fields)
         ..add(newField);
       emit(
-        AccountEditLoaded(
+        AccountFormLoaded(
           currentState.account,
           updatedFields,
           hasUnsavedChanges: true,
@@ -79,10 +79,10 @@ class AccountEditCubit extends Cubit<AccountEditState> {
 
   // Update account in memory only (doesn't persist to database)
   void updateAccount(Account updatedAccount) {
-    if (state is AccountEditLoaded) {
-      final currentState = state as AccountEditLoaded;
+    if (state is AccountFormLoaded) {
+      final currentState = state as AccountFormLoaded;
       emit(
-        AccountEditLoaded(
+        AccountFormLoaded(
           updatedAccount,
           currentState.fields,
           hasUnsavedChanges: true,
@@ -93,13 +93,13 @@ class AccountEditCubit extends Cubit<AccountEditState> {
 
   // Remove a field from the form
   void removeField(int fieldId) {
-    if (state is AccountEditLoaded) {
-      final currentState = state as AccountEditLoaded;
+    if (state is AccountFormLoaded) {
+      final currentState = state as AccountFormLoaded;
       final updatedFields = currentState.fields
           .where((field) => field.id != fieldId)
           .toList();
       emit(
-        AccountEditLoaded(
+        AccountFormLoaded(
           currentState.account,
           updatedFields,
           hasUnsavedChanges: true,
@@ -110,10 +110,10 @@ class AccountEditCubit extends Cubit<AccountEditState> {
 
   // Save all changes to database
   Future<void> saveChanges() async {
-    if (state is AccountEditLoaded) {
-      final currentState = state as AccountEditLoaded;
+    if (state is AccountFormLoaded) {
+      final currentState = state as AccountFormLoaded;
       try {
-        emit(AccountEditSaving());
+        emit(AccountFormSaving());
 
         // Save account to database
         int savedAccountId;
@@ -148,17 +148,17 @@ class AccountEditCubit extends Cubit<AccountEditState> {
 
         // Reload from database to get updated IDs and confirm save
         await loadFields();
-        emit((state as AccountEditLoaded).copyWith(hasUnsavedChanges: false));
+        emit((state as AccountFormLoaded).copyWith(hasUnsavedChanges: false));
 
         // Publish event for other parts of the app to react
-        final savedAccount = (state as AccountEditLoaded).account;
+        final savedAccount = (state as AccountFormLoaded).account;
         if (isCreateMode) {
           AccountEventBus().publish(AccountCreated(savedAccount));
         } else {
           AccountEventBus().publish(AccountUpdated(savedAccount));
         }
       } catch (e) {
-        emit(AccountEditError('Failed to save changes: $e'));
+        emit(AccountFormError('Failed to save changes: $e'));
       }
     }
   }

@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../business/cubit/account_edit_cubit.dart';
+import '../../business/cubit/account_form_cubit.dart';
 import '../../data/models/account.dart';
 import '../../data/models/account_field.dart';
 import '../../data/repositories/account_repository.dart';
 import '../widgets/add_field_dialog.dart';
 import '../widgets/field_widget_builder.dart';
 
-class AccountEditScreen extends StatelessWidget {
+class AccountFormScreen extends StatelessWidget {
   final AccountRepository repository;
   final int? accountId; // Made nullable for create mode
   final bool isCreateMode;
 
-  const AccountEditScreen({
+  const AccountFormScreen({
     super.key,
     required this.repository,
     this.accountId,
@@ -22,7 +22,7 @@ class AccountEditScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => AccountEditCubit(
+      create: (_) => AccountFormCubit(
         repository: repository,
         accountId: accountId,
         isCreateMode: isCreateMode,
@@ -96,7 +96,7 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
             icon: Icon(Icons.save),
             onPressed: () async {
               try {
-                await context.read<AccountEditCubit>().saveChanges();
+                await context.read<AccountFormCubit>().saveChanges();
                 Navigator.pop(
                   context,
                   true,
@@ -115,11 +115,11 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
         child: Icon(Icons.add),
         tooltip: 'Add New Field',
       ),
-      body: BlocBuilder<AccountEditCubit, AccountEditState>(
+      body: BlocBuilder<AccountFormCubit, AccountFormState>(
         builder: (context, state) {
-          if (state is AccountEditLoading) {
+          if (state is AccountFormLoading) {
             return Center(child: CircularProgressIndicator());
-          } else if (state is AccountEditLoaded) {
+          } else if (state is AccountFormLoaded) {
             // Initialize controllers if not already done
             if (_nameController == null) {
               _initializeControllers(state.account);
@@ -156,7 +156,7 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
                             final updatedAccount = state.account.copyWith(
                               name: value,
                             );
-                            context.read<AccountEditCubit>().updateAccount(
+                            context.read<AccountFormCubit>().updateAccount(
                               updatedAccount,
                             );
                           },
@@ -174,7 +174,7 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
                             final updatedAccount = state.account.copyWith(
                               description: value.isEmpty ? null : value,
                             );
-                            context.read<AccountEditCubit>().updateAccount(
+                            context.read<AccountFormCubit>().updateAccount(
                               updatedAccount,
                             );
                           },
@@ -192,7 +192,7 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
                             final updatedAccount = state.account.copyWith(
                               note: value.isEmpty ? null : value,
                             );
-                            context.read<AccountEditCubit>().updateAccount(
+                            context.read<AccountFormCubit>().updateAccount(
                               updatedAccount,
                             );
                           },
@@ -247,14 +247,14 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
                       child: FieldWidgetBuilder.buildFieldWidget(
                         context,
                         field,
-                        context.read<AccountEditCubit>(),
+                        context.read<AccountFormCubit>(),
                         () => _confirmDeleteField(context, field),
                       ),
                     );
                   }).toList(),
               ],
             );
-          } else if (state is AccountEditSaving) {
+          } else if (state is AccountFormSaving) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -265,7 +265,7 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
                 ],
               ),
             );
-          } else if (state is AccountEditError) {
+          } else if (state is AccountFormError) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -276,7 +276,7 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
                   SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () =>
-                        context.read<AccountEditCubit>().loadFields(),
+                        context.read<AccountFormCubit>().loadFields(),
                     child: Text('Retry'),
                   ),
                 ],
@@ -294,7 +294,7 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
       context: context,
       builder: (dialogContext) {
         return AddFieldDialog(
-          formCubit: context.read<AccountEditCubit>(),
+          formCubit: context.read<AccountFormCubit>(),
           // accountId will be determined from cubit state
         );
       },
@@ -333,7 +333,7 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
   Future<void> _deleteField(BuildContext context, AccountField field) async {
     try {
       // Remove the field from form state (will be persisted when saved)
-      context.read<AccountEditCubit>().removeField(field.id!);
+      context.read<AccountFormCubit>().removeField(field.id!);
 
       ScaffoldMessenger.of(
         context,
