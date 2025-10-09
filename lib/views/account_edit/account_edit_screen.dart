@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../cubits/account_field_cubit.dart';
+import '../../cubits/account_edit_cubit.dart';
 import '../../models/account_field.dart';
 import '../../repositories/account_repository.dart';
 import 'add_field_dialog.dart';
@@ -20,7 +20,7 @@ class AccountEditScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) =>
-          AccountFieldCubit(repository: repository, accountId: accountId)
+          AccountEditCubit(repository: repository, accountId: accountId)
             ..loadFields(),
       child: _AccountEditBody(repository: repository, accountId: accountId),
     );
@@ -47,8 +47,14 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
           IconButton(
             icon: Icon(Icons.save),
             onPressed: () async {
-              // Save all fields - metadata is automatically saved with each field
-              Navigator.pop(context);
+              try {
+                await context.read<AccountEditCubit>().saveChanges();
+                Navigator.pop(context);
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Failed to save changes: $e')),
+                );
+              }
             },
           ),
         ],
@@ -58,11 +64,11 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
         child: Icon(Icons.add),
         tooltip: 'Add New Field',
       ),
-      body: BlocBuilder<AccountFieldCubit, AccountFieldState>(
+      body: BlocBuilder<AccountEditCubit, AccountEditState>(
         builder: (context, state) {
-          if (state is AccountFieldLoading) {
+          if (state is AccountEditLoading) {
             return Center(child: CircularProgressIndicator());
-          } else if (state is AccountFieldLoaded) {
+          } else if (state is AccountEditLoaded) {
             if (state.fields.isEmpty) {
               return Center(
                 child: Column(
@@ -98,11 +104,39 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
                   child: FieldWidgetBuilder.buildFieldWidget(
                     context,
                     field,
-                    widget.repository,
+                    context.read<AccountEditCubit>(),
                     () => _confirmDeleteField(context, field),
                   ),
                 );
               }).toList(),
+            );
+          } else if (state is AccountEditSaving) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Saving changes...'),
+                ],
+              ),
+            );
+          } else if (state is AccountEditError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error, size: 64, color: Colors.red),
+                  SizedBox(height: 16),
+                  Text(state.message),
+                  SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () =>
+                        context.read<AccountEditCubit>().loadFields(),
+                    child: Text('Retry'),
+                  ),
+                ],
+              ),
             );
           }
           return SizedBox.shrink();
@@ -116,11 +150,9 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
       context: context,
       builder: (dialogContext) {
         return AddFieldDialog(
-          repository: widget.repository,
+          formCubit: context.read<AccountEditCubit>(),
           accountId: widget.accountId,
-          onFieldAdded: () {
-            context.read<AccountFieldCubit>().loadFields();
-          },
+          // onFieldAdded callback removed since addField updates form state directly
         );
       },
     );
@@ -157,19 +189,16 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
 
   Future<void> _deleteField(BuildContext context, AccountField field) async {
     try {
-      // Delete the field from database (metadata is automatically deleted)
-      await widget.repository.deleteField(field.id!);
-
-      // Refresh the fields list
-      context.read<AccountFieldCubit>().loadFields();
+      // Remove the field from form state (will be persisted when saved)
+      context.read<AccountEditCubit>().removeField(field.id!);
 
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Field "${field.label}" deleted')));
+      ).showSnackBar(SnackBar(content: Text('Field "${field.label}" removed')));
     } catch (e) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Error deleting field: $e')));
+      ).showSnackBar(SnackBar(content: Text('Error removing field: $e')));
     }
   }
 }

@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import '../../models/account_field.dart';
-import '../../repositories/account_repository.dart';
+import '../../cubits/account_edit_cubit.dart';
 
 class AddFieldDialog extends StatefulWidget {
-  final AccountRepository repository;
+  final AccountEditCubit formCubit;
   final int accountId;
-  final VoidCallback onFieldAdded;
+  final VoidCallback? onFieldAdded; // Made optional
 
   const AddFieldDialog({
     Key? key,
-    required this.repository,
+    required this.formCubit,
     required this.accountId,
-    required this.onFieldAdded,
+    this.onFieldAdded, // Optional now
   }) : super(key: key);
 
   @override
@@ -114,13 +114,14 @@ class AddFieldDialogState extends State<AddFieldDialog> {
     });
 
     try {
-      // Get the current highest order to append the new field at the end
-      final existingFields = await widget.repository.getFields(
-        widget.accountId,
-      );
-      final maxOrder = existingFields.isEmpty
-          ? 0
-          : existingFields.map((f) => f.order).reduce((a, b) => a > b ? a : b);
+      // Get the current highest order from the form state
+      final currentState = widget.formCubit.state;
+      final maxOrder =
+          currentState is AccountEditLoaded && currentState.fields.isNotEmpty
+          ? currentState.fields
+                .map((f) => f.order)
+                .reduce((a, b) => a > b ? a : b)
+          : 0;
 
       final newField = AccountField(
         accountId: widget.accountId,
@@ -130,8 +131,8 @@ class AddFieldDialogState extends State<AddFieldDialog> {
         order: maxOrder + 1,
       );
 
-      await widget.repository.insertField(newField);
-      widget.onFieldAdded();
+      widget.formCubit.addField(newField);
+      // No need to call onFieldAdded since addField already updates the form state
       Navigator.pop(context);
 
       ScaffoldMessenger.of(context).showSnackBar(
