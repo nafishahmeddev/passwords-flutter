@@ -1,74 +1,74 @@
+import 'package:uuid/uuid.dart';
+
+enum LogoType { file, url, icon }
+
 class Account {
-  int? id;
+  String id;
   String name;
   String? description;
   String? note;
-  String? logoUrl;
-  String? logoFile;
-  String? logoIcon;
+  LogoType? logoType;
+  String? logo;
   bool isFavorite;
   int createdAt;
   int updatedAt;
 
   Account({
-    this.id,
+    String? id,
     required this.name,
     this.description,
     this.note,
-    this.logoUrl,
-    this.logoFile,
-    this.logoIcon,
+    this.logoType,
+    this.logo,
     this.isFavorite = false,
     required this.createdAt,
     required this.updatedAt,
-  });
+  }) : id = id ?? const Uuid().v4();
 
   Map<String, dynamic> toMap() => {
     'id': id,
     'name': name,
     'description': description,
     'note': note,
-    'logoUrl': logoUrl,
-    'logoFile': logoFile,
-    'logoIcon': logoIcon,
+    'logoType': logoType?.name,
+    'logo': logo,
     'isFavorite': isFavorite ? 1 : 0,
     'createdAt': createdAt,
     'updatedAt': updatedAt,
   };
 
   factory Account.fromMap(Map<String, dynamic> map) => Account(
-    id: map['id'],
+    id: map['id'] as String,
     name: map['name'],
     description: map['description'],
     note: map['note'],
-    logoUrl: map['logoUrl'],
-    logoFile: map['logoFile'],
-    logoIcon: map['logoIcon'],
+    logoType: map['logoType'] != null
+        ? LogoType.values.byName(map['logoType'])
+        : null,
+    logo: map['logo'],
     isFavorite: map['isFavorite'] == 1,
     createdAt: map['createdAt'],
     updatedAt: map['updatedAt'],
   );
 
   Account copyWith({
-    int? id,
+    Object? id,
     String? name,
     String? description,
     String? note,
-    String? logoUrl,
-    String? logoFile,
-    String? logoIcon,
+    LogoType? logoType,
+    String? logo,
     bool? isFavorite,
     int? createdAt,
     int? updatedAt,
   }) {
     return Account(
-      id: id ?? this.id,
+      id: id != null ? id as String : this.id,
       name: name ?? this.name,
       description: description ?? this.description,
       note: note ?? this.note,
-      logoUrl: logoUrl ?? this.logoUrl,
-      logoFile: logoFile ?? this.logoFile,
-      logoIcon: logoIcon ?? this.logoIcon,
+      logoType: logoType ?? this.logoType,
+      logo: logo ?? this.logo,
       isFavorite: isFavorite ?? this.isFavorite,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,

@@ -9,7 +9,7 @@ part 'account_form_state.dart';
 
 class AccountFormCubit extends Cubit<AccountFormState> {
   final AccountRepository repository;
-  final int? accountId; // Made nullable for create mode
+  final String? accountId; // Made nullable for create mode
   final bool isCreateMode;
   final List<AccountField>? templateFields; // Template fields for create mode
 
@@ -95,7 +95,7 @@ class AccountFormCubit extends Cubit<AccountFormState> {
   }
 
   // Remove a field from the form
-  void removeField(int fieldId) {
+  void removeField(String fieldId) {
     if (state is AccountFormLoaded) {
       final currentState = state as AccountFormLoaded;
       final updatedFields = currentState.fields
@@ -119,7 +119,7 @@ class AccountFormCubit extends Cubit<AccountFormState> {
         emit(AccountFormSaving());
 
         // Save account to database
-        int savedAccountId;
+        String savedAccountId;
         if (isCreateMode) {
           // Create mode: insert new account
           final accountToInsert = currentState.account.copyWith(
@@ -137,14 +137,20 @@ class AccountFormCubit extends Cubit<AccountFormState> {
           savedAccountId = accountId!;
         }
 
-        // Save all fields to database
+        // Save all fields to database using upsert logic
         for (final field in currentState.fields) {
-          if (field.id == null) {
-            // New field - ensure it has the correct accountId
+          // Check if field exists by trying to get it
+          final existingFields = await repository.getFields(savedAccountId);
+          final existingField = existingFields
+              .where((f) => f.id == field.id)
+              .firstOrNull;
+
+          if (existingField == null) {
+            // Field doesn't exist - insert it
             final fieldToInsert = field.copyWith(accountId: savedAccountId);
             await repository.insertField(fieldToInsert);
           } else {
-            // Existing field
+            // Field exists - update it
             await repository.updateField(field);
           }
         }

@@ -79,7 +79,7 @@ const Map<String, List<Map<String, dynamic>>> accountTemplates = {
 /// Helper function to create an AccountField from a template map.
 AccountField createFieldFromTemplate(
   Map<String, dynamic> template,
-  int accountId,
+  String accountId,
 ) {
   return AccountField(
     accountId: accountId,
@@ -91,7 +91,7 @@ AccountField createFieldFromTemplate(
 }
 
 /// Helper function to get template fields for a given template name.
-List<AccountField> getTemplateFields(String templateName, int accountId) {
+List<AccountField> getTemplateFields(String templateName, String accountId) {
   final template = accountTemplates[templateName];
   if (template == null) return [];
   return template

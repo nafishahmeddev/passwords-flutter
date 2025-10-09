@@ -8,8 +8,9 @@ class AccountRepository {
   AccountRepository(this._db);
 
   // --- Account CRUD ---
-  Future<int> insertAccount(Account account) async {
-    return await _db.insert('Account', account.toMap());
+  Future<String> insertAccount(Account account) async {
+    await _db.insert('Account', account.toMap());
+    return account.id;
   }
 
   Future<List<Account>> getAccounts() async {
@@ -26,11 +27,11 @@ class AccountRepository {
     );
   }
 
-  Future<int> deleteAccount(int id) async {
+  Future<int> deleteAccount(String id) async {
     return await _db.delete('Account', where: 'id = ?', whereArgs: [id]);
   }
 
-  Future<int> toggleFavorite(int id) async {
+  Future<int> toggleFavorite(String id) async {
     // First get the current favorite status
     final List<Map<String, dynamic>> maps = await _db.query(
       'Account',
@@ -51,11 +52,12 @@ class AccountRepository {
   }
 
   // --- AccountField CRUD ---
-  Future<int> insertField(AccountField field) async {
-    return await _db.insert('AccountField', field.toMap());
+  Future<String> insertField(AccountField field) async {
+    await _db.insert('AccountField', field.toMap());
+    return field.id;
   }
 
-  Future<List<AccountField>> getFields(int accountId) async {
+  Future<List<AccountField>> getFields(String accountId) async {
     final List<Map<String, dynamic>> maps = await _db.query(
       'AccountField',
       where: 'accountId = ?',
@@ -74,7 +76,7 @@ class AccountRepository {
     );
   }
 
-  Future<int> deleteField(int id) async {
+  Future<int> deleteField(String id) async {
     return await _db.delete('AccountField', where: 'id = ?', whereArgs: [id]);
   }
 }

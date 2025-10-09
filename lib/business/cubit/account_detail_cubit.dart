@@ -10,7 +10,7 @@ part 'account_detail_state.dart';
 
 class AccountDetailCubit extends Cubit<AccountDetailState> {
   final AccountRepository repository;
-  final int accountId;
+  final String accountId;
   StreamSubscription? _eventSubscription;
 
   AccountDetailCubit({required this.repository, required this.accountId})
@@ -45,7 +45,7 @@ class AccountDetailCubit extends Cubit<AccountDetailState> {
     }
   }
 
-  Future<void> deleteField(int id) async {
+  Future<void> deleteField(String id) async {
     try {
       await repository.deleteField(id);
       await loadFields();

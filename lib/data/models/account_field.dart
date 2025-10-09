@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:uuid/uuid.dart';
 
 enum AccountFieldType {
   credential,
@@ -18,8 +19,8 @@ enum AccountFieldType {
 }
 
 class AccountField {
-  int? id;
-  int accountId;
+  String id;
+  String accountId;
   String label;
   AccountFieldType type; // Using enum directly
   bool requiredField;
@@ -27,14 +28,15 @@ class AccountField {
   Map<String, String> metadata; // New metadata field
 
   AccountField({
-    this.id,
+    String? id,
     required this.accountId,
     required this.label,
     required this.type,
     this.requiredField = false,
     this.order = 0,
     Map<String, String>? metadata,
-  }) : metadata = metadata ?? {};
+  }) : id = id ?? const Uuid().v4(),
+       metadata = metadata ?? {};
 
   // Helper getters and setters for type safety
   AccountFieldType get fieldType => type;
@@ -80,8 +82,8 @@ class AccountField {
     }
 
     return AccountField(
-      id: map['id'],
-      accountId: map['accountId'],
+      id: map['id'] as String,
+      accountId: map['accountId'] as String,
       label: map['label'],
       type: AccountFieldType.fromString(map['type']),
       requiredField: map['required'] == 1,
@@ -91,8 +93,8 @@ class AccountField {
   }
 
   AccountField copyWith({
-    int? id,
-    int? accountId,
+    Object? id,
+    Object? accountId,
     String? label,
     AccountFieldType? type,
     bool? requiredField,
@@ -100,8 +102,8 @@ class AccountField {
     Map<String, String>? metadata,
   }) {
     return AccountField(
-      id: id ?? this.id,
-      accountId: accountId ?? this.accountId,
+      id: id != null ? id as String : this.id,
+      accountId: accountId != null ? accountId as String : this.accountId,
       label: label ?? this.label,
       type: type ?? this.type,
       requiredField: requiredField ?? this.requiredField,

@@ -32,7 +32,7 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
 
   void _loadFields() {
     setState(() {
-      _fieldsFuture = widget.repository.getFields(_currentAccount!.id!);
+      _fieldsFuture = widget.repository.getFields(_currentAccount!.id);
     });
   }
 
@@ -65,7 +65,7 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
                 MaterialPageRoute(
                   builder: (_) => AccountFormScreen(
                     repository: widget.repository,
-                    accountId: _currentAccount!.id!,
+                    accountId: _currentAccount!.id,
                     isCreateMode: false,
                   ),
                 ),

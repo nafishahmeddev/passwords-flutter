@@ -42,11 +42,11 @@ class _AccountListScreenState extends State<AccountListScreen> {
       // Get template fields for the selected type
       final templateFields = getTemplateFields(
         selectedType,
-        0,
+        'temp',
       ); // accountId will be set later
 
       // Navigate to create new account with template fields
-      await Navigator.push(
+      final result = await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => AccountFormScreen(
@@ -56,6 +56,33 @@ class _AccountListScreenState extends State<AccountListScreen> {
           ),
         ),
       );
+
+      // If account was successfully created, navigate to its detail screen
+      if (result == true) {
+        // Reload accounts to get the newly created account
+        await context.read<AccountCubit>().loadAccounts();
+
+        // Find the newly created account (it should be the most recent one)
+        final state = context.read<AccountCubit>().state;
+        if (state is AccountLoaded && state.accounts.isNotEmpty) {
+          final newestAccount = state.accounts.reduce(
+            (a, b) => a.createdAt > b.createdAt ? a : b,
+          );
+
+          // Navigate to the detail screen of the newly created account
+          if (mounted) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => AccountDetailScreen(
+                  account: newestAccount,
+                  repository: context.read<AccountCubit>().repository,
+                ),
+              ),
+            );
+          }
+        }
+      }
     }
   }
 
@@ -96,7 +123,7 @@ class _AccountListScreenState extends State<AccountListScreen> {
     );
 
     if (confirmed == true) {
-      context.read<AccountCubit>().deleteAccount(account.id!);
+      context.read<AccountCubit>().deleteAccount(account.id);
     }
   }
 
@@ -181,7 +208,7 @@ class _AccountListScreenState extends State<AccountListScreen> {
                                   );
                                 } else if (value == 'favorite') {
                                   context.read<AccountCubit>().toggleFavorite(
-                                    account.id!,
+                                    account.id,
                                   );
                                 } else if (value == 'delete') {
                                   _showDeleteConfirmationDialog(
@@ -283,7 +310,7 @@ class _AccountListScreenState extends State<AccountListScreen> {
                                 );
                               } else if (value == 'favorite') {
                                 context.read<AccountCubit>().toggleFavorite(
-                                  account.id!,
+                                  account.id,
                                 );
                               } else if (value == 'delete') {
                                 _showDeleteConfirmationDialog(context, account);

@@ -19,17 +19,16 @@ class DBHelper {
     String path = join(await getDatabasesPath(), 'passwords.db');
     _db = await openDatabase(
       path,
-      version: 2,
+      version: 4,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE Account(
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id TEXT PRIMARY KEY,
             name TEXT NOT NULL,
             description TEXT,
             note TEXT,
-            logoUrl TEXT,
-            logoFile TEXT,
-            logoIcon TEXT,
+            logoType TEXT,
+            logo TEXT,
             isFavorite INTEGER DEFAULT 0,
             createdAt INTEGER,
             updatedAt INTEGER
@@ -38,8 +37,8 @@ class DBHelper {
 
         await db.execute('''
           CREATE TABLE AccountField(
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            accountId INTEGER,
+            id TEXT PRIMARY KEY,
+            accountId TEXT,
             label TEXT,
             type TEXT,
             required INTEGER,
@@ -49,13 +48,7 @@ class DBHelper {
           )
         ''');
       },
-      onUpgrade: (db, oldVersion, newVersion) async {
-        if (oldVersion < 2) {
-          await db.execute(
-            'ALTER TABLE Account ADD COLUMN isFavorite INTEGER DEFAULT 0',
-          );
-        }
-      },
+      onUpgrade: (db, oldVersion, newVersion) async {},
     );
     return _db!;
   }

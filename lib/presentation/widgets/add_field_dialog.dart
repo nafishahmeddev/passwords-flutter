@@ -4,7 +4,7 @@ import '../../business/cubit/account_form_cubit.dart';
 
 class AddFieldDialog extends StatefulWidget {
   final AccountFormCubit formCubit;
-  final int?
+  final String?
   accountId; // Made optional - will get from cubit state if not provided
   final VoidCallback? onFieldAdded;
 
@@ -128,7 +128,7 @@ class AddFieldDialogState extends State<AddFieldDialog> {
       final accountId =
           widget.accountId ??
           (currentState as AccountFormLoaded).account.id ??
-          0;
+          '';
 
       final newField = AccountField(
         accountId: accountId,

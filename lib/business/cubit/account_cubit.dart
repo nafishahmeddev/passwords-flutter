@@ -54,7 +54,7 @@ class AccountCubit extends Cubit<AccountState> {
   }
 
   // Delete account
-  Future<void> deleteAccount(int id) async {
+  Future<void> deleteAccount(String id) async {
     try {
       await repository.deleteAccount(id);
       AccountEventBus().publish(AccountDeleted(id));
@@ -65,7 +65,7 @@ class AccountCubit extends Cubit<AccountState> {
   }
 
   // Toggle favorite
-  Future<void> toggleFavorite(int id) async {
+  Future<void> toggleFavorite(String id) async {
     try {
       await repository.toggleFavorite(id);
       await loadAccounts(); // refresh

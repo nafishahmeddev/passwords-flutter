@@ -13,6 +13,6 @@ class AccountUpdated extends AccountEvent {
 }
 
 class AccountDeleted extends AccountEvent {
-  final int accountId;
+  final String accountId;
   AccountDeleted(this.accountId);
 }

@@ -9,7 +9,7 @@ import '../widgets/field_widget_builder.dart';
 
 class AccountFormScreen extends StatelessWidget {
   final AccountRepository repository;
-  final int? accountId; // Made nullable for create mode
+  final String? accountId; // Made nullable for create mode
   final bool isCreateMode;
   final List<AccountField>? templateFields; // Template fields for create mode
 
@@ -41,7 +41,7 @@ class AccountFormScreen extends StatelessWidget {
 
 class _AccountEditBody extends StatefulWidget {
   final AccountRepository repository;
-  final int? accountId;
+  final String? accountId;
   final bool isCreateMode;
 
   const _AccountEditBody({
@@ -336,7 +336,7 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
   Future<void> _deleteField(BuildContext context, AccountField field) async {
     try {
       // Remove the field from form state (will be persisted when saved)
-      context.read<AccountFormCubit>().removeField(field.id!);
+      context.read<AccountFormCubit>().removeField(field.id);
 
       ScaffoldMessenger.of(
         context,
