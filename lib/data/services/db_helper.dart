@@ -19,7 +19,7 @@ class DBHelper {
     String path = join(await getDatabasesPath(), 'passwords.db');
     _db = await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE Account(
@@ -30,6 +30,7 @@ class DBHelper {
             logoUrl TEXT,
             logoFile TEXT,
             logoIcon TEXT,
+            isFavorite INTEGER DEFAULT 0,
             createdAt INTEGER,
             updatedAt INTEGER
           )
@@ -48,7 +49,13 @@ class DBHelper {
           )
         ''');
       },
-      onUpgrade: (db, oldVersion, newVersion) async {},
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute(
+            'ALTER TABLE Account ADD COLUMN isFavorite INTEGER DEFAULT 0',
+          );
+        }
+      },
     );
     return _db!;
   }

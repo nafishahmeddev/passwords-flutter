@@ -64,6 +64,16 @@ class AccountCubit extends Cubit<AccountState> {
     }
   }
 
+  // Toggle favorite
+  Future<void> toggleFavorite(int id) async {
+    try {
+      await repository.toggleFavorite(id);
+      await loadAccounts(); // refresh
+    } catch (e) {
+      emit(AccountError('Failed to toggle favorite'));
+    }
+  }
+
   @override
   Future<void> close() {
     _eventSubscription?.cancel();

@@ -6,6 +6,7 @@ class Account {
   String? logoUrl;
   String? logoFile;
   String? logoIcon;
+  bool isFavorite;
   int createdAt;
   int updatedAt;
 
@@ -17,6 +18,7 @@ class Account {
     this.logoUrl,
     this.logoFile,
     this.logoIcon,
+    this.isFavorite = false,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -29,6 +31,7 @@ class Account {
     'logoUrl': logoUrl,
     'logoFile': logoFile,
     'logoIcon': logoIcon,
+    'isFavorite': isFavorite ? 1 : 0,
     'createdAt': createdAt,
     'updatedAt': updatedAt,
   };
@@ -41,6 +44,7 @@ class Account {
     logoUrl: map['logoUrl'],
     logoFile: map['logoFile'],
     logoIcon: map['logoIcon'],
+    isFavorite: map['isFavorite'] == 1,
     createdAt: map['createdAt'],
     updatedAt: map['updatedAt'],
   );
@@ -53,6 +57,7 @@ class Account {
     String? logoUrl,
     String? logoFile,
     String? logoIcon,
+    bool? isFavorite,
     int? createdAt,
     int? updatedAt,
   }) {
@@ -64,6 +69,7 @@ class Account {
       logoUrl: logoUrl ?? this.logoUrl,
       logoFile: logoFile ?? this.logoFile,
       logoIcon: logoIcon ?? this.logoIcon,
+      isFavorite: isFavorite ?? this.isFavorite,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

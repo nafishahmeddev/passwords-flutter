@@ -5,7 +5,14 @@ import '../../data/templates/account_templates.dart';
 import 'account_detail_screen.dart';
 import 'account_form_screen.dart';
 
-class AccountListScreen extends StatelessWidget {
+class AccountListScreen extends StatefulWidget {
+  @override
+  _AccountListScreenState createState() => _AccountListScreenState();
+}
+
+class _AccountListScreenState extends State<AccountListScreen> {
+  String _searchQuery = '';
+
   Future<void> _showAccountTypeDialog(BuildContext context) async {
     final selectedType = await showDialog<String>(
       context: context,
@@ -97,82 +104,258 @@ class AccountListScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Accounts')),
-      body: BlocBuilder<AccountCubit, AccountState>(
-        builder: (context, state) {
-          if (state is AccountLoading) {
-            return Center(child: CircularProgressIndicator());
-          } else if (state is AccountLoaded) {
-            if (state.accounts.isEmpty) {
-              return Center(child: Text('No accounts found'));
-            }
-            return ListView.builder(
-              itemCount: state.accounts.length,
-              itemBuilder: (context, index) {
-                final account = state.accounts[index];
-                return ListTile(
-                  title: Text(account.name),
-                  subtitle: Text(account.note ?? ''),
-                  trailing: PopupMenuButton<String>(
-                    onSelected: (value) {
-                      if (value == 'edit') {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => AccountFormScreen(
-                              repository: context
-                                  .read<AccountCubit>()
-                                  .repository,
-                              accountId: account.id,
-                              isCreateMode: false,
-                            ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: TextField(
+              decoration: InputDecoration(
+                hintText: 'Search accounts...',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value.toLowerCase();
+                });
+              },
+            ),
+          ),
+          Expanded(
+            child: BlocBuilder<AccountCubit, AccountState>(
+              builder: (context, state) {
+                if (state is AccountLoading) {
+                  return Center(child: CircularProgressIndicator());
+                } else if (state is AccountLoaded) {
+                  if (state.accounts.isEmpty) {
+                    return Center(child: Text('No accounts found'));
+                  }
+                  final filteredAccounts = state.accounts
+                      .where(
+                        (a) =>
+                            a.name.toLowerCase().contains(_searchQuery) ||
+                            (a.note?.toLowerCase().contains(_searchQuery) ??
+                                false),
+                      )
+                      .toList();
+                  final favoriteAccounts = filteredAccounts
+                      .where((a) => a.isFavorite)
+                      .toList();
+                  final allAccounts = filteredAccounts;
+                  return ListView(
+                    children: [
+                      if (favoriteAccounts.isNotEmpty) ...[
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Text(
+                            'Favorites',
+                            style: Theme.of(context).textTheme.headlineSmall,
                           ),
-                        );
-                      } else if (value == 'delete') {
-                        _showDeleteConfirmationDialog(context, account);
-                      }
-                    },
-                    itemBuilder: (BuildContext context) => [
-                      PopupMenuItem<String>(
-                        value: 'edit',
-                        child: Row(
-                          children: [
-                            Icon(Icons.edit, color: Colors.blue),
-                            SizedBox(width: 8),
-                            Text('Edit'),
-                          ],
+                        ),
+                        ...favoriteAccounts.map(
+                          (account) => ListTile(
+                            contentPadding: EdgeInsets.fromLTRB(
+                              16.0,
+                              0.0,
+                              0,
+                              0.0,
+                            ),
+                            title: Text(account.name),
+                            subtitle: Text(account.note ?? ''),
+                            trailing: PopupMenuButton<String>(
+                              onSelected: (value) {
+                                if (value == 'edit') {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => AccountFormScreen(
+                                        repository: context
+                                            .read<AccountCubit>()
+                                            .repository,
+                                        accountId: account.id,
+                                        isCreateMode: false,
+                                      ),
+                                    ),
+                                  );
+                                } else if (value == 'favorite') {
+                                  context.read<AccountCubit>().toggleFavorite(
+                                    account.id!,
+                                  );
+                                } else if (value == 'delete') {
+                                  _showDeleteConfirmationDialog(
+                                    context,
+                                    account,
+                                  );
+                                }
+                              },
+                              itemBuilder: (BuildContext context) => [
+                                PopupMenuItem<String>(
+                                  value: 'favorite',
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        account.isFavorite
+                                            ? Icons.star
+                                            : Icons.star_border,
+                                        color: Colors.amber,
+                                      ),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        account.isFavorite
+                                            ? 'Unfavorite'
+                                            : 'Favorite',
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                PopupMenuItem<String>(
+                                  value: 'edit',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.edit, color: Colors.blue),
+                                      SizedBox(width: 8),
+                                      Text('Edit'),
+                                    ],
+                                  ),
+                                ),
+                                PopupMenuItem<String>(
+                                  value: 'delete',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.delete, color: Colors.red),
+                                      SizedBox(width: 8),
+                                      Text('Delete'),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => AccountDetailScreen(
+                                    account: account,
+                                    repository: context
+                                        .read<AccountCubit>()
+                                        .repository,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        Divider(),
+                      ],
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Text(
+                          'All Accounts',
+                          style: Theme.of(context).textTheme.headlineSmall,
                         ),
                       ),
-                      PopupMenuItem<String>(
-                        value: 'delete',
-                        child: Row(
-                          children: [
-                            Icon(Icons.delete, color: Colors.red),
-                            SizedBox(width: 8),
-                            Text('Delete'),
-                          ],
+                      ...allAccounts.map(
+                        (account) => ListTile(
+                          contentPadding: EdgeInsets.fromLTRB(
+                            16.0,
+                            0.0,
+                            0,
+                            0.0,
+                          ),
+                          title: Text(account.name),
+                          subtitle: Text(account.note ?? ''),
+                          trailing: PopupMenuButton<String>(
+                            onSelected: (value) {
+                              if (value == 'edit') {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => AccountFormScreen(
+                                      repository: context
+                                          .read<AccountCubit>()
+                                          .repository,
+                                      accountId: account.id,
+                                      isCreateMode: false,
+                                    ),
+                                  ),
+                                );
+                              } else if (value == 'favorite') {
+                                context.read<AccountCubit>().toggleFavorite(
+                                  account.id!,
+                                );
+                              } else if (value == 'delete') {
+                                _showDeleteConfirmationDialog(context, account);
+                              }
+                            },
+                            itemBuilder: (BuildContext context) => [
+                              PopupMenuItem<String>(
+                                value: 'favorite',
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      account.isFavorite
+                                          ? Icons.star
+                                          : Icons.star_border,
+                                      color: Colors.amber,
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      account.isFavorite
+                                          ? 'Unfavorite'
+                                          : 'Favorite',
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              PopupMenuItem<String>(
+                                value: 'edit',
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.edit, color: Colors.blue),
+                                    SizedBox(width: 8),
+                                    Text('Edit'),
+                                  ],
+                                ),
+                              ),
+                              PopupMenuItem<String>(
+                                value: 'delete',
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.delete, color: Colors.red),
+                                    SizedBox(width: 8),
+                                    Text('Delete'),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => AccountDetailScreen(
+                                  account: account,
+                                  repository: context
+                                      .read<AccountCubit>()
+                                      .repository,
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ),
                     ],
-                  ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => AccountDetailScreen(
-                          account: account,
-                          repository: context.read<AccountCubit>().repository,
-                        ),
-                      ),
-                    );
-                  },
-                );
+                  );
+                } else if (state is AccountError) {
+                  return Center(child: Text(state.message));
+                }
+                return Center(child: Text('Press + to add account'));
               },
-            );
-          } else if (state is AccountError) {
-            return Center(child: Text(state.message));
-          }
-          return Center(child: Text('Press + to add account'));
-        },
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),

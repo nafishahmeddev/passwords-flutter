@@ -30,6 +30,26 @@ class AccountRepository {
     return await _db.delete('Account', where: 'id = ?', whereArgs: [id]);
   }
 
+  Future<int> toggleFavorite(int id) async {
+    // First get the current favorite status
+    final List<Map<String, dynamic>> maps = await _db.query(
+      'Account',
+      columns: ['isFavorite'],
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    if (maps.isNotEmpty) {
+      bool currentFavorite = maps.first['isFavorite'] == 1;
+      return await _db.update(
+        'Account',
+        {'isFavorite': currentFavorite ? 0 : 1},
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+    }
+    return 0;
+  }
+
   // --- AccountField CRUD ---
   Future<int> insertField(AccountField field) async {
     return await _db.insert('AccountField', field.toMap());
