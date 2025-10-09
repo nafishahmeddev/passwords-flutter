@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../cubits/account_edit_cubit.dart';
-import '../../models/account.dart';
-import '../../models/account_field.dart';
-import '../../repositories/account_repository.dart';
-import 'add_field_dialog.dart';
-import 'field_widget_builder.dart';
+import '../../business/cubit/account_edit_cubit.dart';
+import '../../data/models/account.dart';
+import '../../data/models/account_field.dart';
+import '../../data/repositories/account_repository.dart';
+import '../widgets/add_field_dialog.dart';
+import '../widgets/field_widget_builder.dart';
 
 class AccountEditScreen extends StatelessWidget {
   final AccountRepository repository;

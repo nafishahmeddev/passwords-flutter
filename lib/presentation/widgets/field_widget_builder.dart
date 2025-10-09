@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../models/account_field.dart';
-import '../../cubits/account_edit_cubit.dart';
-import 'fields/credential_field.dart';
-import 'fields/password_field.dart';
-import 'fields/text_field.dart';
-import 'fields/website_field.dart';
+import '../../data/models/account_field.dart';
+import '../../business/cubit/account_edit_cubit.dart';
+import 'credential_field.dart';
+import 'password_field.dart';
+import 'text_field.dart';
+import 'website_field.dart';
 
 class FieldWidgetBuilder {
   static Widget buildFieldWidget(

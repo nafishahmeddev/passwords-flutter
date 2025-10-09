@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../models/account_field.dart';
-import '../../cubits/account_edit_cubit.dart';
+import '../../data/models/account_field.dart';
+import '../../business/cubit/account_edit_cubit.dart';
 
 class AddFieldDialog extends StatefulWidget {
   final AccountEditCubit formCubit;

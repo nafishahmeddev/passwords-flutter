@@ -1,6 +1,6 @@
 import 'package:bloc/bloc.dart';
-import '../models/account.dart';
-import '../repositories/account_repository.dart';
+import '../../data/models/account.dart';
+import '../../data/repositories/account_repository.dart';
 
 part 'account_state.dart';
 

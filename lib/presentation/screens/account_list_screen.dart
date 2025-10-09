@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../cubits/account_cubit.dart';
-import '../account_detail/account_detail_screen.dart';
-import '../account_edit/account_edit_screen.dart';
+import '../../business/cubit/account_cubit.dart';
+import 'account_detail_screen.dart';
+import 'account_edit_screen.dart';
 
 class AccountListScreen extends StatelessWidget {
   @override

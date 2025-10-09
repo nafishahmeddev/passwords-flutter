@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'database/db_helper.dart';
-import 'repositories/account_repository.dart';
-import 'cubits/account_cubit.dart';
-import 'views/account_list/account_list_screen.dart';
+import 'data/services/db_helper.dart';
+import 'data/repositories/account_repository.dart';
+import 'business/cubit/account_cubit.dart';
+import 'presentation/screens/account_list_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

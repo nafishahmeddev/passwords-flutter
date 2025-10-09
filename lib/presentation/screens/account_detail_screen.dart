@@ -1,9 +1,9 @@
-// lib/views/account_detail_screen.dart
+// lib/presentation/screens/account_detail_screen.dart
 import 'package:flutter/material.dart';
-import 'package:passwords/models/account.dart';
-import 'package:passwords/models/account_field.dart';
-import '../../repositories/account_repository.dart';
-import '../account_edit/account_edit_screen.dart';
+import '../../data/models/account.dart';
+import '../../data/models/account_field.dart';
+import '../../data/repositories/account_repository.dart';
+import 'account_edit_screen.dart';
 
 class AccountDetailScreen extends StatefulWidget {
   final Account account;

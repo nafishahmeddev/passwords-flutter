@@ -1,13 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../../../models/account_field.dart';
+import '../../data/models/account_field.dart';
 
-class PasswordField extends StatefulWidget {
+class PlainTextField extends StatefulWidget {
   final AccountField field;
   final void Function(AccountField field) onChange;
   final VoidCallback onRemove;
 
-  const PasswordField({
+  const PlainTextField({
     super.key,
     required this.field,
     required this.onChange,
@@ -15,10 +15,10 @@ class PasswordField extends StatefulWidget {
   });
 
   @override
-  State<PasswordField> createState() => _PasswordFieldState();
+  State<PlainTextField> createState() => _PlainTextFieldState();
 }
 
-class _PasswordFieldState extends State<PasswordField> {
+class _PlainTextFieldState extends State<PlainTextField> {
   late TextEditingController _valueController;
   Timer? _debounceTimer;
 
@@ -72,8 +72,8 @@ class _PasswordFieldState extends State<PasswordField> {
             TextFormField(
               controller: _valueController,
               decoration: const InputDecoration(
-                labelText: 'Password',
-                hintText: 'Enter password or email',
+                labelText: 'Text',
+                hintText: 'Enter text or email',
               ),
               onChanged: (_) => _onFieldChanged(),
             ),
