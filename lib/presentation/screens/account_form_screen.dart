@@ -109,8 +109,8 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddFieldDialog(context),
-        child: Icon(Icons.add),
         tooltip: 'Add New Field',
+        child: Icon(Icons.add),
       ),
       body: BlocBuilder<AccountFormCubit, AccountFormState>(
         builder: (context, state) {

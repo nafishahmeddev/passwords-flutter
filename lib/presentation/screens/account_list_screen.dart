@@ -82,6 +82,8 @@ class AccountSearchDelegate extends SearchDelegate<String> {
 }
 
 class AccountListScreen extends StatefulWidget {
+  const AccountListScreen({super.key});
+
   @override
   _AccountListScreenState createState() => _AccountListScreenState();
 }

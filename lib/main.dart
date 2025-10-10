@@ -10,13 +10,13 @@ void main() async {
   final db = await DBHelper.init();
   final repository = AccountRepository(db);
 
-  runApp(MyApp(repository: repository));
+  runApp(MainApp(repository: repository));
 }
 
-class MyApp extends StatelessWidget {
+class MainApp extends StatelessWidget {
   final AccountRepository repository;
 
-  MyApp({required this.repository});
+  const MainApp({super.key, required this.repository});
 
   @override
   Widget build(BuildContext context) {

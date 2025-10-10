@@ -10,10 +10,10 @@ class AccountListItem extends StatelessWidget {
   final BorderRadius borderRadius;
 
   const AccountListItem({
-    Key? key,
+    super.key,
     required this.account,
     this.borderRadius = BorderRadius.zero,
-  }) : super(key: key);
+  });
 
   void _showDeleteConfirmationDialog(BuildContext context) async {
     final confirmed = await showDialog<bool>(

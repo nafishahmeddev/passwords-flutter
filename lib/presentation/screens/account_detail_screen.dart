@@ -10,10 +10,10 @@ class AccountDetailScreen extends StatefulWidget {
   final AccountRepository repository;
 
   const AccountDetailScreen({
-    Key? key,
+    super.key,
     required this.account,
     required this.repository,
-  }) : super(key: key);
+  });
 
   @override
   State<AccountDetailScreen> createState() => _AccountDetailScreenState();
