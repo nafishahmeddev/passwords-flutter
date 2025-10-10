@@ -76,37 +76,29 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
     _noteController = TextEditingController(text: account.note ?? '');
   }
 
-  void _updateControllers(Account account) {
-    if (_nameController != null) {
-      _nameController!.text = account.name;
-      _noteController!.text = account.note ?? '';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.isCreateMode ? 'Create Account' : 'Edit Account'),
         actions: [
-          IconButton(
-            icon: Icon(Icons.save),
-            onPressed: () async {
-              try {
-                await Provider.of<AccountFormProvider>(
-                  context,
-                  listen: false,
-                ).saveChanges();
-                Navigator.pop(
-                  context,
-                  true,
-                ); // Return true to indicate changes were saved
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Failed to save changes: $e')),
-                );
-              }
-            },
+          Consumer<AccountFormProvider>(
+            builder: (context, provider, child) => IconButton(
+              icon: Icon(Icons.save),
+              onPressed: () async {
+                try {
+                  await provider.saveChanges();
+                  Navigator.pop(
+                    context,
+                    true,
+                  ); // Return true to indicate changes were saved
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to save changes: $e')),
+                  );
+                }
+              },
+            ),
           ),
         ],
       ),
@@ -123,9 +115,6 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
             // Initialize controllers if not already done
             if (_nameController == null) {
               _initializeControllers(provider.account!);
-            } else {
-              // Update controllers if account data changed
-              _updateControllers(provider.account!);
             }
 
             return ListView(
@@ -189,55 +178,8 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
                     ),
                   ),
                 ),
-                // Fields list or empty message
-                if (provider.fields.isEmpty)
-                  Center(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 32),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.add_circle_outline,
-                            size: 48,
-                            color: Colors.grey,
-                          ),
-                          SizedBox(height: 16),
-                          Text(
-                            'No fields yet',
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            'Tap the + button to add your first field',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(color: Colors.grey),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                else
-                  ...provider.fields.map((field) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 16.0),
-                      child: Builder(
-                        builder: (dialogContext) =>
-                            FieldWidgetBuilder.buildFieldWidget(
-                              dialogContext,
-                              field,
-                              Provider.of<AccountFormProvider>(
-                                context,
-                                listen: false,
-                              ),
-                              () {
-                                _confirmDeleteField(dialogContext, field);
-                              },
-                            ),
-                      ),
-                    );
-                  }),
+                // Fields list - use a separate Consumer for just the fields
+                _FieldsList(),
               ],
             );
           } else if (provider.isSaving) {
@@ -288,6 +230,64 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
       },
     );
   }
+}
+
+class _FieldsList extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<AccountFormProvider>(
+      builder: (context, provider, child) {
+        if (provider.fields.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.add_circle_outline, size: 48, color: Colors.grey),
+                  SizedBox(height: 16),
+                  Text(
+                    'No fields yet',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Tap the + button to add your first field',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          );
+        } else {
+          return Column(
+            children: provider.fields.map((field) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: Builder(
+                  builder: (dialogContext) =>
+                      FieldWidgetBuilder.buildFieldWidget(
+                        dialogContext,
+                        field,
+                        Provider.of<AccountFormProvider>(
+                          context,
+                          listen: false,
+                        ),
+                        () {
+                          _confirmDeleteField(dialogContext, field);
+                        },
+                      ),
+                ),
+              );
+            }).toList(),
+          );
+        }
+      },
+    );
+  }
 
   void _confirmDeleteField(BuildContext context, AccountField field) {
     showDialog(
@@ -309,7 +309,7 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
             ),
             onPressed: () async {
               Navigator.pop(context);
-              await _deleteField(field);
+              await _deleteField(context, field);
             },
             child: Text('Delete'),
           ),
@@ -318,7 +318,7 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
     );
   }
 
-  Future<void> _deleteField(AccountField field) async {
+  Future<void> _deleteField(BuildContext context, AccountField field) async {
     try {
       // Remove the field from form state (will be persisted when saved)
       Provider.of<AccountFormProvider>(
