@@ -41,79 +41,140 @@ class _PasswordFieldViewState extends State<PasswordFieldView> {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Card(
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header with icon and label
-              Row(
-                children: [
-                  Icon(Icons.lock, color: colorScheme.primary, size: 20),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      field.label,
-                      style: theme.textTheme.titleMedium,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 16),
-
-              // Password content
-              if (password.isNotEmpty) ...[
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        elevation: 0,
+        child: Container(
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
+          child: Padding(
+            padding: EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header with icon and label
+                Row(
                   children: [
-                    Row(
+                    Container(
+                      padding: EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.lock,
+                        color: Colors.orange.shade700,
+                        size: 18,
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        field.label,
+                        style: theme.textTheme.titleMedium,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 20),
+
+                // Password content
+                if (password.isNotEmpty) ...[
+                  Container(
+                    padding: EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerHighest.withOpacity(
+                        0.2,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
                       children: [
+                        Icon(
+                          Icons.key,
+                          size: 16,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             _isPasswordVisible
                                 ? password
                                 : '•' * password.length,
                             style: theme.textTheme.bodyLarge?.copyWith(
-                              letterSpacing: _isPasswordVisible ? null : 2.0,
+                              letterSpacing: _isPasswordVisible ? null : 1.5,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        IconButton(
-                          onPressed: _togglePasswordVisibility,
-                          icon: Icon(
-                            _isPasswordVisible
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                            size: 18,
-                          ),
-                          style: IconButton.styleFrom(
-                            visualDensity: VisualDensity.compact,
-                            foregroundColor: colorScheme.onSurfaceVariant,
+                        Material(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(20),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(20),
+                            onTap: _togglePasswordVisibility,
+                            child: Padding(
+                              padding: EdgeInsets.all(6),
+                              child: Icon(
+                                _isPasswordVisible
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
+                                size: 18,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
                           ),
                         ),
-                        IconButton(
-                          onPressed: _copyToClipboard,
-                          icon: Icon(Icons.copy, size: 18),
-                          style: IconButton.styleFrom(
-                            visualDensity: VisualDensity.compact,
-                            foregroundColor: colorScheme.onSurfaceVariant,
+                        SizedBox(width: 4),
+                        Material(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(20),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(20),
+                            onTap: () {
+                              _copyToClipboard();
+                              HapticFeedback.lightImpact();
+                            },
+                            child: Padding(
+                              padding: EdgeInsets.all(6),
+                              child: Icon(
+                                Icons.copy,
+                                size: 18,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
                           ),
                         ),
                       ],
                     ),
-                  ],
-                ),
-              ] else ...[
-                Text(
-                  'No password set',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                    fontStyle: FontStyle.italic,
                   ),
-                ),
+                ] else ...[
+                  Container(
+                    padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerHighest.withOpacity(
+                        0.3,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          color: colorScheme.onSurfaceVariant,
+                          size: 18,
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          'No password set',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),
