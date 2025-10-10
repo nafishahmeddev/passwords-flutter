@@ -5,6 +5,7 @@ import 'credential_field.dart';
 import 'password_field.dart';
 import 'text_field.dart';
 import 'website_field.dart';
+import 'otp_field.dart';
 
 class FieldWidgetBuilder {
   static Widget buildFieldWidget(
@@ -28,6 +29,12 @@ class FieldWidgetBuilder {
         );
       case AccountFieldType.website:
         return WebsiteField(
+          field: field,
+          onChange: (f) => formProvider.updateField(f),
+          onRemove: onDelete,
+        );
+      case AccountFieldType.otp:
+        return OtpField(
           field: field,
           onChange: (f) => formProvider.updateField(f),
           onRemove: onDelete,

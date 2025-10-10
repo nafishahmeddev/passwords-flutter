@@ -499,7 +499,7 @@ class _FieldsList extends StatelessWidget {
                   field,
                   provider,
                   () {
-                    _confirmDeleteField(dialogContext, field);
+                    _confirmDeleteField(context, field);
                   },
                 ),
               ),
@@ -511,6 +511,7 @@ class _FieldsList extends StatelessWidget {
   }
 
   void _confirmDeleteField(BuildContext context, AccountField field) {
+    final provider = Provider.of<AccountFormProvider>(context, listen: false);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -539,7 +540,7 @@ class _FieldsList extends StatelessWidget {
             ),
             onPressed: () async {
               Navigator.pop(context);
-              await _deleteField(context, field);
+              await _deleteField(context, field, provider);
             },
             child: Text('Delete'),
           ),
@@ -550,33 +551,29 @@ class _FieldsList extends StatelessWidget {
     );
   }
 
-  Future<void> _deleteField(BuildContext context, AccountField field) async {
+  Future<void> _deleteField(
+    BuildContext context,
+    AccountField field,
+    AccountFormProvider provider,
+  ) async {
     try {
       // Remove the field from form state (will be persisted when saved)
-      Provider.of<AccountFormProvider>(
-        context,
-        listen: false,
-      ).removeField(field.id);
+      provider.removeField(field.id);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Field "${field.label}" removed'),
-          behavior: SnackBarBehavior.floating,
+          behavior: SnackBarBehavior.fixed,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
-          margin: EdgeInsets.all(16),
         ),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error removing field: $e'),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          margin: EdgeInsets.all(16),
+          behavior: SnackBarBehavior.fixed,
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );

@@ -5,7 +5,8 @@ enum AccountFieldType {
   credential,
   password,
   text,
-  website;
+  website,
+  otp;
 
   @override
   String toString() => name;

@@ -30,6 +30,7 @@ class AddFieldDialogState extends State<AddFieldDialog> {
     {'value': 'credential', 'label': 'Credential'},
     {'value': 'password', 'label': 'Password'},
     {'value': 'website', 'label': 'Website/URL'},
+    {'value': 'otp', 'label': 'OTP (TOTP/HOTP)'},
   ];
 
   @override
@@ -302,6 +303,8 @@ class AddFieldDialogState extends State<AddFieldDialog> {
         return Icons.lock;
       case 'website':
         return Icons.language;
+      case 'otp':
+        return Icons.security;
       default:
         return Icons.text_fields;
     }
@@ -315,6 +318,8 @@ class AddFieldDialogState extends State<AddFieldDialog> {
         return 'Single password field';
       case 'website':
         return 'Website URL or link';
+      case 'otp':
+        return 'Time-based one-time password';
       default:
         return 'Plain text or note';
     }

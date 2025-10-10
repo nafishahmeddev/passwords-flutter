@@ -4,6 +4,7 @@ import 'package:passwords/presentation/widgets/field_views/credential_field_view
 import 'package:passwords/presentation/widgets/field_views/password_field_view.dart';
 import 'package:passwords/presentation/widgets/field_views/text_field_view.dart';
 import 'package:passwords/presentation/widgets/field_views/website_field_view.dart';
+import 'package:passwords/presentation/widgets/otp_field_view.dart';
 import 'package:provider/provider.dart';
 import '../../data/models/account.dart';
 import '../../data/models/account_field.dart';
@@ -313,6 +314,8 @@ class _AccountDetailScreenContentState
         return TextFieldView(field: field);
       case AccountFieldType.website:
         return WebsiteFieldView(field: field);
+      case AccountFieldType.otp:
+        return OtpFieldView(field: field);
     }
   }
 
