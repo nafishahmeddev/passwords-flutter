@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../data/models/account_field.dart';
+import 'qr_scanner_screen.dart';
 
 class OtpField extends StatefulWidget {
   final AccountField field;
@@ -24,6 +26,7 @@ class _OtpFieldState extends State<OtpField> {
   late TextEditingController _issuerController;
   late TextEditingController _accountNameController;
   late TextEditingController _periodController;
+  late TextEditingController _counterController;
   late TextEditingController _digitsController;
   Timer? _debounceTimer;
   String _selectedType = 'totp';
@@ -44,6 +47,9 @@ class _OtpFieldState extends State<OtpField> {
     _periodController = TextEditingController(
       text: widget.field.getMetadata('period', '30'),
     );
+    _counterController = TextEditingController(
+      text: widget.field.getMetadata('counter', '0'),
+    );
     _digitsController = TextEditingController(
       text: widget.field.getMetadata('digits', '6'),
     );
@@ -57,6 +63,7 @@ class _OtpFieldState extends State<OtpField> {
     _issuerController.dispose();
     _accountNameController.dispose();
     _periodController.dispose();
+    _counterController.dispose();
     _digitsController.dispose();
     _debounceTimer?.cancel();
     super.dispose();
@@ -70,6 +77,7 @@ class _OtpFieldState extends State<OtpField> {
         'issuer': _issuerController.text,
         'account_name': _accountNameController.text,
         'period': _periodController.text,
+        'counter': _counterController.text,
         'digits': _digitsController.text,
         'type': _selectedType,
         'algorithm': _selectedAlgorithm,
@@ -81,8 +89,17 @@ class _OtpFieldState extends State<OtpField> {
 
   Future<void> _scanQrCode() async {
     try {
-      // For now, show a dialog asking for manual input
-      // You can integrate with qr_code_scanner package later
+      // Launch QR scanner
+      final result = await Navigator.push<String>(
+        context,
+        MaterialPageRoute(builder: (context) => QrScannerScreen()),
+      );
+
+      if (result != null && result.isNotEmpty) {
+        _parseOtpAuthUrl(result);
+      }
+    } catch (e) {
+      // Fallback to manual input if camera fails
       final result = await showDialog<String>(
         context: context,
         builder: (context) => _QrCodeInputDialog(),
@@ -91,13 +108,17 @@ class _OtpFieldState extends State<OtpField> {
       if (result != null && result.isNotEmpty) {
         _parseOtpAuthUrl(result);
       }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error scanning QR code: $e'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
+    }
+  }
+
+  Future<void> _showManualEntry() async {
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => _QrCodeInputDialog(),
+    );
+
+    if (result != null && result.isNotEmpty) {
+      _parseOtpAuthUrl(result);
     }
   }
 
@@ -133,6 +154,7 @@ class _OtpFieldState extends State<OtpField> {
                 : queryParams['issuer'] ?? '';
             _accountNameController.text = accountName;
             _periodController.text = queryParams['period'] ?? '30';
+            _counterController.text = queryParams['counter'] ?? '0';
             _digitsController.text = queryParams['digits'] ?? '6';
             _selectedAlgorithm = queryParams['algorithm'] ?? 'SHA1';
           });
@@ -201,17 +223,39 @@ class _OtpFieldState extends State<OtpField> {
               ),
               SizedBox(height: 20),
 
-              // QR Code scan button
-              Container(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: _scanQrCode,
-                  icon: Icon(Icons.qr_code_scanner),
-                  label: Text('Scan QR Code'),
-                  style: OutlinedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(vertical: 12),
+              // QR Code scan and manual entry buttons
+              Row(
+                children: [
+                  // Only show QR scanner button on mobile platforms
+                  if (Platform.isAndroid || Platform.isIOS) ...[
+                    Expanded(
+                      flex: 2,
+                      child: FilledButton.icon(
+                        onPressed: _scanQrCode,
+                        icon: Icon(Icons.qr_code_scanner),
+                        label: Text('Scan QR Code'),
+                        style: FilledButton.styleFrom(
+                          padding: EdgeInsets.symmetric(vertical: 12),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                  ],
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _showManualEntry,
+                      icon: Icon(Icons.edit, size: 18),
+                      label: Text(
+                        Platform.isAndroid || Platform.isIOS
+                            ? 'Manual'
+                            : 'Enter OTP Data',
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
               SizedBox(height: 16),
 
@@ -390,7 +434,9 @@ class _OtpFieldState extends State<OtpField> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Period (seconds)',
+                              _selectedType == 'totp'
+                                  ? 'Period (seconds)'
+                                  : 'Counter',
                               style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(
                                     color: Theme.of(
@@ -408,9 +454,13 @@ class _OtpFieldState extends State<OtpField> {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: TextFormField(
-                                controller: _periodController,
+                                controller: _selectedType == 'totp'
+                                    ? _periodController
+                                    : _counterController,
                                 decoration: InputDecoration(
-                                  hintText: '30',
+                                  hintText: _selectedType == 'totp'
+                                      ? '30'
+                                      : '0',
                                   border: InputBorder.none,
                                   contentPadding: EdgeInsets.symmetric(
                                     horizontal: 12,
