@@ -48,21 +48,88 @@ class _PlainTextFieldState extends State<PlainTextField> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        color: Theme.of(context).colorScheme.surfaceContainer,
-      ),
-      child: TextFormField(
-        controller: _valueController,
-        decoration: InputDecoration(
-          labelText: 'Text',
-          hintText: 'Enter text or email',
-          border: InputBorder.none,
-          suffix: InkWell(onTap: widget.onRemove, child: Icon(Icons.close)),
+    return Card(
+      elevation: 0,
+      child: Container(
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header with icon, label, and delete action
+              Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Colors.green.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      Icons.text_fields,
+                      color: Colors.green.shade700,
+                      size: 20,
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      widget.field.label,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: widget.onRemove,
+                    icon: Icon(
+                      Icons.delete_outline,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                    style: IconButton.styleFrom(
+                      backgroundColor: Theme.of(
+                        context,
+                      ).colorScheme.errorContainer.withOpacity(0.1),
+                      foregroundColor: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 20),
+
+              // Text field
+              Text(
+                'Value',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              SizedBox(height: 8),
+              Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: TextFormField(
+                  controller: _valueController,
+                  decoration: InputDecoration(
+                    hintText: 'Enter text value',
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
+                  ),
+                  style: Theme.of(context).textTheme.bodyLarge,
+                  maxLines: null,
+                  onChanged: (_) => _onFieldChanged(),
+                ),
+              ),
+            ],
+          ),
         ),
-        onChanged: (_) => _onFieldChanged(),
       ),
     );
   }

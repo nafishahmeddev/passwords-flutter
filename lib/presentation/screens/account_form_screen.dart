@@ -107,9 +107,10 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.isCreateMode ? 'Create Account' : 'Edit Account'),
+        elevation: 0,
+        scrolledUnderElevation: 1,
         actions: [
-          IconButton(
-            icon: Icon(Icons.save),
+          TextButton(
             onPressed: () async {
               try {
                 await provider.saveChanges();
@@ -119,17 +120,29 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
                 ); // Return true to indicate changes were saved
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Failed to save changes: $e')),
+                  SnackBar(
+                    content: Text('Failed to save changes: $e'),
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    margin: EdgeInsets.all(16),
+                    backgroundColor: Theme.of(context).colorScheme.error,
+                  ),
                 );
               }
             },
+            child: Text('Save', style: TextStyle(fontWeight: FontWeight.w600)),
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddFieldDialog(context),
-        tooltip: 'Add New Field',
-        child: Icon(Icons.add),
+        label: Text('Add Field'),
+        icon: Icon(Icons.add),
+        elevation: 2,
+        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
       ),
       body: Consumer<AccountFormProvider>(
         builder: (context, provider, child) => _buildBody(context),
@@ -148,56 +161,217 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
         _initializeControllers(provider.account!);
       }
 
-      return ListView(
-        padding: EdgeInsets.all(16),
-        children: [
-          // Account editing section
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              color: Theme.of(context).colorScheme.surfaceContainer,
-            ),
-            child: TextField(
-              controller: _nameController,
-              decoration: InputDecoration(
-                labelText: 'Name',
-                border: InputBorder.none,
-              ),
-              onChanged: (value) {
-                // Debounce updates - only update when user stops typing
-                _debounceUpdateAccount(value, provider);
-              },
-            ),
-          ),
-          SizedBox(height: 24),
+      return CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Account name field
+                  Card(
+                    elevation: 0,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Icon(
+                                    Icons.account_circle_outlined,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
+                                    size: 20,
+                                  ),
+                                ),
+                                SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Account Name',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.copyWith(
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.onSurfaceVariant,
+                                            ),
+                                      ),
+                                      SizedBox(height: 4),
+                                      TextField(
+                                        controller: _nameController,
+                                        decoration: InputDecoration(
+                                          hintText: 'Enter account name',
+                                          border: InputBorder.none,
+                                          contentPadding: EdgeInsets.zero,
+                                          isDense: true,
+                                        ),
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodyLarge,
+                                        onChanged: (value) {
+                                          _debounceUpdateAccount(
+                                            value,
+                                            provider,
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 16),
 
-          // Fields list - pass fields directly to avoid unnecessary rebuilds
-          Consumer<AccountFormProvider>(
-            builder: (context, provider, child) =>
-                _FieldsList(fields: provider.fields),
-          ),
-          Padding(
-            padding: EdgeInsets.only(top: 16, bottom: 16),
-            child: Text("Additional Information"),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              color: Theme.of(context).colorScheme.surfaceContainer,
-            ),
-            child: TextField(
-              controller: _noteController,
-              decoration: InputDecoration(
-                labelText: 'Note (Optional)',
-                border: InputBorder.none,
+                  // Fields section header
+                  if (provider.fields.isNotEmpty) ...[
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                      child: Text(
+                        'Fields',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
+                            ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
-              maxLines: 3,
-              onChanged: (value) {
-                // Debounce updates - only update when user stops typing
-                _debounceUpdateNote(value, provider);
-              },
+            ),
+          ),
+
+          // Fields list
+          SliverToBoxAdapter(
+            child: Consumer<AccountFormProvider>(
+              builder: (context, provider, child) =>
+                  _FieldsList(fields: provider.fields),
+            ),
+          ),
+
+          // Additional Information section
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                    child: Text(
+                      'Additional Information',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                  Card(
+                    elevation: 0,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.tertiary.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Icon(
+                                    Icons.note_outlined,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.tertiary,
+                                    size: 20,
+                                  ),
+                                ),
+                                SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Notes',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.copyWith(
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.onSurfaceVariant,
+                                            ),
+                                      ),
+                                      SizedBox(height: 4),
+                                      TextField(
+                                        controller: _noteController,
+                                        decoration: InputDecoration(
+                                          hintText:
+                                              'Add any additional notes (optional)',
+                                          border: InputBorder.none,
+                                          contentPadding: EdgeInsets.zero,
+                                          isDense: true,
+                                        ),
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodyLarge,
+                                        maxLines: null,
+                                        onChanged: (value) {
+                                          _debounceUpdateNote(value, provider);
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Add bottom padding for FAB
+                  SizedBox(height: 80),
+                ],
+              ),
             ),
           ),
         ],
@@ -259,47 +433,79 @@ class _FieldsList extends StatelessWidget {
     final provider = Provider.of<AccountFormProvider>(context, listen: false);
 
     if (fields.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.add_circle_outline, size: 48, color: Colors.grey),
-              SizedBox(height: 16),
-              Text(
-                'No fields yet',
-                style: Theme.of(context).textTheme.titleMedium,
+      return Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+        child: Card(
+          elevation: 0,
+          child: Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                style: BorderStyle.solid,
+                width: 1,
               ),
-              SizedBox(height: 8),
-              Text(
-                'Tap the + button to add your first field',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
-                textAlign: TextAlign.center,
+            ),
+            child: Padding(
+              padding: EdgeInsets.all(32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primaryContainer.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(32),
+                    ),
+                    child: Icon(
+                      Icons.add_circle_outline,
+                      size: 32,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    'No fields yet',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Tap the + button to add your first field',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       );
     } else {
-      return Column(
-        children: fields.map((field) {
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 16.0),
-            child: Builder(
-              builder: (dialogContext) => FieldWidgetBuilder.buildFieldWidget(
-                dialogContext,
-                field,
-                provider,
-                () {
-                  _confirmDeleteField(dialogContext, field);
-                },
+      return Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16),
+        child: Column(
+          children: fields.map((field) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: Builder(
+                builder: (dialogContext) => FieldWidgetBuilder.buildFieldWidget(
+                  dialogContext,
+                  field,
+                  provider,
+                  () {
+                    _confirmDeleteField(dialogContext, field);
+                  },
+                ),
               ),
-            ),
-          );
-        }).toList(),
+            );
+          }).toList(),
+        ),
       );
     }
   }
@@ -308,19 +514,28 @@ class _FieldsList extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Delete Field'),
+        icon: Icon(
+          Icons.delete_outline,
+          color: Theme.of(context).colorScheme.error,
+          size: 28,
+        ),
+        title: Text(
+          'Delete Field',
+          style: Theme.of(context).textTheme.headlineSmall,
+        ),
         content: Text(
           'Are you sure you want to delete "${field.label}"?\n\nThis will permanently remove the field and its data.',
+          style: Theme.of(context).textTheme.bodyMedium,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text('Cancel'),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
             ),
             onPressed: () async {
               Navigator.pop(context);
@@ -329,6 +544,8 @@ class _FieldsList extends StatelessWidget {
             child: Text('Delete'),
           ),
         ],
+        actionsPadding: EdgeInsets.only(left: 24, right: 24, bottom: 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
     );
   }
@@ -341,13 +558,28 @@ class _FieldsList extends StatelessWidget {
         listen: false,
       ).removeField(field.id);
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Field "${field.label}" removed')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Field "${field.label}" removed'),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          margin: EdgeInsets.all(16),
+        ),
+      );
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error removing field: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error removing field: $e'),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          margin: EdgeInsets.all(16),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
     }
   }
 }
