@@ -118,8 +118,8 @@ class AddFieldDialogState extends State<AddFieldDialog> {
       // Get the current highest order from the form state
       final maxOrder = widget.formProvider.fields.isNotEmpty
           ? widget.formProvider.fields
-              .map((f) => f.order)
-              .reduce((a, b) => a > b ? a : b)
+                .map((f) => f.order)
+                .reduce((a, b) => a > b ? a : b)
           : 0;
 
       // Get accountId from widget parameter or from provider state

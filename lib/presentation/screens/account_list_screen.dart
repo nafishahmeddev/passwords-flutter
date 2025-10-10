@@ -157,7 +157,10 @@ class _AccountListScreenState extends State<AccountListScreen> {
         context,
         MaterialPageRoute(
           builder: (_) => AccountFormScreen(
-            repository: Provider.of<AccountProvider>(context, listen: false).repository,
+            repository: Provider.of<AccountProvider>(
+              context,
+              listen: false,
+            ).repository,
             isCreateMode: true,
             templateFields: templateFields,
           ),
@@ -167,11 +170,15 @@ class _AccountListScreenState extends State<AccountListScreen> {
       // If account was successfully created, navigate to its detail screen
       if (result == true) {
         // Reload accounts to get the newly created account
-        await Provider.of<AccountProvider>(context, listen: false).loadAccounts();
+        await Provider.of<AccountProvider>(
+          context,
+          listen: false,
+        ).loadAccounts();
 
         // Find the newly created account (it should be the most recent one)
         final provider = Provider.of<AccountProvider>(context, listen: false);
-        if (provider.state == AccountState.loaded && provider.accounts.isNotEmpty) {
+        if (provider.state == AccountState.loaded &&
+            provider.accounts.isNotEmpty) {
           final newestAccount = provider.accounts.reduce(
             (a, b) => a.createdAt > b.createdAt ? a : b,
           );
@@ -183,7 +190,10 @@ class _AccountListScreenState extends State<AccountListScreen> {
               MaterialPageRoute(
                 builder: (_) => AccountDetailScreen(
                   account: newestAccount,
-                  repository: Provider.of<AccountProvider>(context, listen: false).repository,
+                  repository: Provider.of<AccountProvider>(
+                    context,
+                    listen: false,
+                  ).repository,
                 ),
               ),
             );
@@ -202,7 +212,10 @@ class _AccountListScreenState extends State<AccountListScreen> {
           IconButton(
             icon: Icon(Icons.search),
             onPressed: () async {
-              final provider = Provider.of<AccountProvider>(context, listen: false);
+              final provider = Provider.of<AccountProvider>(
+                context,
+                listen: false,
+              );
               if (provider.state == AccountState.loaded) {
                 final result = await showSearch(
                   context: context,
@@ -210,7 +223,10 @@ class _AccountListScreenState extends State<AccountListScreen> {
                 );
                 if (result != null && result.isNotEmpty) {
                   // Navigate to the selected account's detail screen
-                  final provider = Provider.of<AccountProvider>(context, listen: false);
+                  final provider = Provider.of<AccountProvider>(
+                    context,
+                    listen: false,
+                  );
                   final account = provider.accounts.firstWhere(
                     (a) => a.id == result,
                   );
@@ -219,7 +235,10 @@ class _AccountListScreenState extends State<AccountListScreen> {
                     MaterialPageRoute(
                       builder: (_) => AccountDetailScreen(
                         account: account,
-                        repository: Provider.of<AccountProvider>(context, listen: false).repository,
+                        repository: Provider.of<AccountProvider>(
+                          context,
+                          listen: false,
+                        ).repository,
                       ),
                     ),
                   );
@@ -334,7 +353,9 @@ class _AccountListScreenState extends State<AccountListScreen> {
                     ],
                   );
                 } else if (provider.hasError) {
-                  return Center(child: Text(provider.errorMessage ?? 'An error occurred'));
+                  return Center(
+                    child: Text(provider.errorMessage ?? 'An error occurred'),
+                  );
                 }
                 return Center(child: Text('Press + to add account'));
               },

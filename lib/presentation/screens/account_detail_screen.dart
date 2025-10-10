@@ -20,8 +20,13 @@ class AccountDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => AccountDetailProvider(repository: repository, accountId: account.id)..loadFields(),
-      child: _AccountDetailScreenContent(account: account, repository: repository),
+      create: (_) =>
+          AccountDetailProvider(repository: repository, accountId: account.id)
+            ..loadFields(),
+      child: _AccountDetailScreenContent(
+        account: account,
+        repository: repository,
+      ),
     );
   }
 }
@@ -36,10 +41,12 @@ class _AccountDetailScreenContent extends StatefulWidget {
   });
 
   @override
-  State<_AccountDetailScreenContent> createState() => _AccountDetailScreenContentState();
+  State<_AccountDetailScreenContent> createState() =>
+      _AccountDetailScreenContentState();
 }
 
-class _AccountDetailScreenContentState extends State<_AccountDetailScreenContent> {
+class _AccountDetailScreenContentState
+    extends State<_AccountDetailScreenContent> {
   @override
   Widget build(BuildContext context) {
     return Consumer<AccountDetailProvider>(
@@ -92,7 +99,12 @@ class _AccountDetailScreenContentState extends State<_AccountDetailScreenContent
           body: ListView(
             children: [
               Padding(
-                padding: EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 8),
+                padding: EdgeInsets.only(
+                  top: 16,
+                  left: 16,
+                  right: 16,
+                  bottom: 8,
+                ),
                 child: Text(
                   "ACCOUNT",
                   style: TextStyle(
@@ -104,7 +116,12 @@ class _AccountDetailScreenContentState extends State<_AccountDetailScreenContent
                 ),
               ),
               Container(
-                padding: EdgeInsets.only(left: 16, right: 16, top: 12, bottom: 12),
+                padding: EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  top: 12,
+                  bottom: 12,
+                ),
                 margin: EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surfaceContainer,
@@ -131,7 +148,12 @@ class _AccountDetailScreenContentState extends State<_AccountDetailScreenContent
               ),
               SizedBox(height: 2),
               Container(
-                padding: EdgeInsets.only(left: 16, right: 16, top: 12, bottom: 12),
+                padding: EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  top: 12,
+                  bottom: 12,
+                ),
                 margin: EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surfaceContainer,
@@ -160,7 +182,9 @@ class _AccountDetailScreenContentState extends State<_AccountDetailScreenContent
               if (provider.isLoading)
                 Center(child: CircularProgressIndicator())
               else if (provider.hasError)
-                Center(child: Text(provider.errorMessage ?? 'An error occurred'))
+                Center(
+                  child: Text(provider.errorMessage ?? 'An error occurred'),
+                )
               else if (provider.fields.isEmpty)
                 Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -174,7 +198,9 @@ class _AccountDetailScreenContentState extends State<_AccountDetailScreenContent
                     SizedBox(height: 8),
                     Text(
                       'Tap the edit button to add some fields',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
                     ),
                   ],
                 )
@@ -324,7 +350,10 @@ class _AccountDetailScreenContentState extends State<_AccountDetailScreenContent
           ),
           TextButton(
             onPressed: () {
-              Provider.of<AccountDetailProvider>(context, listen: false).deleteField(widget.account.id);
+              Provider.of<AccountDetailProvider>(
+                context,
+                listen: false,
+              ).deleteField(widget.account.id);
               Navigator.pop(context); // Close dialog
               Navigator.pop(context); // Go back to previous screen
             },

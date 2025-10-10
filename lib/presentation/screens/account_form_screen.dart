@@ -93,7 +93,10 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
             icon: Icon(Icons.save),
             onPressed: () async {
               try {
-                await Provider.of<AccountFormProvider>(context, listen: false).saveChanges();
+                await Provider.of<AccountFormProvider>(
+                  context,
+                  listen: false,
+                ).saveChanges();
                 Navigator.pop(
                   context,
                   true,
@@ -224,7 +227,10 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
                             FieldWidgetBuilder.buildFieldWidget(
                               dialogContext,
                               field,
-                              Provider.of<AccountFormProvider>(context, listen: false),
+                              Provider.of<AccountFormProvider>(
+                                context,
+                                listen: false,
+                              ),
                               () {
                                 _confirmDeleteField(dialogContext, field);
                               },
@@ -273,7 +279,10 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
       context: context,
       builder: (dialogContext) {
         return AddFieldDialog(
-          formProvider: Provider.of<AccountFormProvider>(context, listen: false),
+          formProvider: Provider.of<AccountFormProvider>(
+            context,
+            listen: false,
+          ),
           // accountId will be determined from provider state
         );
       },
@@ -312,7 +321,10 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
   Future<void> _deleteField(AccountField field) async {
     try {
       // Remove the field from form state (will be persisted when saved)
-      Provider.of<AccountFormProvider>(context, listen: false).removeField(field.id);
+      Provider.of<AccountFormProvider>(
+        context,
+        listen: false,
+      ).removeField(field.id);
 
       ScaffoldMessenger.of(
         context,
