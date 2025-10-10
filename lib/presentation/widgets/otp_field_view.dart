@@ -6,8 +6,9 @@ import '../../data/models/account_field.dart';
 
 class OtpFieldView extends StatefulWidget {
   final AccountField field;
+  final void Function(AccountField field)? onFieldUpdate;
 
-  const OtpFieldView({super.key, required this.field});
+  const OtpFieldView({super.key, required this.field, this.onFieldUpdate});
 
   @override
   State<OtpFieldView> createState() => _OtpFieldViewState();
@@ -22,8 +23,11 @@ class _OtpFieldViewState extends State<OtpFieldView> {
   @override
   void initState() {
     super.initState();
+    final type = widget.field.getMetadata('type', 'totp');
     _generateCode();
-    _startTimer();
+    if (type == 'totp') {
+      _startTimer();
+    }
   }
 
   @override
@@ -51,9 +55,19 @@ class _OtpFieldViewState extends State<OtpFieldView> {
       _currentCode = _generateTOTP(secret, timeStep, digits);
       _timeRemaining = period - (now % period);
     } else if (type == 'hotp') {
-      // For HOTP, you'd need to store and increment a counter
-      // For now, just show a placeholder
-      _currentCode = 'Click to generate';
+      final counter =
+          int.tryParse(widget.field.getMetadata('counter', '0')) ?? 0;
+      setState(() {
+        _currentCode = _generateHOTP(secret, counter, digits);
+      });
+      // Increment counter for next generation
+      final newCounter = counter + 1;
+      widget.field.setMetadata('counter', newCounter.toString());
+
+      // Persist the updated field to the database
+      if (widget.onFieldUpdate != null) {
+        widget.onFieldUpdate!(widget.field);
+      }
     }
   }
 
@@ -79,6 +93,36 @@ class _OtpFieldViewState extends State<OtpFieldView> {
         DateTime.now().millisecondsSinceEpoch,
         length: digits,
         interval: int.tryParse(widget.field.getMetadata('period', '30')) ?? 30,
+        algorithm: otpAlgorithm,
+        isGoogle: true,
+      );
+
+      return code;
+    } catch (e) {
+      return 'Invalid secret';
+    }
+  }
+
+  String _generateHOTP(String secret, int counter, int digits) {
+    try {
+      final algorithm = widget.field.getMetadata('algorithm', 'SHA1');
+
+      Algorithm otpAlgorithm;
+      switch (algorithm) {
+        case 'SHA256':
+          otpAlgorithm = Algorithm.SHA256;
+          break;
+        case 'SHA512':
+          otpAlgorithm = Algorithm.SHA512;
+          break;
+        default:
+          otpAlgorithm = Algorithm.SHA1;
+      }
+
+      final code = OTP.generateHOTPCodeString(
+        secret,
+        counter,
+        length: digits,
         algorithm: otpAlgorithm,
         isGoogle: true,
       );
@@ -151,293 +195,319 @@ class _OtpFieldViewState extends State<OtpFieldView> {
   Widget build(BuildContext context) {
     final type = widget.field.getMetadata('type', 'totp');
 
-    return Card(
-      elevation: 0,
-      child: Container(
-        decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header with icon and label
-              Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.indigo.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(
-                      Icons.security,
-                      color: Colors.indigo.shade700,
-                      size: 20,
-                    ),
-                  ),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.field.label,
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                              ),
-                        ),
-                        Text(
-                          _issuerText,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Type badge
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: type == 'totp'
-                          ? Colors.green.withOpacity(0.1)
-                          : Colors.blue.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      type.toUpperCase(),
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: type == 'totp'
-                            ? Colors.green.shade700
-                            : Colors.blue.shade700,
-                        fontWeight: FontWeight.w600,
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16),
+      child: Card(
+        elevation: 0,
+        child: Container(
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
+          child: Padding(
+            padding: EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header with icon and label
+                Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.indigo.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        Icons.security,
+                        color: Colors.indigo.shade700,
+                        size: 20,
                       ),
                     ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 16),
-
-              // Code display
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
+                    SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              Text(
-                                _isVisible ? _currentCode : '••••••',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headlineMedium
-                                    ?.copyWith(
-                                      fontFamily: 'monospace',
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: 4,
-                                    ),
-                              ),
-                              SizedBox(width: 8),
-                              IconButton(
-                                onPressed: _toggleVisibility,
-                                icon: Icon(
-                                  _isVisible
-                                      ? Icons.visibility_off
-                                      : Icons.visibility,
-                                ),
-                                style: IconButton.styleFrom(
-                                  padding: EdgeInsets.all(4),
-                                  minimumSize: Size(24, 24),
-                                  tapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
-                                ),
-                              ),
-                            ],
-                          ),
-                          if (type == 'totp') ...[
-                            SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.timer,
-                                  size: 16,
+                          Text(
+                            widget.field.label,
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(
                                   color: Theme.of(
                                     context,
                                   ).colorScheme.onSurfaceVariant,
                                 ),
-                                SizedBox(width: 4),
-                                Text(
-                                  'Expires in ${_timeRemaining}s',
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.onSurfaceVariant,
-                                      ),
+                          ),
+                          Text(
+                            _issuerText,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Type badge
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: type == 'totp'
+                            ? Colors.green.withOpacity(0.1)
+                            : Colors.blue.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        type.toUpperCase(),
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: type == 'totp'
+                              ? Colors.green.shade700
+                              : Colors.blue.shade700,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
+
+                // Code display
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    _isVisible ? _currentCode : '••••••',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headlineMedium
+                                        ?.copyWith(
+                                          fontFamily: 'monospace',
+                                          fontWeight: FontWeight.bold,
+                                          letterSpacing: 4,
+                                        ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
                                 SizedBox(width: 8),
-                                Expanded(
-                                  child: LinearProgressIndicator(
-                                    value:
-                                        _timeRemaining /
-                                        (int.tryParse(
-                                              widget.field.getMetadata(
-                                                'period',
-                                                '30',
-                                              ),
-                                            ) ??
-                                            30),
-                                    backgroundColor: Theme.of(
-                                      context,
-                                    ).colorScheme.outline.withOpacity(0.2),
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      _timeRemaining <= 5
-                                          ? Theme.of(context).colorScheme.error
-                                          : Theme.of(
-                                              context,
-                                            ).colorScheme.primary,
-                                    ),
+                                IconButton(
+                                  onPressed: _toggleVisibility,
+                                  icon: Icon(
+                                    _isVisible
+                                        ? Icons.visibility_off
+                                        : Icons.visibility,
+                                  ),
+                                  style: IconButton.styleFrom(
+                                    padding: EdgeInsets.all(4),
+                                    minimumSize: Size(24, 24),
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
                                   ),
                                 ),
                               ],
                             ),
+                            if (type == 'totp') ...[
+                              SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.timer,
+                                    size: 16,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'Expires in ${_timeRemaining}s',
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
+                                        ),
+                                  ),
+                                  SizedBox(width: 8),
+                                  Expanded(
+                                    child: LinearProgressIndicator(
+                                      value:
+                                          _timeRemaining /
+                                          (int.tryParse(
+                                                widget.field.getMetadata(
+                                                  'period',
+                                                  '30',
+                                                ),
+                                              ) ??
+                                              30),
+                                      backgroundColor: Theme.of(
+                                        context,
+                                      ).colorScheme.outline.withOpacity(0.2),
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        _timeRemaining <= 5
+                                            ? Theme.of(
+                                                context,
+                                              ).colorScheme.error
+                                            : Theme.of(
+                                                context,
+                                              ).colorScheme.primary,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ],
-                        ],
-                      ),
-                    ),
-                    SizedBox(width: 8),
-                    Column(
-                      children: [
-                        IconButton(
-                          onPressed: _copyCode,
-                          icon: Icon(Icons.copy),
-                          style: IconButton.styleFrom(
-                            backgroundColor: Theme.of(
-                              context,
-                            ).colorScheme.primaryContainer.withOpacity(0.5),
-                            foregroundColor: Theme.of(
-                              context,
-                            ).colorScheme.onPrimaryContainer,
-                          ),
-                          tooltip: 'Copy code',
                         ),
-                        if (type == 'hotp')
+                      ),
+                      SizedBox(width: 8),
+                      Column(
+                        children: [
                           IconButton(
-                            onPressed: _generateCode,
-                            icon: Icon(Icons.refresh),
+                            onPressed: _copyCode,
+                            icon: Icon(Icons.copy),
                             style: IconButton.styleFrom(
                               backgroundColor: Theme.of(
                                 context,
-                              ).colorScheme.secondaryContainer.withOpacity(0.5),
+                              ).colorScheme.primaryContainer.withOpacity(0.5),
                               foregroundColor: Theme.of(
                                 context,
-                              ).colorScheme.onSecondaryContainer,
+                              ).colorScheme.onPrimaryContainer,
                             ),
-                            tooltip: 'Generate new code',
+                            tooltip: 'Copy code',
                           ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              // Additional info if available
-              if (widget.field.getMetadata('algorithm', 'SHA1') != 'SHA1' ||
-                  widget.field.getMetadata('digits', '6') != '6' ||
-                  widget.field.getMetadata('period', '30') != '30') ...[
-                SizedBox(height: 12),
-                Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.surfaceContainerHighest.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Configuration',
-                        style: Theme.of(context).textTheme.labelMedium
-                            ?.copyWith(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurfaceVariant,
-                            ),
-                      ),
-                      SizedBox(height: 4),
-                      Wrap(
-                        spacing: 8,
-                        children: [
-                          if (widget.field.getMetadata('algorithm', 'SHA1') !=
-                              'SHA1')
-                            Chip(
-                              label: Text(
-                                widget.field.getMetadata('algorithm', 'SHA1'),
+                          if (type == 'hotp')
+                            IconButton(
+                              onPressed: _generateCode,
+                              icon: Icon(Icons.refresh),
+                              style: IconButton.styleFrom(
+                                backgroundColor: Theme.of(context)
+                                    .colorScheme
+                                    .secondaryContainer
+                                    .withOpacity(0.5),
+                                foregroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.onSecondaryContainer,
                               ),
-                              backgroundColor: Theme.of(
-                                context,
-                              ).colorScheme.surfaceContainerHighest,
-                              labelStyle: Theme.of(
-                                context,
-                              ).textTheme.labelSmall,
-                              padding: EdgeInsets.zero,
-                              materialTapTargetSize:
-                                  MaterialTapTargetSize.shrinkWrap,
-                            ),
-                          if (widget.field.getMetadata('digits', '6') != '6')
-                            Chip(
-                              label: Text(
-                                '${widget.field.getMetadata('digits', '6')} digits',
-                              ),
-                              backgroundColor: Theme.of(
-                                context,
-                              ).colorScheme.surfaceContainerHighest,
-                              labelStyle: Theme.of(
-                                context,
-                              ).textTheme.labelSmall,
-                              padding: EdgeInsets.zero,
-                              materialTapTargetSize:
-                                  MaterialTapTargetSize.shrinkWrap,
-                            ),
-                          if (widget.field.getMetadata('period', '30') !=
-                                  '30' &&
-                              type == 'totp')
-                            Chip(
-                              label: Text(
-                                '${widget.field.getMetadata('period', '30')}s period',
-                              ),
-                              backgroundColor: Theme.of(
-                                context,
-                              ).colorScheme.surfaceContainerHighest,
-                              labelStyle: Theme.of(
-                                context,
-                              ).textTheme.labelSmall,
-                              padding: EdgeInsets.zero,
-                              materialTapTargetSize:
-                                  MaterialTapTargetSize.shrinkWrap,
+                              tooltip: 'Generate new code',
                             ),
                         ],
                       ),
                     ],
                   ),
                 ),
+
+                // Additional info if available
+                if (widget.field.getMetadata('algorithm', 'SHA1') != 'SHA1' ||
+                    widget.field.getMetadata('digits', '6') != '6' ||
+                    (widget.field.getMetadata('period', '30') != '30' &&
+                        type == 'totp') ||
+                    (type == 'hotp')) ...[
+                  SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Configuration',
+                          style: Theme.of(context).textTheme.labelMedium
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                        ),
+                        SizedBox(height: 4),
+                        Wrap(
+                          spacing: 8,
+                          children: [
+                            if (widget.field.getMetadata('algorithm', 'SHA1') !=
+                                'SHA1')
+                              Chip(
+                                label: Text(
+                                  widget.field.getMetadata('algorithm', 'SHA1'),
+                                ),
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHighest,
+                                labelStyle: Theme.of(
+                                  context,
+                                ).textTheme.labelSmall,
+                                padding: EdgeInsets.zero,
+                                materialTapTargetSize:
+                                    MaterialTapTargetSize.shrinkWrap,
+                              ),
+                            if (widget.field.getMetadata('digits', '6') != '6')
+                              Chip(
+                                label: Text(
+                                  '${widget.field.getMetadata('digits', '6')} digits',
+                                ),
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHighest,
+                                labelStyle: Theme.of(
+                                  context,
+                                ).textTheme.labelSmall,
+                                padding: EdgeInsets.zero,
+                                materialTapTargetSize:
+                                    MaterialTapTargetSize.shrinkWrap,
+                              ),
+                            if (widget.field.getMetadata('period', '30') !=
+                                    '30' &&
+                                type == 'totp')
+                              Chip(
+                                label: Text(
+                                  '${widget.field.getMetadata('period', '30')}s period',
+                                ),
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHighest,
+                                labelStyle: Theme.of(
+                                  context,
+                                ).textTheme.labelSmall,
+                                padding: EdgeInsets.zero,
+                                materialTapTargetSize:
+                                    MaterialTapTargetSize.shrinkWrap,
+                              ),
+                            if (type == 'hotp')
+                              Chip(
+                                label: Text(
+                                  'Counter: ${widget.field.getMetadata('counter', '0')}',
+                                ),
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHighest,
+                                labelStyle: Theme.of(
+                                  context,
+                                ).textTheme.labelSmall,
+                                padding: EdgeInsets.zero,
+                                materialTapTargetSize:
+                                    MaterialTapTargetSize.shrinkWrap,
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),

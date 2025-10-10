@@ -71,6 +71,22 @@ class AccountDetailProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> updateField(AccountField field) async {
+    try {
+      await repository.updateField(field);
+      // Update the field in memory
+      final index = _fields.indexWhere((f) => f.id == field.id);
+      if (index != -1) {
+        _fields[index] = field;
+        notifyListeners();
+      }
+    } catch (e) {
+      _state = AccountDetailState.error;
+      _errorMessage = 'Failed to update field';
+      notifyListeners();
+    }
+  }
+
   Future<void> deleteField(String id) async {
     try {
       _state = AccountDetailState.loading;

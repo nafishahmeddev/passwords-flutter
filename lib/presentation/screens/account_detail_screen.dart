@@ -315,7 +315,16 @@ class _AccountDetailScreenContentState
       case AccountFieldType.website:
         return WebsiteFieldView(field: field);
       case AccountFieldType.otp:
-        return OtpFieldView(field: field);
+        return Consumer<AccountDetailProvider>(
+          builder: (context, provider, child) {
+            return OtpFieldView(
+              field: field,
+              onFieldUpdate: (updatedField) {
+                provider.updateField(updatedField);
+              },
+            );
+          },
+        );
     }
   }
 
