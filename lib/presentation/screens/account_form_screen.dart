@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../business/providers/account_form_provider.dart';
@@ -58,6 +59,9 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
   TextEditingController? _nameController;
   TextEditingController? _noteController;
 
+  Timer? _nameDebounceTimer;
+  Timer? _noteDebounceTimer;
+
   @override
   void initState() {
     super.initState();
@@ -68,6 +72,8 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
   void dispose() {
     _nameController?.dispose();
     _noteController?.dispose();
+    _nameDebounceTimer?.cancel();
+    _noteDebounceTimer?.cancel();
     super.dispose();
   }
 
@@ -76,29 +82,47 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
     _noteController = TextEditingController(text: account.note ?? '');
   }
 
+  void _debounceUpdateAccount(String value, AccountFormProvider provider) {
+    _nameDebounceTimer?.cancel();
+    _nameDebounceTimer = Timer(const Duration(milliseconds: 300), () {
+      final updatedAccount = provider.account!.copyWith(name: value);
+      provider.updateAccount(updatedAccount);
+    });
+  }
+
+  void _debounceUpdateNote(String value, AccountFormProvider provider) {
+    _noteDebounceTimer?.cancel();
+    _noteDebounceTimer = Timer(const Duration(milliseconds: 300), () {
+      final updatedAccount = provider.account!.copyWith(
+        note: value.isEmpty ? null : value,
+      );
+      provider.updateAccount(updatedAccount);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<AccountFormProvider>(context, listen: false);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.isCreateMode ? 'Create Account' : 'Edit Account'),
         actions: [
-          Consumer<AccountFormProvider>(
-            builder: (context, provider, child) => IconButton(
-              icon: Icon(Icons.save),
-              onPressed: () async {
-                try {
-                  await provider.saveChanges();
-                  Navigator.pop(
-                    context,
-                    true,
-                  ); // Return true to indicate changes were saved
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Failed to save changes: $e')),
-                  );
-                }
-              },
-            ),
+          IconButton(
+            icon: Icon(Icons.save),
+            onPressed: () async {
+              try {
+                await provider.saveChanges();
+                Navigator.pop(
+                  context,
+                  true,
+                ); // Return true to indicate changes were saved
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Failed to save changes: $e')),
+                );
+              }
+            },
           ),
         ],
       ),
@@ -108,112 +132,116 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
         child: Icon(Icons.add),
       ),
       body: Consumer<AccountFormProvider>(
-        builder: (context, provider, child) {
-          if (provider.isLoading) {
-            return Center(child: CircularProgressIndicator());
-          } else if (provider.state == AccountFormState.loaded) {
-            // Initialize controllers if not already done
-            if (_nameController == null) {
-              _initializeControllers(provider.account!);
-            }
+        builder: (context, provider, child) => _buildBody(context),
+      ),
+    );
+  }
 
-            return ListView(
+  Widget _buildBody(BuildContext context) {
+    final provider = Provider.of<AccountFormProvider>(context, listen: false);
+
+    if (provider.isLoading) {
+      return Center(child: CircularProgressIndicator());
+    } else if (provider.state == AccountFormState.loaded) {
+      // Initialize controllers if not already done
+      if (_nameController == null) {
+        _initializeControllers(provider.account!);
+      }
+
+      return ListView(
+        padding: EdgeInsets.all(16),
+        children: [
+          // Account editing section
+          Card(
+            margin: EdgeInsets.only(bottom: 16),
+            child: Padding(
               padding: EdgeInsets.all(16),
-              children: [
-                // Account editing section
-                Card(
-                  margin: EdgeInsets.only(bottom: 16),
-                  child: Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Account Details',
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(height: 16),
-                        TextField(
-                          controller: _nameController,
-                          decoration: InputDecoration(
-                            labelText: 'Account Name',
-                            border: OutlineInputBorder(),
-                            prefixIcon: Icon(Icons.account_circle),
-                          ),
-                          onChanged: (value) {
-                            final updatedAccount = provider.account!.copyWith(
-                              name: value,
-                            );
-                            provider.updateAccount(updatedAccount);
-                          },
-                        ),
-                        SizedBox(height: 12),
-                        TextField(
-                          controller: _noteController,
-                          decoration: InputDecoration(
-                            labelText: 'Note (Optional)',
-                            border: OutlineInputBorder(),
-                            prefixIcon: Icon(Icons.note),
-                          ),
-                          maxLines: 3,
-                          onChanged: (value) {
-                            final updatedAccount = provider.account!.copyWith(
-                              note: value.isEmpty ? null : value,
-                            );
-                            provider.updateAccount(updatedAccount);
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                // Fields section header
-                Padding(
-                  padding: EdgeInsets.only(bottom: 8),
-                  child: Text(
-                    'Fields',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Account Details',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                ),
-                // Fields list - use a separate Consumer for just the fields
-                _FieldsList(),
-              ],
-            );
-          } else if (provider.isSaving) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(),
                   SizedBox(height: 16),
-                  Text('Saving changes...'),
-                ],
-              ),
-            );
-          } else if (provider.hasError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.error, size: 64, color: Colors.red),
-                  SizedBox(height: 16),
-                  Text(provider.errorMessage ?? 'An error occurred'),
-                  SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => provider.loadFields(),
-                    child: Text('Retry'),
+                  TextField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      labelText: 'Account Name',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.account_circle),
+                    ),
+                    onChanged: (value) {
+                      // Debounce updates - only update when user stops typing
+                      _debounceUpdateAccount(value, provider);
+                    },
+                  ),
+                  SizedBox(height: 12),
+                  TextField(
+                    controller: _noteController,
+                    decoration: InputDecoration(
+                      labelText: 'Note (Optional)',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.note),
+                    ),
+                    maxLines: 3,
+                    onChanged: (value) {
+                      // Debounce updates - only update when user stops typing
+                      _debounceUpdateNote(value, provider);
+                    },
                   ),
                 ],
               ),
-            );
-          }
-          return SizedBox.shrink();
-        },
-      ),
-    );
+            ),
+          ),
+          // Fields section header
+          Padding(
+            padding: EdgeInsets.only(bottom: 8),
+            child: Text(
+              'Fields',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+          ),
+          // Fields list - pass fields directly to avoid unnecessary rebuilds
+          Consumer<AccountFormProvider>(
+            builder: (context, provider, child) =>
+                _FieldsList(fields: provider.fields),
+          ),
+        ],
+      );
+    } else if (provider.isSaving) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text('Saving changes...'),
+          ],
+        ),
+      );
+    } else if (provider.hasError) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error, size: 64, color: Colors.red),
+            SizedBox(height: 16),
+            Text(provider.errorMessage ?? 'An error occurred'),
+            SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => provider.loadFields(),
+              child: Text('Retry'),
+            ),
+          ],
+        ),
+      );
+    }
+    return SizedBox.shrink();
   }
 
   void _showAddFieldDialog(BuildContext context) {
@@ -233,60 +261,58 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
 }
 
 class _FieldsList extends StatelessWidget {
+  final List<AccountField> fields;
+
+  const _FieldsList({required this.fields});
+
   @override
   Widget build(BuildContext context) {
-    return Consumer<AccountFormProvider>(
-      builder: (context, provider, child) {
-        if (provider.fields.isEmpty) {
-          return Center(
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 32),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.add_circle_outline, size: 48, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text(
-                    'No fields yet',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Tap the + button to add your first field',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+    final provider = Provider.of<AccountFormProvider>(context, listen: false);
+
+    if (fields.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.add_circle_outline, size: 48, color: Colors.grey),
+              SizedBox(height: 16),
+              Text(
+                'No fields yet',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Tap the + button to add your first field',
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    } else {
+      return Column(
+        children: fields.map((field) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 16.0),
+            child: Builder(
+              builder: (dialogContext) => FieldWidgetBuilder.buildFieldWidget(
+                dialogContext,
+                field,
+                provider,
+                () {
+                  _confirmDeleteField(dialogContext, field);
+                },
               ),
             ),
           );
-        } else {
-          return Column(
-            children: provider.fields.map((field) {
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 16.0),
-                child: Builder(
-                  builder: (dialogContext) =>
-                      FieldWidgetBuilder.buildFieldWidget(
-                        dialogContext,
-                        field,
-                        Provider.of<AccountFormProvider>(
-                          context,
-                          listen: false,
-                        ),
-                        () {
-                          _confirmDeleteField(dialogContext, field);
-                        },
-                      ),
-                ),
-              );
-            }).toList(),
-          );
-        }
-      },
-    );
+        }).toList(),
+      );
+    }
   }
 
   void _confirmDeleteField(BuildContext context, AccountField field) {
