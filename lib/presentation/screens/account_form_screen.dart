@@ -136,13 +136,12 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddFieldDialog(context),
-        label: Text('Add Field'),
-        icon: Icon(Icons.add),
         elevation: 2,
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
         foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
+        child: Icon(Icons.add),
       ),
       body: Consumer<AccountFormProvider>(
         builder: (context, provider, child) => _buildBody(context),

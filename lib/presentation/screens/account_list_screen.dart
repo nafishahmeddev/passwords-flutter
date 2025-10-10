@@ -482,7 +482,7 @@ class _AccountListScreenState extends State<AccountListScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
         onPressed: () async {
           // Get template fields for the selected type
           List<AccountField> templateFields = getTemplateFields(
@@ -541,11 +541,10 @@ class _AccountListScreenState extends State<AccountListScreen> {
             }
           }
         },
-        icon: Icon(Icons.add_rounded),
-        label: Text('New Account'),
         elevation: 3,
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
         foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
+        child: Icon(Icons.add_rounded),
       ),
     );
   }
