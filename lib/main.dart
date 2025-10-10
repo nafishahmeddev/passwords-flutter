@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:provider/provider.dart';
 import 'data/services/db_helper.dart';
 import 'data/repositories/account_repository.dart';
-import 'business/cubit/account_cubit.dart';
+import 'business/providers/account_provider.dart';
 import 'presentation/screens/account_list_screen.dart';
 
 void main() async {
@@ -20,8 +20,8 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => AccountCubit(repository: repository)..loadAccounts(),
+    return ChangeNotifierProvider(
+      create: (_) => AccountProvider(repository: repository)..loadAccounts(),
       child: MaterialApp(
         title: 'Passwords',
         theme: ThemeData(

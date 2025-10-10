@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../business/cubit/account_form_cubit.dart';
+import 'package:provider/provider.dart';
+import '../../business/providers/account_form_provider.dart';
 import '../../data/models/account.dart';
 import '../../data/models/account_field.dart';
 import '../../data/repositories/account_repository.dart';
@@ -23,8 +23,8 @@ class AccountFormScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => AccountFormCubit(
+    return ChangeNotifierProvider(
+      create: (_) => AccountFormProvider(
         repository: repository,
         accountId: accountId,
         isCreateMode: isCreateMode,
@@ -93,7 +93,7 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
             icon: Icon(Icons.save),
             onPressed: () async {
               try {
-                await context.read<AccountFormCubit>().saveChanges();
+                await Provider.of<AccountFormProvider>(context, listen: false).saveChanges();
                 Navigator.pop(
                   context,
                   true,
@@ -112,17 +112,17 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
         tooltip: 'Add New Field',
         child: Icon(Icons.add),
       ),
-      body: BlocBuilder<AccountFormCubit, AccountFormState>(
-        builder: (context, state) {
-          if (state is AccountFormLoading) {
+      body: Consumer<AccountFormProvider>(
+        builder: (context, provider, child) {
+          if (provider.isLoading) {
             return Center(child: CircularProgressIndicator());
-          } else if (state is AccountFormLoaded) {
+          } else if (provider.state == AccountFormState.loaded) {
             // Initialize controllers if not already done
             if (_nameController == null) {
-              _initializeControllers(state.account);
+              _initializeControllers(provider.account!);
             } else {
               // Update controllers if account data changed
-              _updateControllers(state.account);
+              _updateControllers(provider.account!);
             }
 
             return ListView(
@@ -150,12 +150,10 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
                             prefixIcon: Icon(Icons.account_circle),
                           ),
                           onChanged: (value) {
-                            final updatedAccount = state.account.copyWith(
+                            final updatedAccount = provider.account!.copyWith(
                               name: value,
                             );
-                            context.read<AccountFormCubit>().updateAccount(
-                              updatedAccount,
-                            );
+                            provider.updateAccount(updatedAccount);
                           },
                         ),
                         SizedBox(height: 12),
@@ -168,12 +166,10 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
                           ),
                           maxLines: 3,
                           onChanged: (value) {
-                            final updatedAccount = state.account.copyWith(
+                            final updatedAccount = provider.account!.copyWith(
                               note: value.isEmpty ? null : value,
                             );
-                            context.read<AccountFormCubit>().updateAccount(
-                              updatedAccount,
-                            );
+                            provider.updateAccount(updatedAccount);
                           },
                         ),
                       ],
@@ -191,7 +187,7 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
                   ),
                 ),
                 // Fields list or empty message
-                if (state.fields.isEmpty)
+                if (provider.fields.isEmpty)
                   Center(
                     child: Padding(
                       padding: EdgeInsets.symmetric(vertical: 32),
@@ -220,7 +216,7 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
                     ),
                   )
                 else
-                  ...state.fields.map((field) {
+                  ...provider.fields.map((field) {
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 16.0),
                       child: Builder(
@@ -228,7 +224,7 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
                             FieldWidgetBuilder.buildFieldWidget(
                               dialogContext,
                               field,
-                              context.read<AccountFormCubit>(),
+                              Provider.of<AccountFormProvider>(context, listen: false),
                               () {
                                 _confirmDeleteField(dialogContext, field);
                               },
@@ -238,7 +234,7 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
                   }),
               ],
             );
-          } else if (state is AccountFormSaving) {
+          } else if (provider.isSaving) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -249,18 +245,17 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
                 ],
               ),
             );
-          } else if (state is AccountFormError) {
+          } else if (provider.hasError) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.error, size: 64, color: Colors.red),
                   SizedBox(height: 16),
-                  Text(state.message),
+                  Text(provider.errorMessage ?? 'An error occurred'),
                   SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: () =>
-                        context.read<AccountFormCubit>().loadFields(),
+                    onPressed: () => provider.loadFields(),
                     child: Text('Retry'),
                   ),
                 ],
@@ -278,8 +273,8 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
       context: context,
       builder: (dialogContext) {
         return AddFieldDialog(
-          formCubit: context.read<AccountFormCubit>(),
-          // accountId will be determined from cubit state
+          formProvider: Provider.of<AccountFormProvider>(context, listen: false),
+          // accountId will be determined from provider state
         );
       },
     );
@@ -317,7 +312,7 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
   Future<void> _deleteField(AccountField field) async {
     try {
       // Remove the field from form state (will be persisted when saved)
-      context.read<AccountFormCubit>().removeField(field.id);
+      Provider.of<AccountFormProvider>(context, listen: false).removeField(field.id);
 
       ScaffoldMessenger.of(
         context,

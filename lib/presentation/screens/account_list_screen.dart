@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:provider/provider.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import '../../business/cubit/account_cubit.dart';
+import '../../business/providers/account_provider.dart';
 import '../../data/templates/account_templates.dart';
 import '../widgets/account_list_item.dart';
 import 'account_detail_screen.dart';
@@ -157,7 +157,7 @@ class _AccountListScreenState extends State<AccountListScreen> {
         context,
         MaterialPageRoute(
           builder: (_) => AccountFormScreen(
-            repository: context.read<AccountCubit>().repository,
+            repository: Provider.of<AccountProvider>(context, listen: false).repository,
             isCreateMode: true,
             templateFields: templateFields,
           ),
@@ -167,12 +167,12 @@ class _AccountListScreenState extends State<AccountListScreen> {
       // If account was successfully created, navigate to its detail screen
       if (result == true) {
         // Reload accounts to get the newly created account
-        await context.read<AccountCubit>().loadAccounts();
+        await Provider.of<AccountProvider>(context, listen: false).loadAccounts();
 
         // Find the newly created account (it should be the most recent one)
-        final state = context.read<AccountCubit>().state;
-        if (state is AccountLoaded && state.accounts.isNotEmpty) {
-          final newestAccount = state.accounts.reduce(
+        final provider = Provider.of<AccountProvider>(context, listen: false);
+        if (provider.state == AccountState.loaded && provider.accounts.isNotEmpty) {
+          final newestAccount = provider.accounts.reduce(
             (a, b) => a.createdAt > b.createdAt ? a : b,
           );
 
@@ -183,7 +183,7 @@ class _AccountListScreenState extends State<AccountListScreen> {
               MaterialPageRoute(
                 builder: (_) => AccountDetailScreen(
                   account: newestAccount,
-                  repository: context.read<AccountCubit>().repository,
+                  repository: Provider.of<AccountProvider>(context, listen: false).repository,
                 ),
               ),
             );
@@ -202,15 +202,16 @@ class _AccountListScreenState extends State<AccountListScreen> {
           IconButton(
             icon: Icon(Icons.search),
             onPressed: () async {
-              final state = context.read<AccountCubit>().state;
-              if (state is AccountLoaded) {
+              final provider = Provider.of<AccountProvider>(context, listen: false);
+              if (provider.state == AccountState.loaded) {
                 final result = await showSearch(
                   context: context,
-                  delegate: AccountSearchDelegate(state.accounts),
+                  delegate: AccountSearchDelegate(provider.accounts),
                 );
                 if (result != null && result.isNotEmpty) {
                   // Navigate to the selected account's detail screen
-                  final account = state.accounts.firstWhere(
+                  final provider = Provider.of<AccountProvider>(context, listen: false);
+                  final account = provider.accounts.firstWhere(
                     (a) => a.id == result,
                   );
                   Navigator.push(
@@ -218,7 +219,7 @@ class _AccountListScreenState extends State<AccountListScreen> {
                     MaterialPageRoute(
                       builder: (_) => AccountDetailScreen(
                         account: account,
-                        repository: context.read<AccountCubit>().repository,
+                        repository: Provider.of<AccountProvider>(context, listen: false).repository,
                       ),
                     ),
                   );
@@ -235,18 +236,18 @@ class _AccountListScreenState extends State<AccountListScreen> {
       body: Column(
         children: [
           Expanded(
-            child: BlocBuilder<AccountCubit, AccountState>(
-              builder: (context, state) {
-                if (state is AccountLoading) {
+            child: Consumer<AccountProvider>(
+              builder: (context, provider, child) {
+                if (provider.isLoading) {
                   return Center(child: CircularProgressIndicator());
-                } else if (state is AccountLoaded) {
-                  if (state.accounts.isEmpty) {
+                } else if (provider.state == AccountState.loaded) {
+                  if (provider.accounts.isEmpty) {
                     return Center(child: Text('No accounts found'));
                   }
-                  final favoriteAccounts = state.accounts
+                  final favoriteAccounts = provider.accounts
                       .where((a) => a.isFavorite)
                       .toList();
-                  final allAccounts = state.accounts;
+                  final allAccounts = provider.accounts;
                   return ListView(
                     children: [
                       if (favoriteAccounts.isNotEmpty) ...[
@@ -332,8 +333,8 @@ class _AccountListScreenState extends State<AccountListScreen> {
                       }),
                     ],
                   );
-                } else if (state is AccountError) {
-                  return Center(child: Text(state.message));
+                } else if (provider.hasError) {
+                  return Center(child: Text(provider.errorMessage ?? 'An error occurred'));
                 }
                 return Center(child: Text('Press + to add account'));
               },

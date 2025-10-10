@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import '../../data/models/account_field.dart';
-import '../../business/cubit/account_form_cubit.dart';
+import '../../business/providers/account_form_provider.dart';
 
 class AddFieldDialog extends StatefulWidget {
-  final AccountFormCubit formCubit;
+  final AccountFormProvider formProvider;
   final String?
-  accountId; // Made optional - will get from cubit state if not provided
+  accountId; // Made optional - will get from provider state if not provided
   final VoidCallback? onFieldAdded;
 
   const AddFieldDialog({
     super.key,
-    required this.formCubit,
+    required this.formProvider,
     this.accountId,
     this.onFieldAdded,
   });
@@ -116,17 +116,14 @@ class AddFieldDialogState extends State<AddFieldDialog> {
 
     try {
       // Get the current highest order from the form state
-      final currentState = widget.formCubit.state;
-      final maxOrder =
-          currentState is AccountFormLoaded && currentState.fields.isNotEmpty
-          ? currentState.fields
-                .map((f) => f.order)
-                .reduce((a, b) => a > b ? a : b)
+      final maxOrder = widget.formProvider.fields.isNotEmpty
+          ? widget.formProvider.fields
+              .map((f) => f.order)
+              .reduce((a, b) => a > b ? a : b)
           : 0;
 
-      // Get accountId from widget parameter or from cubit state
-      final accountId =
-          widget.accountId ?? (currentState as AccountFormLoaded).account.id;
+      // Get accountId from widget parameter or from provider state
+      final accountId = widget.accountId ?? widget.formProvider.account!.id;
 
       final newField = AccountField(
         accountId: accountId,
@@ -136,7 +133,7 @@ class AddFieldDialogState extends State<AddFieldDialog> {
         order: maxOrder + 1,
       );
 
-      widget.formCubit.addField(newField);
+      widget.formProvider.addField(newField);
       // No need to call onFieldAdded since addField already updates the form state
       Navigator.pop(context);
 

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:material_symbols_icons/symbols.dart';
-import '../../business/cubit/account_cubit.dart';
+import 'package:provider/provider.dart';
+import '../../business/providers/account_provider.dart';
 import '../screens/account_detail_screen.dart';
 import '../screens/account_form_screen.dart';
 
@@ -49,7 +48,10 @@ class AccountListItem extends StatelessWidget {
     );
 
     if (confirmed == true) {
-      context.read<AccountCubit>().deleteAccount(account.id);
+      Provider.of<AccountProvider>(
+        context,
+        listen: false,
+      ).deleteAccount(account.id);
     }
   }
 
@@ -69,7 +71,10 @@ class AccountListItem extends StatelessWidget {
               MaterialPageRoute(
                 builder: (_) => AccountDetailScreen(
                   account: account,
-                  repository: context.read<AccountCubit>().repository,
+                  repository: Provider.of<AccountProvider>(
+                    context,
+                    listen: false,
+                  ).repository,
                 ),
               ),
             );
@@ -133,14 +138,20 @@ class AccountListItem extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder: (_) => AccountFormScreen(
-                            repository: context.read<AccountCubit>().repository,
+                            repository: Provider.of<AccountProvider>(
+                              context,
+                              listen: false,
+                            ).repository,
                             accountId: account.id,
                             isCreateMode: false,
                           ),
                         ),
                       );
                     } else if (value == 'favorite') {
-                      context.read<AccountCubit>().toggleFavorite(account.id);
+                      Provider.of<AccountProvider>(
+                        context,
+                        listen: false,
+                      ).toggleFavorite(account.id);
                     } else if (value == 'delete') {
                       _showDeleteConfirmationDialog(context);
                     }
