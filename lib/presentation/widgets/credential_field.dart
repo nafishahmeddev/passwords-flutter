@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:material_symbols_icons/symbols.dart';
 import '../../data/models/account_field.dart';
 
 class CredentialField extends StatefulWidget {
