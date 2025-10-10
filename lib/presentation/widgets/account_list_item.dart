@@ -19,30 +19,36 @@ class AccountListItem extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Row(
-            children: [
-              Icon(Icons.warning, color: Colors.orange),
-              const SizedBox(width: 8),
-              Text('Delete Account'),
-            ],
+          icon: Icon(
+            Icons.delete_outline_rounded,
+            color: Theme.of(context).colorScheme.error,
+            size: 32,
+          ),
+          title: Text(
+            'Delete Account',
+            style: Theme.of(context).textTheme.headlineSmall,
           ),
           content: Text(
             'Are you sure you want to delete "${account.name}"? This action cannot be undone.',
+            style: Theme.of(context).textTheme.bodyMedium,
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
               child: Text('Cancel'),
             ),
-            ElevatedButton(
+            FilledButton(
               onPressed: () => Navigator.of(context).pop(true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
+              style: FilledButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.error,
+                foregroundColor: Theme.of(context).colorScheme.onError,
               ),
               child: Text('Delete'),
             ),
           ],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
         );
       },
     );
@@ -58,7 +64,7 @@ class AccountListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 1.0),
+      margin: EdgeInsets.symmetric(vertical: 1.0),
       child: Card(
         elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: borderRadius),
@@ -80,58 +86,88 @@ class AccountListItem extends StatelessWidget {
             );
           },
           child: Padding(
-            padding: EdgeInsets.only(left: 16.0, top: 12.0, bottom: 12.0),
+            padding: EdgeInsets.all(16.0),
             child: Row(
               children: [
-                // Logo/Icon
+                // Avatar/Icon with better styling
                 Container(
-                  width: 40,
-                  height: 40,
+                  width: 48,
+                  height: 48,
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(100),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
-                    Icons.password,
+                    _getAccountIcon(),
                     color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    size: 20,
+                    size: 24,
                   ),
                 ),
-                SizedBox(width: 12),
-                // Content
+                SizedBox(width: 16),
+                // Content with improved typography
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        account.name,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w400,
-                          fontSize: 16,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                      ),
-                      if (account.note != null && account.note!.isNotEmpty)
-                        Padding(
-                          padding: EdgeInsets.only(top: 2),
-                          child: Text(
-                            account.note!,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurfaceVariant,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              account.name,
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.w500),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                           ),
+                          if (account.isFavorite) ...[
+                            SizedBox(width: 8),
+                            Icon(
+                              Icons.star_rounded,
+                              color: Theme.of(context).colorScheme.primary,
+                              size: 16,
+                            ),
+                          ],
+                        ],
+                      ),
+                      if (account.note != null && account.note!.isNotEmpty) ...[
+                        SizedBox(height: 4),
+                        Text(
+                          account.note!,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
+                      ] else ...[
+                        SizedBox(height: 4),
+                        Text(
+                          'No description',
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                                fontStyle: FontStyle.italic,
+                              ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
-                // Menu Button
+                SizedBox(width: 8),
+                // Enhanced menu button
                 PopupMenuButton<String>(
-                  icon: Icon(Icons.more_vert, size: 22),
+                  icon: Icon(
+                    Icons.more_vert_rounded,
+                    size: 20,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  padding: EdgeInsets.all(8),
                   onSelected: (value) {
                     if (value == 'edit') {
                       Navigator.push(
@@ -162,10 +198,23 @@ class AccountListItem extends StatelessWidget {
                       child: Row(
                         children: [
                           Icon(
-                            account.isFavorite ? Icons.star : Icons.star_border,
+                            account.isFavorite
+                                ? Icons.star_rounded
+                                : Icons.star_outline_rounded,
+                            color: account.isFavorite
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                            size: 20,
                           ),
-                          SizedBox(width: 8),
-                          Text(account.isFavorite ? 'Unfavorite' : 'Favorite'),
+                          SizedBox(width: 12),
+                          Text(
+                            account.isFavorite
+                                ? 'Remove from favorites'
+                                : 'Add to favorites',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
                         ],
                       ),
                     ),
@@ -173,9 +222,18 @@ class AccountListItem extends StatelessWidget {
                       value: 'edit',
                       child: Row(
                         children: [
-                          Icon(Icons.edit),
-                          SizedBox(width: 8),
-                          Text('Edit'),
+                          Icon(
+                            Icons.edit_outlined,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                            size: 20,
+                          ),
+                          SizedBox(width: 12),
+                          Text(
+                            'Edit',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
                         ],
                       ),
                     ),
@@ -183,13 +241,26 @@ class AccountListItem extends StatelessWidget {
                       value: 'delete',
                       child: Row(
                         children: [
-                          Icon(Icons.delete),
-                          SizedBox(width: 8),
-                          Text('Delete'),
+                          Icon(
+                            Icons.delete_outline_rounded,
+                            color: Theme.of(context).colorScheme.error,
+                            size: 20,
+                          ),
+                          SizedBox(width: 12),
+                          Text(
+                            'Delete',
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(context).colorScheme.error,
+                                ),
+                          ),
                         ],
                       ),
                     ),
                   ],
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ],
             ),
@@ -197,5 +268,41 @@ class AccountListItem extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  IconData _getAccountIcon() {
+    // You can customize this based on account type or use a default
+    if (account.name.toLowerCase().contains('email') ||
+        account.name.toLowerCase().contains('gmail') ||
+        account.name.toLowerCase().contains('outlook')) {
+      return Icons.email_outlined;
+    } else if (account.name.toLowerCase().contains('social') ||
+        account.name.toLowerCase().contains('facebook') ||
+        account.name.toLowerCase().contains('twitter') ||
+        account.name.toLowerCase().contains('instagram')) {
+      return Icons.share_outlined;
+    } else if (account.name.toLowerCase().contains('bank') ||
+        account.name.toLowerCase().contains('paypal') ||
+        account.name.toLowerCase().contains('payment')) {
+      return Icons.account_balance_outlined;
+    } else if (account.name.toLowerCase().contains('shop') ||
+        account.name.toLowerCase().contains('amazon') ||
+        account.name.toLowerCase().contains('store')) {
+      return Icons.shopping_bag_outlined;
+    } else if (account.name.toLowerCase().contains('work') ||
+        account.name.toLowerCase().contains('office') ||
+        account.name.toLowerCase().contains('company')) {
+      return Icons.work_outline;
+    } else if (account.name.toLowerCase().contains('game') ||
+        account.name.toLowerCase().contains('steam') ||
+        account.name.toLowerCase().contains('xbox')) {
+      return Icons.sports_esports_outlined;
+    } else if (account.name.toLowerCase().contains('netflix') ||
+        account.name.toLowerCase().contains('youtube') ||
+        account.name.toLowerCase().contains('spotify')) {
+      return Icons.movie_outlined;
+    } else {
+      return Icons.account_circle_outlined;
+    }
   }
 }
