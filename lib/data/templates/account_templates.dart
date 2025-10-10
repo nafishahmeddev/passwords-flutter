@@ -6,17 +6,12 @@ import '../models/account_field.dart';
 const Map<String, List<Map<String, dynamic>>> accountTemplates = {
   'Login': [
     {
-      'label': 'Username',
+      'label': 'Credential',
       'type': 'credential',
       'requiredField': true,
       'order': 1,
     },
-    {
-      'label': 'Password',
-      'type': 'password',
-      'requiredField': true,
-      'order': 2,
-    },
+    {'label': 'Website', 'type': 'website', 'requiredField': true, 'order': 2},
   ],
   'Credit Card': [
     {'label': 'Card Number', 'type': 'text', 'requiredField': true, 'order': 1},

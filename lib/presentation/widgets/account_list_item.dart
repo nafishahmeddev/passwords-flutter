@@ -59,11 +59,11 @@ class AccountListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 1.0),
-      child: Material(
+      child: Card(
         elevation: 0,
-        borderRadius: borderRadius,
+        shape: RoundedRectangleBorder(borderRadius: borderRadius),
+        margin: EdgeInsets.zero,
         clipBehavior: Clip.antiAlias,
-        color: Theme.of(context).colorScheme.surfaceContainer,
         child: InkWell(
           onTap: () {
             Navigator.push(

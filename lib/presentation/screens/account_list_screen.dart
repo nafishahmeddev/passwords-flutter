@@ -289,19 +289,23 @@ class _AccountListScreenState extends State<AccountListScreen> {
 
                           BorderRadius borderRadius;
                           if (favoriteAccounts.length == 1) {
-                            borderRadius = BorderRadius.circular(18);
+                            borderRadius = BorderRadius.circular(16);
                           } else if (isFirst) {
                             borderRadius = BorderRadius.only(
-                              topLeft: Radius.circular(18),
-                              topRight: Radius.circular(18),
+                              topLeft: Radius.circular(16),
+                              topRight: Radius.circular(16),
+                              bottomRight: Radius.circular(5),
+                              bottomLeft: Radius.circular(5),
                             );
                           } else if (isLast) {
                             borderRadius = BorderRadius.only(
-                              bottomLeft: Radius.circular(18),
-                              bottomRight: Radius.circular(18),
+                              bottomLeft: Radius.circular(16),
+                              bottomRight: Radius.circular(16),
+                              topLeft: Radius.circular(5),
+                              topRight: Radius.circular(5),
                             );
                           } else {
-                            borderRadius = BorderRadius.zero;
+                            borderRadius = BorderRadius.circular(5);
                           }
 
                           return AccountListItem(
@@ -329,19 +333,23 @@ class _AccountListScreenState extends State<AccountListScreen> {
 
                         BorderRadius borderRadius;
                         if (allAccounts.length == 1) {
-                          borderRadius = BorderRadius.circular(18);
+                          borderRadius = BorderRadius.circular(16);
                         } else if (isFirst) {
                           borderRadius = BorderRadius.only(
-                            topLeft: Radius.circular(18),
-                            topRight: Radius.circular(18),
+                            topLeft: Radius.circular(16),
+                            topRight: Radius.circular(16),
+                            bottomRight: Radius.circular(5),
+                            bottomLeft: Radius.circular(5),
                           );
                         } else if (isLast) {
                           borderRadius = BorderRadius.only(
-                            bottomLeft: Radius.circular(18),
-                            bottomRight: Radius.circular(18),
+                            bottomLeft: Radius.circular(16),
+                            bottomRight: Radius.circular(16),
+                            topLeft: Radius.circular(5),
+                            topRight: Radius.circular(5),
                           );
                         } else {
-                          borderRadius = BorderRadius.zero;
+                          borderRadius = BorderRadius.circular(5);
                         }
 
                         return AccountListItem(

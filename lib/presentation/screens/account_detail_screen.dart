@@ -1,5 +1,9 @@
 // lib/presentation/screens/account_detail_screen.dart
 import 'package:flutter/material.dart';
+import 'package:passwords/presentation/widgets/field_views/credential_field_view.dart';
+import 'package:passwords/presentation/widgets/field_views/password_field_view.dart';
+import 'package:passwords/presentation/widgets/field_views/text_field_view.dart';
+import 'package:passwords/presentation/widgets/field_views/website_field_view.dart';
 import 'package:provider/provider.dart';
 import '../../data/models/account.dart';
 import '../../data/models/account_field.dart';
@@ -58,7 +62,7 @@ class _AccountDetailScreenContentState
             title: Text(account.name),
             actions: [
               IconButton(
-                icon: Icon(Icons.edit),
+                icon: Icon(Icons.edit_outlined),
                 onPressed: () async {
                   // Navigate to edit screen and refresh when returning
                   final result = await Navigator.push(
@@ -115,67 +119,74 @@ class _AccountDetailScreenContentState
                   ),
                 ),
               ),
-              Container(
-                padding: EdgeInsets.only(
-                  left: 16,
-                  right: 16,
-                  top: 12,
-                  bottom: 12,
-                ),
+              Card(
                 margin: EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainer,
+                shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(18),
-                    topRight: Radius.circular(18),
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
+                    bottomRight: Radius.circular(5),
+                    bottomLeft: Radius.circular(5),
                   ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Name",
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey,
-                        letterSpacing: 1.05,
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    top: 12,
+                    bottom: 12,
+                  ),
+
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Name",
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey,
+                          letterSpacing: 1.05,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(account.name),
-                  ],
+                      SizedBox(height: 4),
+                      Text(account.name),
+                    ],
+                  ),
                 ),
               ),
               SizedBox(height: 2),
-              Container(
-                padding: EdgeInsets.only(
-                  left: 16,
-                  right: 16,
-                  top: 12,
-                  bottom: 12,
-                ),
+              Card(
                 margin: EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainer,
+                shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(18),
-                    bottomRight: Radius.circular(18),
+                    bottomLeft: Radius.circular(16),
+                    bottomRight: Radius.circular(16),
+                    topLeft: Radius.circular(5),
+                    topRight: Radius.circular(5),
                   ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Note",
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey,
-                        letterSpacing: 1.05,
+                child: Container(
+                  padding: EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    top: 12,
+                    bottom: 12,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Note",
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey,
+                          letterSpacing: 1.05,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(account.note ?? 'No note'),
-                  ],
+                      SizedBox(height: 4),
+                      Text(account.note ?? 'No note'),
+                    ],
+                  ),
                 ),
               ),
 
@@ -222,113 +233,16 @@ class _AccountDetailScreenContentState
   }
 
   Widget _buildFieldTile(AccountField field) {
-    if (field.type == AccountFieldType.credential) {
-      return Container(
-        width: double.infinity,
-        margin: EdgeInsets.only(bottom: 8, top: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 8),
-              child: Text(
-                field.label.toUpperCase(),
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.grey,
-                  letterSpacing: 1.05,
-                ),
-              ),
-            ),
-            Container(
-              padding: EdgeInsets.only(
-                left: 16,
-                right: 16,
-                top: 14,
-                bottom: 14,
-              ),
-              margin: EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainer,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(18),
-                  topRight: Radius.circular(18),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Username/Email",
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey,
-                      letterSpacing: 1.05,
-                    ),
-                  ),
-                  SizedBox(height: 4),
-                  Text(field.getMetadata("username")),
-                ],
-              ),
-            ),
-            Container(
-              padding: EdgeInsets.only(
-                left: 16,
-                right: 16,
-                top: 14,
-                bottom: 14,
-              ),
-              margin: EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainer,
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(18),
-                  bottomRight: Radius.circular(18),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Password",
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey,
-                      letterSpacing: 1.05,
-                    ),
-                  ),
-                  SizedBox(height: 4),
-                  Text(field.getMetadata("password")),
-                ],
-              ),
-            ),
-          ],
-        ),
-      );
+    switch (field.type) {
+      case AccountFieldType.credential:
+        return CredentialFieldView(field: field);
+      case AccountFieldType.password:
+        return PasswordFieldView(field: field);
+      case AccountFieldType.text:
+        return TextFieldView(field: field);
+      case AccountFieldType.website:
+        return WebsiteFieldView(field: field);
     }
-    return Container(
-      padding: EdgeInsets.only(left: 16, right: 16, top: 14, bottom: 14),
-      margin: EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 8),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainer,
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            field.label,
-            style: TextStyle(
-              fontSize: 13,
-              color: Colors.grey,
-              letterSpacing: 1.05,
-            ),
-          ),
-          SizedBox(height: 4),
-          Text(field.getMetadata("value")),
-        ],
-      ),
-    );
   }
 
   void _handleMenuSelection(String value) {

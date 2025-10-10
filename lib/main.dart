@@ -25,46 +25,16 @@ class MainApp extends StatelessWidget {
       create: (_) => AccountProvider(repository: repository)..loadAccounts(),
       child: DynamicColorBuilder(
         builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
+          print("lightDynamic: $lightDynamic, darkDynamic: $darkDynamic");
           // Create custom color schemes with better contrast and harmony
-          final lightColorScheme =
-              (lightDynamic ??
-                      ColorScheme.fromSeed(
-                        seedColor: Colors.green,
-                        brightness: Brightness.light,
-                      ))
-                  .copyWith(
-                    // Enhance surface colors for better hierarchy and visibility
-                    surface: Color(0xFFFEFEFE),
-                    surfaceContainerLowest: Color(
-                      0xFFE8F0F8,
-                    ), // Lighter blue-tinted background for cards
-                    surfaceContainerLow: Color(0xFFF1F3F4),
-                    surfaceContainer: Color(0xFFECEEF0),
-                    surfaceContainerHigh: Color(0xFFE8EAED),
-                    surfaceContainerHighest: Color(0xFFE0E2E6),
-                    // Better outline colors
-                    outline: Color(0xFF5F6368),
-                    outlineVariant: Color(0xFF9AA0A6),
-                  );
-
-          final darkColorScheme =
-              (darkDynamic ??
-                      ColorScheme.fromSeed(
-                        seedColor: Colors.green,
-                        brightness: Brightness.dark,
-                      ))
-                  .copyWith(
-                    // Enhance surface colors for dark theme
-                    surface: Color(0xFF0F1419),
-                    surfaceContainerLowest: Color(0xFF1C1F23),
-                    surfaceContainerLow: Color(0xFF25282D),
-                    surfaceContainer: Color(0xFF2D3035),
-                    surfaceContainerHigh: Color(0xFF35383D),
-                    surfaceContainerHighest: Color(0xFF3E4147),
-                    // Better outline colors for dark
-                    outline: Color(0xFF9AA0A6),
-                    outlineVariant: Color(0xFF5F6368),
-                  );
+          final lightColorScheme = ColorScheme.fromSeed(
+            seedColor: lightDynamic?.primary ?? Colors.green,
+            brightness: Brightness.light,
+          );
+          final darkColorScheme = ColorScheme.fromSeed(
+            seedColor: darkDynamic?.primary ?? Colors.green,
+            brightness: Brightness.dark,
+          );
 
           return MaterialApp(
             title: 'Passwords',
@@ -123,7 +93,7 @@ class MainApp extends StatelessWidget {
               // Enhanced component themes
               cardTheme: CardThemeData(
                 elevation: 0,
-                color: lightColorScheme.surfaceContainer,
+                color: lightColorScheme.surfaceContainerLowest,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.all(Radius.circular(16)),
                 ),
@@ -203,9 +173,9 @@ class MainApp extends StatelessWidget {
               // Enhanced component themes for dark
               cardTheme: CardThemeData(
                 elevation: 0,
-                color: darkColorScheme.surfaceContainerLowest,
+                color: darkColorScheme.surfaceContainer,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(16)),
+                  borderRadius: BorderRadius.all(Radius.circular(18)),
                 ),
               ),
               appBarTheme: AppBarTheme(

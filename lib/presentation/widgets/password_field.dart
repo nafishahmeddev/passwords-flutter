@@ -58,7 +58,7 @@ class _PasswordFieldState extends State<PasswordField> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         color: Theme.of(context).colorScheme.surfaceContainer,
       ),
       child: TextFormField(

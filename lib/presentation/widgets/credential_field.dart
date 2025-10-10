@@ -78,8 +78,8 @@ class _CredentialFieldState extends State<CredentialField> {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(18),
-              topRight: Radius.circular(18),
+              topLeft: Radius.circular(16),
+              topRight: Radius.circular(16),
             ),
             color: Theme.of(context).colorScheme.surfaceContainer,
           ),
@@ -98,8 +98,8 @@ class _CredentialFieldState extends State<CredentialField> {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(18),
-              bottomRight: Radius.circular(18),
+              bottomLeft: Radius.circular(16),
+              bottomRight: Radius.circular(16),
             ),
             color: Theme.of(context).colorScheme.surfaceContainer,
           ),
