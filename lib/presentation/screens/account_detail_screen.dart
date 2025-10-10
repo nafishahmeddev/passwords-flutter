@@ -56,31 +56,13 @@ class _AccountDetailScreenContentState
     return Consumer<AccountDetailProvider>(
       builder: (context, provider, child) {
         final account = provider.account ?? widget.account;
+        final theme = Theme.of(context);
+        final colorScheme = theme.colorScheme;
 
         return Scaffold(
           appBar: AppBar(
             title: Text(account.name),
             actions: [
-              IconButton(
-                icon: Icon(Icons.edit_outlined),
-                onPressed: () async {
-                  // Navigate to edit screen and refresh when returning
-                  final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => AccountFormScreen(
-                        repository: widget.repository,
-                        accountId: account.id,
-                        isCreateMode: false,
-                      ),
-                    ),
-                  );
-                  // Data will refresh automatically via event system
-                  if (result == true) {
-                    provider.loadFields();
-                  }
-                },
-              ),
               PopupMenuButton<String>(
                 onSelected: _handleMenuSelection,
                 itemBuilder: (context) {
@@ -89,9 +71,12 @@ class _AccountDetailScreenContentState
                       value: 'delete',
                       child: Row(
                         children: [
-                          Icon(Icons.delete, color: Colors.red),
-                          SizedBox(width: 8),
-                          Text('Delete', style: TextStyle(color: Colors.red)),
+                          Icon(Icons.delete_outline, color: colorScheme.error),
+                          SizedBox(width: 12),
+                          Text(
+                            'Delete Account',
+                            style: TextStyle(color: colorScheme.error),
+                          ),
                         ],
                       ),
                     ),
@@ -100,132 +85,217 @@ class _AccountDetailScreenContentState
               ),
             ],
           ),
-          body: ListView(
-            children: [
-              Padding(
-                padding: EdgeInsets.only(
-                  top: 16,
-                  left: 16,
-                  right: 16,
-                  bottom: 8,
-                ),
-                child: Text(
-                  "ACCOUNT",
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 1.05,
+          floatingActionButton: FloatingActionButton(
+            onPressed: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => AccountFormScreen(
+                    repository: widget.repository,
+                    accountId: account.id,
+                    isCreateMode: false,
                   ),
                 ),
-              ),
-              Card(
-                margin: EdgeInsets.symmetric(horizontal: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    topRight: Radius.circular(16),
-                    bottomRight: Radius.circular(5),
-                    bottomLeft: Radius.circular(5),
-                  ),
-                ),
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    left: 16,
-                    right: 16,
-                    top: 12,
-                    bottom: 12,
-                  ),
-
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Name",
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey,
-                          letterSpacing: 1.05,
+              );
+              if (result == true) {
+                provider.loadFields();
+              }
+            },
+            child: Icon(Icons.edit),
+          ),
+          body: RefreshIndicator(
+            onRefresh: () async {
+              await provider.loadFields();
+            },
+            child: CustomScrollView(
+              slivers: [
+                // Account Header Section
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Card(
+                      child: Padding(
+                        padding: EdgeInsets.all(20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                CircleAvatar(
+                                  backgroundColor: colorScheme.primaryContainer,
+                                  foregroundColor:
+                                      colorScheme.onPrimaryContainer,
+                                  radius: 24,
+                                  child: Icon(Icons.account_circle, size: 28),
+                                ),
+                                SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        account.name,
+                                        style: theme.textTheme.headlineSmall,
+                                      ),
+                                      if (account.note != null &&
+                                          account.note!.isNotEmpty) ...[
+                                        SizedBox(height: 4),
+                                        Text(
+                                          account.note!,
+                                          style: theme.textTheme.bodyMedium
+                                              ?.copyWith(
+                                                color: colorScheme
+                                                    .onSurfaceVariant,
+                                              ),
+                                          maxLines: 3,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
-                      SizedBox(height: 4),
-                      Text(account.name),
-                    ],
+                    ),
                   ),
                 ),
-              ),
-              SizedBox(height: 2),
-              Card(
-                margin: EdgeInsets.symmetric(horizontal: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(16),
-                    bottomRight: Radius.circular(16),
-                    topLeft: Radius.circular(5),
-                    topRight: Radius.circular(5),
-                  ),
-                ),
-                child: Container(
-                  padding: EdgeInsets.only(
-                    left: 16,
-                    right: 16,
-                    top: 12,
-                    bottom: 12,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Note",
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey,
-                          letterSpacing: 1.05,
+
+                // Fields Section
+                if (provider.isLoading)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(),
+                          SizedBox(height: 16),
+                          Text(
+                            'Loading fields...',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else if (provider.hasError)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(24),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.error_outline,
+                              size: 64,
+                              color: colorScheme.error,
+                            ),
+                            SizedBox(height: 16),
+                            Text(
+                              'Error loading fields',
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                color: colorScheme.error,
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              provider.errorMessage ??
+                                  'An unexpected error occurred',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
                         ),
                       ),
-                      SizedBox(height: 4),
-                      Text(account.note ?? 'No note'),
-                    ],
+                    ),
+                  )
+                else if (provider.fields.isEmpty)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(24),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.folder_open,
+                              size: 64,
+                              color: colorScheme.outline,
+                            ),
+                            SizedBox(height: 16),
+                            Text(
+                              'No fields yet',
+                              style: theme.textTheme.titleLarge,
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              'Add some fields to get started with this account',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            SizedBox(height: 24),
+                            FilledButton.icon(
+                              onPressed: () async {
+                                final result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => AccountFormScreen(
+                                      repository: widget.repository,
+                                      accountId: account.id,
+                                      isCreateMode: false,
+                                    ),
+                                  ),
+                                );
+                                if (result == true) {
+                                  provider.loadFields();
+                                }
+                              },
+                              icon: Icon(Icons.add),
+                              label: Text('Add Fields'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  SliverToBoxAdapter(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.only(left: 20, bottom: 8, top: 8),
+                          child: Text(
+                            'Fields (${provider.fields.length})',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                        ...provider.fields.map((field) {
+                          return _buildFieldTile(field);
+                        }).toList(),
+                      ],
+                    ),
                   ),
-                ),
-              ),
 
-              if (provider.isLoading)
-                Center(child: CircularProgressIndicator())
-              else if (provider.hasError)
-                Center(
-                  child: Text(provider.errorMessage ?? 'An error occurred'),
-                )
-              else if (provider.fields.isEmpty)
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.info_outline, size: 64, color: Colors.grey),
-                    SizedBox(height: 16),
-                    Text(
-                      'No fields available',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'Tap the edit button to add some fields',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
-                    ),
-                  ],
-                )
-              else
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
-                  itemCount: provider.fields.length,
-                  itemBuilder: (context, index) {
-                    final field = provider.fields[index];
-                    return _buildFieldTile(field);
-                  },
-                ),
-            ],
+                // Bottom spacing for FAB
+                SliverToBoxAdapter(child: SizedBox(height: 80)),
+              ],
+            ),
           ),
         );
       },
@@ -233,6 +303,7 @@ class _AccountDetailScreenContentState
   }
 
   Widget _buildFieldTile(AccountField field) {
+    // Use the existing field view widgets directly without extra card wrapper
     switch (field.type) {
       case AccountFieldType.credential:
         return CredentialFieldView(field: field);
@@ -252,17 +323,41 @@ class _AccountDetailScreenContentState
   }
 
   void _confirmAndDeleteAccount() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        icon: Icon(
+          Icons.warning_amber_rounded,
+          color: colorScheme.error,
+          size: 28,
+        ),
         title: Text('Delete Account'),
-        content: Text('Are you sure you want to delete this account?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Are you sure you want to delete "${widget.account.name}"?',
+              style: theme.textTheme.bodyLarge,
+            ),
+            SizedBox(height: 8),
+            Text(
+              'This action cannot be undone. All associated fields will be permanently deleted.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text('Cancel'),
           ),
-          TextButton(
+          FilledButton(
             onPressed: () {
               Provider.of<AccountDetailProvider>(
                 context,
@@ -271,7 +366,11 @@ class _AccountDetailScreenContentState
               Navigator.pop(context); // Close dialog
               Navigator.pop(context); // Go back to previous screen
             },
-            child: Text('Delete', style: TextStyle(color: Colors.red)),
+            style: FilledButton.styleFrom(
+              backgroundColor: colorScheme.error,
+              foregroundColor: colorScheme.onError,
+            ),
+            child: Text('Delete'),
           ),
         ],
       ),

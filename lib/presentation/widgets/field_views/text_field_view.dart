@@ -5,69 +5,87 @@ import 'package:passwords/data/models/account_field.dart';
 class TextFieldView extends StatefulWidget {
   final AccountField field;
   const TextFieldView({super.key, required this.field});
+
   @override
   State<TextFieldView> createState() => _TextFieldViewState();
 }
 
 class _TextFieldViewState extends State<TextFieldView> {
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
+  void _copyToClipboard() {
+    final value = widget.field.getMetadata("value");
+    Clipboard.setData(ClipboardData(text: value));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Text copied to clipboard'),
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 2),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final field = widget.field;
-    return Card(
-      margin: EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: EdgeInsets.only(left: 16, right: 16, top: 14, bottom: 14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              field.label,
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey,
-                letterSpacing: 1.05,
-              ),
-            ),
-            SizedBox(height: 4),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    field.getMetadata("value"),
-                    style: TextStyle(fontSize: 16, letterSpacing: 1.2),
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final value = field.getMetadata("value");
+
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Card(
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header with icon and label
+              Row(
+                children: [
+                  Icon(Icons.text_fields, color: colorScheme.primary, size: 20),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      field.label,
+                      style: theme.textTheme.titleMedium,
+                    ),
                   ),
+                ],
+              ),
+              SizedBox(height: 16),
+
+              // Text content
+              if (value.isNotEmpty) ...[
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        value,
+                        style: theme.textTheme.bodyLarge,
+                        maxLines: null, // Allow multiple lines for long text
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: _copyToClipboard,
+                      icon: Icon(Icons.copy, size: 18),
+                      style: IconButton.styleFrom(
+                        visualDensity: VisualDensity.compact,
+                        foregroundColor: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
                 ),
-                InkWell(
-                  borderRadius: BorderRadius.circular(20),
-                  onTap: () {
-                    // ClipboardManager.setText(field.getMetadata("username"));
-                    Clipboard.setData(
-                      ClipboardData(text: field.getMetadata("value")),
-                    );
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Value copied to clipboard')),
-                    );
-                  },
-                  child: Icon(
-                    Icons.copy_outlined,
-                    color: Colors.grey,
-                    size: 20,
+              ] else ...[
+                Text(
+                  'No text set',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    fontStyle: FontStyle.italic,
                   ),
                 ),
               ],
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -15,185 +15,149 @@ class CredentialFieldView extends StatefulWidget {
 class _CredentialFieldViewState extends State<CredentialFieldView> {
   bool _isPasswordVisible = false;
 
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
   void _togglePasswordVisibility() {
     setState(() {
       _isPasswordVisible = !_isPasswordVisible;
     });
   }
 
+  void _copyToClipboard(String value, String type) {
+    Clipboard.setData(ClipboardData(text: value));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$type copied to clipboard'),
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final field = widget.field;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    final username = field.getMetadata("username");
+    final password = field.getMetadata("password");
+
     return Container(
-      width: double.infinity,
-      margin: EdgeInsets.only(bottom: 8, top: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: 3,
-        children: [
-          Padding(
-            padding: EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 8),
-            child: Text(
-              field.label.toUpperCase(),
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey,
-                letterSpacing: 1.05,
-              ),
-            ),
-          ),
-          Card(
-            margin: EdgeInsets.symmetric(horizontal: 16),
-
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(16),
-                topRight: Radius.circular(16),
-                bottomRight: Radius.circular(5),
-                bottomLeft: Radius.circular(5),
-              ),
-            ),
-
-            child: Padding(
-              padding: EdgeInsets.only(
-                left: 16,
-                right: 16,
-                top: 14,
-                bottom: 14,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Card(
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header with icon and label
+              Row(
                 children: [
-                  Text(
-                    "Username/Email",
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey,
-                      letterSpacing: 1.05,
+                  Icon(Icons.person, color: colorScheme.primary, size: 20),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      field.label,
+                      style: theme.textTheme.titleMedium,
                     ),
-                  ),
-                  SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          field.getMetadata("username"),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      InkWell(
-                        borderRadius: BorderRadius.circular(20),
-                        onTap: () {
-                          // ClipboardManager.setText(field.getMetadata("username"));
-                          Clipboard.setData(
-                            ClipboardData(text: field.getMetadata("username")),
-                          );
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Username copied to clipboard'),
-                            ),
-                          );
-                        },
-                        child: Icon(
-                          Icons.copy_outlined,
-                          color: Colors.grey,
-                          size: 20,
-                        ),
-                      ),
-                    ],
                   ),
                 ],
               ),
-            ),
-          ),
-          Card(
-            margin: EdgeInsets.symmetric(horizontal: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(16),
-                bottomRight: Radius.circular(16),
-                topRight: Radius.circular(5),
-                topLeft: Radius.circular(5),
-              ),
-            ),
-            child: Padding(
-              padding: EdgeInsets.only(
-                left: 16,
-                right: 16,
-                top: 14,
-                bottom: 14,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Password",
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey,
-                      letterSpacing: 1.05,
-                    ),
+              SizedBox(height: 16),
+
+              // Username section
+              if (username.isNotEmpty) ...[
+                _buildFieldSection(
+                  context,
+                  label: 'Username/Email',
+                  value: username,
+                  onCopy: () => _copyToClipboard(username, 'Username'),
+                ),
+                SizedBox(height: 12),
+              ],
+
+              // Password section
+              if (password.isNotEmpty) ...[
+                _buildFieldSection(
+                  context,
+                  label: 'Password',
+                  value: _isPasswordVisible ? password : '••••••••',
+                  onCopy: () => _copyToClipboard(password, 'Password'),
+                  isPassword: true,
+                  onToggleVisibility: _togglePasswordVisibility,
+                ),
+              ],
+
+              // Empty state
+              if (username.isEmpty && password.isEmpty) ...[
+                Text(
+                  'No credentials set',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    fontStyle: FontStyle.italic,
                   ),
-                  SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          _isPasswordVisible
-                              ? field.getMetadata("password")
-                              : '••••••••••••',
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      InkWell(
-                        borderRadius: BorderRadius.circular(20),
-                        onTap: _togglePasswordVisibility,
-                        child: Icon(
-                          _isPasswordVisible
-                              ? Icons.visibility
-                              : Icons.visibility_off,
-                          color: Colors.grey,
-                          size: 20,
-                        ),
-                      ),
-                      SizedBox(width: 12),
-                      InkWell(
-                        borderRadius: BorderRadius.circular(20),
-                        onTap: () {
-                          // ClipboardManager.setText(field.getMetadata("username"));
-                          Clipboard.setData(
-                            ClipboardData(text: field.getMetadata("password")),
-                          );
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Password copied to clipboard'),
-                            ),
-                          );
-                        },
-                        child: Icon(
-                          Icons.copy_outlined,
-                          color: Colors.grey,
-                          size: 20,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+                ),
+              ],
+            ],
           ),
-        ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildFieldSection(
+    BuildContext context, {
+    required String label,
+    required String value,
+    required VoidCallback onCopy,
+    bool isPassword = false,
+    VoidCallback? onToggleVisibility,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+          ),
+        ),
+        SizedBox(height: 4),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                value,
+                style: theme.textTheme.bodyLarge,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            if (isPassword && onToggleVisibility != null) ...[
+              IconButton(
+                onPressed: onToggleVisibility,
+                icon: Icon(
+                  _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                  size: 18,
+                ),
+                style: IconButton.styleFrom(
+                  visualDensity: VisualDensity.compact,
+                  foregroundColor: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+            IconButton(
+              onPressed: onCopy,
+              icon: Icon(Icons.copy, size: 18),
+              style: IconButton.styleFrom(
+                visualDensity: VisualDensity.compact,
+                foregroundColor: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
