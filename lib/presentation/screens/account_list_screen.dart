@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:material_symbols_icons/symbols.dart';
 import '../../business/providers/account_provider.dart';
 import '../../data/templates/account_templates.dart';
 import '../widgets/account_list_item.dart';
