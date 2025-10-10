@@ -85,6 +85,21 @@ class AccountDetailProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> deleteAccount(String id) async {
+    try {
+      _state = AccountDetailState.loading;
+      notifyListeners();
+
+      await repository.deleteAccount(id);
+      _state = AccountDetailState.loaded;
+      notifyListeners();
+    } catch (e) {
+      _state = AccountDetailState.error;
+      _errorMessage = 'Failed to delete account';
+      notifyListeners();
+    }
+  }
+
   // Update account
   Future<void> updateAccount(Account account) async {
     try {
