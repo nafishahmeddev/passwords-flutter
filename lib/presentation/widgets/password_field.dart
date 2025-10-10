@@ -21,6 +21,7 @@ class PasswordField extends StatefulWidget {
 class _PasswordFieldState extends State<PasswordField> {
   late TextEditingController _valueController;
   Timer? _debounceTimer;
+  bool _isPasswordVisible = false;
 
   @override
   void initState() {
@@ -46,39 +47,51 @@ class _PasswordFieldState extends State<PasswordField> {
     });
   }
 
+  void _togglePasswordVisibility() {
+    setState(() {
+      _isPasswordVisible = !_isPasswordVisible;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        color: Theme.of(context).colorScheme.surfaceContainer,
+      ),
+      child: TextFormField(
+        controller: _valueController,
+        obscureText: !_isPasswordVisible,
+        keyboardType: TextInputType.visiblePassword,
+        autocorrect: false,
+        enableSuggestions: false,
+        textCapitalization: TextCapitalization.none,
+        decoration: InputDecoration(
+          labelText: widget.field.label,
+          hintText: 'Enter password or email',
+          border: InputBorder.none,
+          suffix: SizedBox(
+            width: 60,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              spacing: 8,
               children: [
-                Text(
-                  widget.field.label,
-                  style: Theme.of(context).textTheme.titleMedium,
+                InkWell(
+                  onTap: _togglePasswordVisibility,
+                  child: Icon(
+                    _isPasswordVisible
+                        ? Icons.visibility
+                        : Icons.visibility_off,
+                  ),
                 ),
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
-                  onPressed: widget.onRemove,
-                  tooltip: 'Delete field',
-                ),
+                InkWell(onTap: widget.onRemove, child: const Icon(Icons.close)),
               ],
             ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _valueController,
-              decoration: const InputDecoration(
-                labelText: 'Password',
-                hintText: 'Enter password or email',
-              ),
-              onChanged: (_) => _onFieldChanged(),
-            ),
-          ],
+          ),
         ),
+        onChanged: (_) => _onFieldChanged(),
       ),
     );
   }

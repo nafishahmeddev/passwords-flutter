@@ -48,37 +48,21 @@ class _PlainTextFieldState extends State<PlainTextField> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Text(
-                  widget.field.label,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
-                  onPressed: widget.onRemove,
-                  tooltip: 'Delete field',
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _valueController,
-              decoration: const InputDecoration(
-                labelText: 'Text',
-                hintText: 'Enter text or email',
-              ),
-              onChanged: (_) => _onFieldChanged(),
-            ),
-          ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        color: Theme.of(context).colorScheme.surfaceContainer,
+      ),
+      child: TextFormField(
+        controller: _valueController,
+        decoration: InputDecoration(
+          labelText: 'Text',
+          hintText: 'Enter text or email',
+          border: InputBorder.none,
+          suffix: InkWell(onTap: widget.onRemove, child: Icon(Icons.close)),
         ),
+        onChanged: (_) => _onFieldChanged(),
       ),
     );
   }

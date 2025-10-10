@@ -152,64 +152,53 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
         padding: EdgeInsets.all(16),
         children: [
           // Account editing section
-          Card(
-            margin: EdgeInsets.only(bottom: 16),
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Account Details',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: 16),
-                  TextField(
-                    controller: _nameController,
-                    decoration: InputDecoration(
-                      labelText: 'Account Name',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.account_circle),
-                    ),
-                    onChanged: (value) {
-                      // Debounce updates - only update when user stops typing
-                      _debounceUpdateAccount(value, provider);
-                    },
-                  ),
-                  SizedBox(height: 12),
-                  TextField(
-                    controller: _noteController,
-                    decoration: InputDecoration(
-                      labelText: 'Note (Optional)',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.note),
-                    ),
-                    maxLines: 3,
-                    onChanged: (value) {
-                      // Debounce updates - only update when user stops typing
-                      _debounceUpdateNote(value, provider);
-                    },
-                  ),
-                ],
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              color: Theme.of(context).colorScheme.surfaceContainer,
+            ),
+            child: TextField(
+              controller: _nameController,
+              decoration: InputDecoration(
+                labelText: 'Name',
+                border: InputBorder.none,
               ),
+              onChanged: (value) {
+                // Debounce updates - only update when user stops typing
+                _debounceUpdateAccount(value, provider);
+              },
             ),
           ),
-          // Fields section header
-          Padding(
-            padding: EdgeInsets.only(bottom: 8),
-            child: Text(
-              'Fields',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-          ),
+          SizedBox(height: 24),
+
           // Fields list - pass fields directly to avoid unnecessary rebuilds
           Consumer<AccountFormProvider>(
             builder: (context, provider, child) =>
                 _FieldsList(fields: provider.fields),
+          ),
+          Padding(
+            padding: EdgeInsets.only(top: 16, bottom: 16),
+            child: Text("Additional Information"),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              color: Theme.of(context).colorScheme.surfaceContainer,
+            ),
+            child: TextField(
+              controller: _noteController,
+              decoration: InputDecoration(
+                labelText: 'Note (Optional)',
+                border: InputBorder.none,
+              ),
+              maxLines: 3,
+              onChanged: (value) {
+                // Debounce updates - only update when user stops typing
+                _debounceUpdateNote(value, provider);
+              },
+            ),
           ),
         ],
       );
