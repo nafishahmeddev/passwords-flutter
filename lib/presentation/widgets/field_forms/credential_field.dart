@@ -6,12 +6,14 @@ class CredentialField extends StatefulWidget {
   final AccountField field;
   final void Function(AccountField field) onChange;
   final VoidCallback onRemove;
+  final BorderRadius? borderRadius;
 
   const CredentialField({
     super.key,
     required this.field,
     required this.onChange,
     required this.onRemove,
+    this.borderRadius,
   });
 
   @override
@@ -65,6 +67,10 @@ class _CredentialFieldState extends State<CredentialField> {
   Widget build(BuildContext context) {
     return Card(
       elevation: 0,
+      margin: EdgeInsets.all(0),
+      shape: widget.borderRadius != null
+          ? RoundedRectangleBorder(borderRadius: widget.borderRadius!)
+          : null,
       child: Container(
         decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
         child: Padding(

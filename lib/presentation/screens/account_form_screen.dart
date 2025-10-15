@@ -174,6 +174,7 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
                   children: [
                     // Account name field
                     Card(
+                      margin: EdgeInsets.all(0),
                       elevation: 0,
                       child: Container(
                         decoration: BoxDecoration(
@@ -298,6 +299,7 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
                     ),
                     Card(
                       elevation: 0,
+                      margin: EdgeInsets.all(0),
                       child: Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(16),

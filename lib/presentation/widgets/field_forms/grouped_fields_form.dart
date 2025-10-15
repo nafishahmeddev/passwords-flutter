@@ -106,6 +106,7 @@ class GroupedFieldsFormView extends StatelessWidget {
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 3,
       children: [
         // Group Header
         Padding(
@@ -136,10 +137,10 @@ class GroupedFieldsFormView extends StatelessWidget {
         ),
 
         // Field forms
-        ...group.fields.map(
-          (field) => Padding(
+        ...group.fields.asMap().entries.map(
+          (entry) => Padding(
             padding: EdgeInsetsGeometry.symmetric(horizontal: 16),
-            child: _buildFormField(context, field),
+            child: _buildFormField(context, group, entry.value, entry.key),
           ),
         ),
 
@@ -149,37 +150,68 @@ class GroupedFieldsFormView extends StatelessWidget {
     );
   }
 
-  Widget _buildFormField(BuildContext context, AccountField field) {
+  Widget _buildFormField(
+    BuildContext context,
+    FieldGroup group,
+    AccountField field,
+    int index,
+  ) {
+    BorderRadius borderRadius;
+
+    if (group.fields.length == 1) {
+      borderRadius = BorderRadius.all(Radius.circular(16));
+    } else if (index == 0) {
+      borderRadius = BorderRadius.only(
+        topLeft: Radius.circular(16),
+        topRight: Radius.circular(16),
+        bottomRight: Radius.circular(4),
+        bottomLeft: Radius.circular(4),
+      );
+    } else if (index == group.fields.length - 1) {
+      borderRadius = BorderRadius.only(
+        bottomLeft: Radius.circular(16),
+        bottomRight: Radius.circular(16),
+        topLeft: Radius.circular(4),
+        topRight: Radius.circular(4),
+      );
+    } else {
+      borderRadius = BorderRadius.zero;
+    }
     switch (field.type) {
       case AccountFieldType.credential:
         return CredentialField(
           field: field,
           onChange: (f) => formProvider.updateField(f),
           onRemove: () => onDeleteField(field),
+          borderRadius: borderRadius,
         );
       case AccountFieldType.password:
         return PasswordField(
           field: field,
           onChange: (f) => formProvider.updateField(f),
           onRemove: () => onDeleteField(field),
+          borderRadius: borderRadius,
         );
       case AccountFieldType.website:
         return WebsiteField(
           field: field,
           onChange: (f) => formProvider.updateField(f),
           onRemove: () => onDeleteField(field),
+          borderRadius: borderRadius,
         );
       case AccountFieldType.otp:
         return OtpField(
           field: field,
           onChange: (f) => formProvider.updateField(f),
           onRemove: () => onDeleteField(field),
+          borderRadius: borderRadius,
         );
       default:
         return PlainTextField(
           field: field,
           onChange: (f) => formProvider.updateField(f),
           onRemove: () => onDeleteField(field),
+          borderRadius: borderRadius,
         );
     }
   }
