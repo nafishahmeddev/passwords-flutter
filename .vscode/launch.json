@@ -5,9 +5,10 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Passwords",
+      "name": "Passwords (debug mode)",
       "request": "launch",
-      "type": "dart"
+      "type": "dart",
+      "flutterMode": "debug"
     },
     {
       "name": "Passwords (profile mode)",
