@@ -41,12 +41,16 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
     });
   }
 
+  final GlobalKey<PinInputState> _pinInputKey = GlobalKey<PinInputState>();
+
   void _handlePinCompleted(String pin) {
     if (_newPin == null) {
       // First entry
       setState(() {
         _newPin = pin;
       });
+      // Reset the PIN input UI for confirmation
+      _pinInputKey.currentState?.resetPin();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Confirm your PIN'),
@@ -70,6 +74,8 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
         setState(() {
           _newPin = null;
         });
+        // Reset PIN input UI when there's an error
+        _pinInputKey.currentState?.resetPin();
       }
     }
   }
@@ -330,7 +336,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                     textAlign: TextAlign.center,
                   ),
                   SizedBox(height: 32),
-                  PinInput(onCompleted: _handlePinCompleted),
+                  PinInput(key: _pinInputKey, onCompleted: _handlePinCompleted),
                 ],
               ),
             ),

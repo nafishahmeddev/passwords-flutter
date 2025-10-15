@@ -59,6 +59,13 @@ class PinInputState extends State<PinInput> {
     });
   }
 
+  // Public method to reset the PIN input
+  void resetPin() {
+    setState(() {
+      _resetPin();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
