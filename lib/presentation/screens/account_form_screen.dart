@@ -6,7 +6,7 @@ import '../../data/models/account.dart';
 import '../../data/models/account_field.dart';
 import '../../data/repositories/account_repository.dart';
 import '../widgets/add_field_dialog.dart';
-import '../widgets/field_widget_builder.dart';
+import '../widgets/field_forms/grouped_fields_form.dart';
 
 class AccountFormScreen extends StatelessWidget {
   final AccountRepository repository;
@@ -160,220 +160,227 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
         _initializeControllers(provider.account!);
       }
 
-      return CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Account name field
-                  Card(
-                    elevation: 0,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.primary.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Icon(
-                                    Icons.account_circle_outlined,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.primary,
-                                    size: 20,
-                                  ),
-                                ),
-                                SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Account Name',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.copyWith(
-                                              color: Theme.of(
-                                                context,
-                                              ).colorScheme.onSurfaceVariant,
-                                            ),
-                                      ),
-                                      SizedBox(height: 4),
-                                      TextField(
-                                        controller: _nameController,
-                                        decoration: InputDecoration(
-                                          hintText: 'Enter account name',
-                                          border: InputBorder.none,
-                                          contentPadding: EdgeInsets.zero,
-                                          isDense: true,
-                                        ),
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.bodyLarge,
-                                        onChanged: (value) {
-                                          _debounceUpdateAccount(
-                                            value,
-                                            provider,
-                                          );
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
+      return SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 80), // Bottom padding for FAB
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Account name section
+              Padding(
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Account name field
+                    Card(
+                      elevation: 0,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 16),
-
-                  // Fields section header
-                  if (provider.fields.isNotEmpty) ...[
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                      child: Text(
-                        'Fields',
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurfaceVariant,
-                            ),
+                        child: Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Icon(
+                                      Icons.account_circle_outlined,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
+                                      size: 20,
+                                    ),
+                                  ),
+                                  SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Account Name',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyMedium
+                                              ?.copyWith(
+                                                color: Theme.of(
+                                                  context,
+                                                ).colorScheme.onSurfaceVariant,
+                                              ),
+                                        ),
+                                        SizedBox(height: 4),
+                                        TextField(
+                                          controller: _nameController,
+                                          decoration: InputDecoration(
+                                            hintText: 'Enter account name',
+                                            border: InputBorder.none,
+                                            contentPadding: EdgeInsets.zero,
+                                            isDense: true,
+                                          ),
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.bodyLarge,
+                                          onChanged: (value) {
+                                            _debounceUpdateAccount(
+                                              value,
+                                              provider,
+                                            );
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                   ],
-                ],
+                ),
               ),
-            ),
-          ),
 
-          // Fields list
-          SliverToBoxAdapter(
-            child: Consumer<AccountFormProvider>(
-              builder: (context, provider, child) =>
-                  _FieldsList(fields: provider.fields),
-            ),
-          ),
+              // Fields list section
+              Consumer<AccountFormProvider>(
+                builder: (context, provider, child) {
+                  if (provider.fields.isEmpty) {
+                    return SizedBox.shrink(); // Don't show anything if no fields
+                  }
+                  return _FieldsList(fields: provider.fields);
+                },
+              ),
 
-          // Additional Information section
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                    child: Text(
-                      'Additional Information',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+              // Additional Information section
+              Padding(
+                padding: EdgeInsets.only(left: 16, top: 16, right: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        left: 0,
+                        right: 0,
+                        top: 24,
+                        bottom: 8,
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.info_outline,
+                            color: Theme.of(context).colorScheme.primary,
+                            size: 16,
+                          ),
+                          SizedBox(width: 12),
+                          Text(
+                            "INFORMATION",
+                            style: Theme.of(context).textTheme.labelMedium
+                                ?.copyWith(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 1.2,
+                                ),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                  Card(
-                    elevation: 0,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.primary,
-                                    borderRadius: BorderRadius.circular(10),
+                    Card(
+                      elevation: 0,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Icon(
+                                      Icons.note_outlined,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
+                                      size: 20,
+                                    ),
                                   ),
-                                  child: Icon(
-                                    Icons.note_outlined,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.primary,
-                                    size: 20,
-                                  ),
-                                ),
-                                SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Notes',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.copyWith(
-                                              color: Theme.of(
-                                                context,
-                                              ).colorScheme.onSurfaceVariant,
-                                            ),
-                                      ),
-                                      SizedBox(height: 4),
-                                      TextField(
-                                        controller: _noteController,
-                                        decoration: InputDecoration(
-                                          hintText:
-                                              'Add any additional notes (optional)',
-                                          border: InputBorder.none,
-                                          contentPadding: EdgeInsets.zero,
-                                          isDense: true,
+                                  SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Notes',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyMedium
+                                              ?.copyWith(
+                                                color: Theme.of(
+                                                  context,
+                                                ).colorScheme.onSurfaceVariant,
+                                              ),
                                         ),
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.bodyLarge,
-                                        maxLines: null,
-                                        onChanged: (value) {
-                                          _debounceUpdateNote(value, provider);
-                                        },
-                                      ),
-                                    ],
+                                        SizedBox(height: 4),
+                                        TextField(
+                                          controller: _noteController,
+                                          decoration: InputDecoration(
+                                            hintText:
+                                                'Add any additional notes (optional)',
+                                            border: InputBorder.none,
+                                            contentPadding: EdgeInsets.zero,
+                                            isDense: true,
+                                          ),
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.bodyLarge,
+                                          maxLines: null,
+                                          onChanged: (value) {
+                                            _debounceUpdateNote(
+                                              value,
+                                              provider,
+                                            );
+                                          },
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ],
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  // Add bottom padding for FAB
-                  SizedBox(height: 80),
-                ],
+                  ],
+                ),
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       );
     } else if (provider.isSaving) {
       return Center(
@@ -431,82 +438,11 @@ class _FieldsList extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = Provider.of<AccountFormProvider>(context, listen: false);
 
-    if (fields.isEmpty) {
-      return Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 32),
-        child: Card(
-          elevation: 0,
-          child: Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
-                style: BorderStyle.solid,
-                width: 1,
-              ),
-            ),
-            child: Padding(
-              padding: EdgeInsets.all(32),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.primaryContainer.withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(32),
-                    ),
-                    child: Icon(
-                      Icons.add_circle_outline,
-                      size: 32,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    'No fields yet',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Tap the + button to add your first field',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      );
-    } else {
-      return Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16),
-        child: Column(
-          children: fields.map((field) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 8.0),
-              child: Builder(
-                builder: (dialogContext) => FieldWidgetBuilder.buildFieldWidget(
-                  dialogContext,
-                  field,
-                  provider,
-                  () {
-                    _confirmDeleteField(context, field);
-                  },
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-      );
-    }
+    return GroupedFieldsFormView(
+      fields: fields,
+      formProvider: provider,
+      onDeleteField: (field) => _confirmDeleteField(context, field),
+    );
   }
 
   void _confirmDeleteField(BuildContext context, AccountField field) {

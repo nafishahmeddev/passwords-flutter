@@ -81,7 +81,7 @@ class _CredentialFieldState extends State<CredentialField> {
                     decoration: BoxDecoration(
                       color: Theme.of(
                         context,
-                      ).colorScheme.primaryContainer.withOpacity(0.7),
+                      ).colorScheme.primaryContainer.withAlpha(180),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(

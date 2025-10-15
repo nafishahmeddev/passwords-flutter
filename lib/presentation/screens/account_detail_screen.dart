@@ -1,6 +1,6 @@
 // lib/presentation/screens/account_detail_screen.dart
 import 'package:flutter/material.dart';
-import 'package:passwords/presentation/widgets/field_views/simplified_grouped_fields_view.dart';
+import 'package:passwords/presentation/widgets/field_views/grouped_fields_view.dart';
 import 'package:provider/provider.dart';
 import '../../data/models/account.dart';
 import '../../data/repositories/account_repository.dart';
