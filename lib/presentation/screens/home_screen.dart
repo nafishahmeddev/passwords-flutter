@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../business/providers/account_provider.dart';
+import '../../data/models/account_field.dart';
+import '../../data/templates/account_templates.dart';
+import 'account_detail_screen.dart';
+import 'account_form_screen.dart';
 import 'account_list_content.dart';
 import 'password_generator_screen.dart';
 import 'settings_screen.dart';
@@ -117,10 +123,53 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   title: Text('Create New Account'),
                   subtitle: Text('Start with a blank account'),
-                  onTap: () {
+                  onTap: () async {
                     Navigator.pop(context);
-                    // Navigate to create account screen
-                    // This would be handled by the AccountListContent widget
+                    
+                    // Import necessary classes
+                    final provider = Provider.of<AccountProvider>(context, listen: false);
+                    
+                    // Get template fields for the selected type
+                    List<AccountField> templateFields = getTemplateFields("Login", 'temp');
+                    
+                    // Navigate to create new account with template fields
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => AccountFormScreen(
+                          repository: provider.repository,
+                          isCreateMode: true,
+                          templateFields: templateFields,
+                        ),
+                      ),
+                    );
+                    
+                    // If account was successfully created, navigate to its detail screen
+                    if (result == true) {
+                      // Reload accounts to get the newly created account
+                      await provider.loadAccounts();
+
+                      // Find the newly created account
+                      if (provider.state == AccountState.loaded && 
+                          provider.accounts.isNotEmpty) {
+                        final newestAccount = provider.accounts.reduce(
+                          (a, b) => a.createdAt > b.createdAt ? a : b,
+                        );
+
+                        // Navigate to the detail screen of the new account
+                        if (mounted) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => AccountDetailScreen(
+                                account: newestAccount,
+                                repository: provider.repository,
+                              ),
+                            ),
+                          );
+                        }
+                      }
+                    }
                   },
                 ),
                 ListTile(
