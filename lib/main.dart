@@ -25,182 +25,333 @@ class MainApp extends StatelessWidget {
       create: (_) => AccountProvider(repository: repository)..loadAccounts(),
       child: DynamicColorBuilder(
         builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
-          print("lightDynamic: $lightDynamic, darkDynamic: $darkDynamic");
-          // Create custom color schemes with better contrast and harmony
+          // Use Material You dynamic colors or fallback to a neutral primary
+          // Following Pixel phone's approach with single primary color
+          const fallbackSeedColor = Color(0xFF6750A4); // Material You purple
+          
           final lightColorScheme = ColorScheme.fromSeed(
-            seedColor: lightDynamic?.primary ?? Colors.green,
+            seedColor: lightDynamic?.primary ?? fallbackSeedColor,
             brightness: Brightness.light,
           );
           final darkColorScheme = ColorScheme.fromSeed(
-            seedColor: darkDynamic?.primary ?? Colors.green,
+            seedColor: darkDynamic?.primary ?? fallbackSeedColor,
             brightness: Brightness.dark,
           );
 
           return MaterialApp(
             title: 'Passwords',
-            theme: ThemeData(
-              useMaterial3: true,
-              colorScheme: lightColorScheme,
-              brightness: Brightness.light,
-              // Enhanced typography
-              textTheme: TextTheme(
-                headlineLarge: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.5,
-                ),
-                headlineMedium: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: -0.25,
-                ),
-                headlineSmall: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0,
-                ),
-                titleLarge: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 0,
-                ),
-                titleMedium: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 0.15,
-                ),
-                titleSmall: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 0.1,
-                ),
-                bodyLarge: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w400,
-                  letterSpacing: 0.5,
-                ),
-                bodyMedium: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                  letterSpacing: 0.25,
-                ),
-                bodySmall: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w400,
-                  letterSpacing: 0.4,
-                ),
-              ),
-              // Enhanced component themes
-              cardTheme: CardThemeData(
-                elevation: 0,
-                color: lightColorScheme.surfaceContainerLowest,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(16)),
-                ),
-              ),
-              appBarTheme: AppBarTheme(
-                elevation: 0,
-                backgroundColor: lightColorScheme.surface,
-                foregroundColor: lightColorScheme.onSurface,
-                surfaceTintColor: Colors.transparent,
-                titleTextStyle: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: lightColorScheme.onSurface,
-                ),
-              ),
-              filledButtonTheme: FilledButtonThemeData(
-                style: FilledButton.styleFrom(
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            ),
-            darkTheme: ThemeData(
-              useMaterial3: true,
-              colorScheme: darkColorScheme,
-              brightness: Brightness.dark,
-              // Same typography for dark theme
-              textTheme: TextTheme(
-                headlineLarge: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.5,
-                ),
-                headlineMedium: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: -0.25,
-                ),
-                headlineSmall: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0,
-                ),
-                titleLarge: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 0,
-                ),
-                titleMedium: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 0.15,
-                ),
-                titleSmall: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 0.1,
-                ),
-                bodyLarge: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w400,
-                  letterSpacing: 0.5,
-                ),
-                bodyMedium: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                  letterSpacing: 0.25,
-                ),
-                bodySmall: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w400,
-                  letterSpacing: 0.4,
-                ),
-              ),
-              // Enhanced component themes for dark
-              cardTheme: CardThemeData(
-                elevation: 0,
-                color: darkColorScheme.surfaceContainer,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(18)),
-                ),
-              ),
-              appBarTheme: AppBarTheme(
-                elevation: 0,
-                backgroundColor: darkColorScheme.surface,
-                foregroundColor: darkColorScheme.onSurface,
-                surfaceTintColor: Colors.transparent,
-                titleTextStyle: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: darkColorScheme.onSurface,
-                ),
-              ),
-              filledButtonTheme: FilledButtonThemeData(
-                style: FilledButton.styleFrom(
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            ),
+            theme: _buildLightTheme(lightColorScheme),
+            darkTheme: _buildDarkTheme(darkColorScheme),
+            themeMode: ThemeMode.system,
             home: AccountListScreen(),
           );
         },
+      ),
+    );
+  }
+
+  ThemeData _buildLightTheme(ColorScheme colorScheme) {
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme: colorScheme,
+      brightness: Brightness.light,
+      
+      // Material You typography following Pixel design
+      textTheme: const TextTheme(
+        displayLarge: TextStyle(
+          fontSize: 57,
+          fontWeight: FontWeight.w400,
+          letterSpacing: -0.25,
+        ),
+        displayMedium: TextStyle(
+          fontSize: 45,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0,
+        ),
+        displaySmall: TextStyle(
+          fontSize: 36,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0,
+        ),
+        headlineLarge: TextStyle(
+          fontSize: 32,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0,
+        ),
+        headlineMedium: TextStyle(
+          fontSize: 28,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0,
+        ),
+        headlineSmall: TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0,
+        ),
+        titleLarge: TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0,
+        ),
+        titleMedium: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.15,
+        ),
+        titleSmall: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.1,
+        ),
+        bodyLarge: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0.5,
+        ),
+        bodyMedium: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0.25,
+        ),
+        bodySmall: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0.4,
+        ),
+        labelLarge: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.1,
+        ),
+        labelMedium: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.5,
+        ),
+        labelSmall: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.5,
+        ),
+      ),
+      
+      // Material You component themes
+      cardTheme: CardThemeData(
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      
+      appBarTheme: AppBarTheme(
+        elevation: 0,
+        centerTitle: false,
+        scrolledUnderElevation: 3,
+        titleTextStyle: TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.w400,
+          color: colorScheme.onSurface,
+        ),
+      ),
+      
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+        ),
+      ),
+      
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+        ),
+      ),
+      
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+        ),
+      ),
+      
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+      ),
+      
+      listTileTheme: ListTileThemeData(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      ),
+      
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      ),
+    );
+  }
+
+  ThemeData _buildDarkTheme(ColorScheme colorScheme) {
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme: colorScheme,
+      brightness: Brightness.dark,
+      
+      // Same typography as light theme
+      textTheme: const TextTheme(
+        displayLarge: TextStyle(
+          fontSize: 57,
+          fontWeight: FontWeight.w400,
+          letterSpacing: -0.25,
+        ),
+        displayMedium: TextStyle(
+          fontSize: 45,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0,
+        ),
+        displaySmall: TextStyle(
+          fontSize: 36,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0,
+        ),
+        headlineLarge: TextStyle(
+          fontSize: 32,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0,
+        ),
+        headlineMedium: TextStyle(
+          fontSize: 28,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0,
+        ),
+        headlineSmall: TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0,
+        ),
+        titleLarge: TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0,
+        ),
+        titleMedium: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.15,
+        ),
+        titleSmall: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.1,
+        ),
+        bodyLarge: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0.5,
+        ),
+        bodyMedium: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0.25,
+        ),
+        bodySmall: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0.4,
+        ),
+        labelLarge: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.1,
+        ),
+        labelMedium: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.5,
+        ),
+        labelSmall: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.5,
+        ),
+      ),
+      
+      // Dark theme component styles
+      cardTheme: CardThemeData(
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      
+      appBarTheme: AppBarTheme(
+        elevation: 0,
+        centerTitle: false,
+        scrolledUnderElevation: 3,
+        titleTextStyle: TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.w400,
+          color: colorScheme.onSurface,
+        ),
+      ),
+      
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+        ),
+      ),
+      
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+        ),
+      ),
+      
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+        ),
+      ),
+      
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+      ),
+      
+      listTileTheme: ListTileThemeData(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      ),
+      
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),
     );
   }
