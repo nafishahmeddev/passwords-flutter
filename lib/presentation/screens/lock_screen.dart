@@ -17,34 +17,127 @@ class _LockScreenState extends State<LockScreen> {
   @override
   void initState() {
     super.initState();
-    _checkBiometricAvailability();
-    _tryBiometricAuth();
-  }
-
-  Future<void> _checkBiometricAvailability() async {
-    final settingsProvider = Provider.of<SettingsProvider>(
-      context,
-      listen: false,
-    );
-    final biometricAvailable = await settingsProvider
-        .checkBiometricAvailability();
-    final biometricEnabled = settingsProvider.isBiometricEnabled;
-
-    setState(() {
-      _isBiometricAvailable = biometricAvailable && biometricEnabled;
+    // Use a post-frame callback to ensure the UI is built before showing biometrics
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initBiometrics();
     });
   }
 
-  Future<void> _tryBiometricAuth() async {
-    // Slight delay to let screen render first
-    await Future.delayed(Duration(milliseconds: 300));
+  Future<void> _initBiometrics() async {
+    try {
+      // First check if biometrics are available and enabled
+      await _checkBiometricAvailability();
 
-    if (_isBiometricAvailable) {
+      // Print debug information
+      debugPrint("Biometric availability check completed");
+      debugPrint("Is biometric available: $_isBiometricAvailable");
+
+      // If biometrics are available, try to authenticate after UI is fully rendered
+      if (_isBiometricAvailable && mounted) {
+        // Add a slight delay to let the UI render fully
+        await Future.delayed(Duration(milliseconds: 800));
+        if (mounted && !_isAuthenticating) {
+          debugPrint("Auto-attempting biometric authentication");
+          await _tryBiometricAuth();
+        }
+      } else {
+        debugPrint(
+          "Biometrics not available or not enabled, skipping authentication",
+        );
+      }
+    } catch (e) {
+      debugPrint("Error in biometric initialization: ${e.toString()}");
+    }
+  }
+
+  Future<void> _checkBiometricAvailability() async {
+    try {
       final settingsProvider = Provider.of<SettingsProvider>(
         context,
         listen: false,
       );
-      await settingsProvider.authenticateWithBiometrics();
+
+      // Force a fresh check of biometric availability
+      final biometricAvailable = await settingsProvider
+          .checkBiometricAvailability();
+      final biometricEnabled = settingsProvider.isBiometricEnabled;
+      final isAuthEnabled = settingsProvider.isAuthEnabled;
+
+      debugPrint("Biometric hardware available: $biometricAvailable");
+      debugPrint("Biometric enabled in settings: $biometricEnabled");
+      debugPrint("Auth enabled: $isAuthEnabled");
+
+      // Biometrics should only be available if all conditions are met
+      setState(() {
+        _isBiometricAvailable =
+            biometricAvailable && biometricEnabled && isAuthEnabled;
+      });
+
+      debugPrint("Final biometric availability: $_isBiometricAvailable");
+    } catch (e) {
+      debugPrint("Error checking biometric availability: $e");
+      setState(() {
+        _isBiometricAvailable = false;
+      });
+    }
+  }
+
+  // A flag to prevent multiple authentication attempts
+  bool _isAuthenticating = false;
+
+  Future<void> _tryBiometricAuth() async {
+    if (_isAuthenticating) {
+      debugPrint(
+        "Biometric authentication already in progress, ignoring request",
+      );
+      return;
+    }
+
+    setState(() {
+      _isAuthenticating = true;
+    });
+
+    try {
+      final settingsProvider = Provider.of<SettingsProvider>(
+        context,
+        listen: false,
+      );
+
+      // Call authenticate directly without the dialog/FutureBuilder
+      final success = await settingsProvider.authenticateWithBiometrics();
+
+      if (!success && mounted) {
+        // Only show an error if authentication failed (not canceled)
+        final errorMsg = settingsProvider.errorMessage;
+        if (errorMsg != null && errorMsg.contains('failed') && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Authentication failed. Please enter your PIN.'),
+              behavior: SnackBarBehavior.floating,
+              margin: EdgeInsets.all(16),
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint("Error during biometric authentication: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Authentication error. Please enter your PIN.'),
+            behavior: SnackBarBehavior.floating,
+            margin: EdgeInsets.all(16),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isAuthenticating = false;
+        });
+      }
     }
   }
 

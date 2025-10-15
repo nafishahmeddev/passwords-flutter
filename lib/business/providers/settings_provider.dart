@@ -222,38 +222,79 @@ class SettingsProvider extends ChangeNotifier {
   // Authenticate with biometrics
   Future<bool> authenticateWithBiometrics() async {
     try {
+      // Debug output to help diagnose issues
+      debugPrint("Starting biometric authentication process");
+
+      // First make sure biometrics is both enabled and available
+      final biometricsAvailable = await checkBiometricAvailability();
       final biometricsEnabled = _isAuthEnabled && _isBiometricEnabled;
-      if (!biometricsEnabled) {
-        return true; // If biometric not enabled, allow access
+
+      debugPrint("Biometrics available: $biometricsAvailable");
+      debugPrint("Biometrics enabled: $biometricsEnabled");
+
+      if (!biometricsAvailable || !biometricsEnabled) {
+        _isBiometricAvailable = false; // Update state if not actually available
+        if (!biometricsAvailable) {
+          _errorMessage =
+              'Biometric authentication not available on this device';
+        }
+        notifyListeners();
+        return false;
       }
 
+      // Get available biometrics to ensure there's at least one
+      final availableBiometrics = await _localAuth.getAvailableBiometrics();
+      debugPrint("Available biometrics: $availableBiometrics");
+
+      if (availableBiometrics.isEmpty) {
+        _isBiometricAvailable = false;
+        _errorMessage = 'No biometric authentication methods enrolled';
+        notifyListeners();
+        return false;
+      }
+
+      // Try authentication with user presence only (less strict, more reliable)
+      debugPrint("Attempting biometric authentication");
       final result = await _localAuth.authenticate(
         localizedReason: 'Authenticate to access your passwords',
         options: const AuthenticationOptions(
           stickyAuth: true,
-          biometricOnly: true,
+          biometricOnly: false, // Allow any authentication method
         ),
       );
+
+      debugPrint("Authentication result: $result");
 
       if (result) {
         _authStatus = AuthStatus.authenticated;
         _lastActivityTime = DateTime.now(); // Reset activity timer
         notifyListeners();
+        return true;
+      } else {
+        // Authentication was canceled or failed normally
+        _errorMessage = 'Authentication canceled';
+        return false;
       }
-      return result;
     } on PlatformException catch (e) {
+      debugPrint(
+        "PlatformException in biometric auth: ${e.code} - ${e.message}",
+      );
+
       if (e.code == auth_error.notAvailable ||
-          e.code == auth_error.notEnrolled) {
+          e.code == auth_error.notEnrolled ||
+          e.code == auth_error.passcodeNotSet) {
         // Handle case when biometrics is not available or not enrolled
         _isBiometricAvailable = false;
+        _errorMessage = 'Biometric authentication not available: ${e.message}';
         notifyListeners();
         return false;
       }
-      _errorMessage = 'Biometric authentication failed';
+      _errorMessage = 'Biometric authentication failed: ${e.message}';
       notifyListeners();
       return false;
     } catch (e) {
-      _errorMessage = 'Biometric authentication failed';
+      debugPrint("Error in biometric auth: ${e.toString()}");
+      _errorMessage = 'Biometric authentication failed: ${e.toString()}';
       notifyListeners();
       return false;
     }
@@ -262,9 +303,48 @@ class SettingsProvider extends ChangeNotifier {
   // Check if biometric is available
   Future<bool> checkBiometricAvailability() async {
     try {
-      return await _localAuth.canCheckBiometrics &&
-          await _localAuth.isDeviceSupported();
-    } on PlatformException catch (_) {
+      debugPrint("Checking device biometric support");
+
+      // First check if the device supports biometrics
+      final deviceSupported = await _localAuth.isDeviceSupported();
+      debugPrint("Device biometric support: $deviceSupported");
+      if (!deviceSupported) {
+        return false;
+      }
+
+      // Then check if biometrics are available on the device
+      final canCheckBiometrics = await _localAuth.canCheckBiometrics;
+      debugPrint("Can check biometrics: $canCheckBiometrics");
+      if (!canCheckBiometrics) {
+        return false;
+      }
+
+      // Finally check if there are any enrolled biometrics
+      final availableBiometrics = await _localAuth.getAvailableBiometrics();
+      debugPrint("Available biometrics: $availableBiometrics");
+
+      // Log which specific biometric types are available
+      if (availableBiometrics.contains(BiometricType.face)) {
+        debugPrint("Face authentication is available");
+      }
+      if (availableBiometrics.contains(BiometricType.fingerprint)) {
+        debugPrint("Fingerprint authentication is available");
+      }
+      if (availableBiometrics.contains(BiometricType.strong)) {
+        debugPrint("Strong biometric authentication is available");
+      }
+      if (availableBiometrics.contains(BiometricType.weak)) {
+        debugPrint("Weak biometric authentication is available");
+      }
+
+      return availableBiometrics.isNotEmpty;
+    } on PlatformException catch (e) {
+      debugPrint(
+        "Biometric check failed with PlatformException: ${e.code} - ${e.message}",
+      );
+      return false;
+    } catch (e) {
+      debugPrint("Biometric check error: ${e.toString()}");
       return false;
     }
   }
@@ -287,7 +367,13 @@ class SettingsProvider extends ChangeNotifier {
   // Read biometric enabled setting from storage
   Future<bool> _isBiometricEnabledFromStorage() async {
     final value = await _secureStorage.read(key: _useBiometricKey);
-    return value == 'true';
+    // Only count as enabled if explicitly set to 'true'
+    // and biometrics are actually available on this device
+    if (value == 'true') {
+      final biometricsAvailable = await checkBiometricAvailability();
+      return biometricsAvailable;
+    }
+    return false;
   }
 
   // Save PIN
@@ -309,6 +395,18 @@ class SettingsProvider extends ChangeNotifier {
 
   // Set biometric enabled
   Future<void> setBiometricEnabled(bool enabled) async {
+    // If trying to enable biometrics, first check if it's available
+    if (enabled) {
+      final biometricsAvailable = await checkBiometricAvailability();
+      if (!biometricsAvailable) {
+        _errorMessage = 'Biometric authentication not available on this device';
+        _isBiometricAvailable = false;
+        _isBiometricEnabled = false;
+        notifyListeners();
+        return; // Don't enable if not available
+      }
+    }
+
     await _secureStorage.write(
       key: _useBiometricKey,
       value: enabled.toString(),
