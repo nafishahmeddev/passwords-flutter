@@ -6,7 +6,7 @@ import 'data/services/db_helper.dart';
 import 'data/repositories/account_repository.dart';
 import 'business/providers/account_provider.dart';
 import 'business/providers/settings_provider.dart';
-import 'presentation/screens/account_list_screen.dart';
+import 'presentation/screens/home_screen.dart';
 import 'presentation/screens/lock_screen.dart';
 
 void main() async {
@@ -187,7 +187,7 @@ class MainApp extends StatelessWidget {
               // Based on auth status, show either lock screen or home screen
               switch (settingsProvider.authStatus) {
                 case AuthStatus.authenticated:
-                  return AccountListScreen();
+                  return HomeScreen();
                 case AuthStatus.unauthenticated:
                   return LockScreen();
                 case AuthStatus.initial:
