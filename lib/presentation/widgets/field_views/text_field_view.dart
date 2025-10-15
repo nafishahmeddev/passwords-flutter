@@ -30,41 +30,39 @@ class _TextFieldViewState extends State<TextFieldView> {
     final colorScheme = theme.colorScheme;
     final value = field.getMetadata("value");
 
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Field label - simple clean design
-          Text(
-            field.label,
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w500,
-              color: colorScheme.onSurface,
-            ),
-          ),
-          SizedBox(height: 8),
+    return Card(
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Field label - simple clean design with larger font
+            Text(field.label, style: theme.textTheme.titleSmall),
+            SizedBox(height: 8),
 
-          // Text content
-          if (value.isNotEmpty)
-            _buildTextRow(value)
-          else
-            Text(
-              'No text set',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-                fontStyle: FontStyle.italic,
+            // Text content
+            if (value.isNotEmpty)
+              _buildTextRow(value)
+            else
+              Text(
+                'No text set',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontStyle: FontStyle.italic,
+                  fontSize: 16, // Increased font size
+                ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
-  
+
   Widget _buildTextRow(String value) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -72,20 +70,22 @@ class _TextFieldViewState extends State<TextFieldView> {
           // Leading icon
           Icon(
             Icons.text_fields,
-            size: 16,
+            size: 20, // Increased icon size
             color: colorScheme.tertiary,
           ),
           SizedBox(width: 12),
-          
+
           // Text value
           Expanded(
             child: Text(
               value,
-              style: theme.textTheme.bodyMedium,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontSize: 16, // Increased font size
+              ),
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          
+
           // Copy button
           IconButton(
             onPressed: () {

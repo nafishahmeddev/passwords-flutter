@@ -41,46 +41,43 @@ class _CredentialFieldViewState extends State<CredentialFieldView> {
     final username = field.getMetadata("username");
     final password = field.getMetadata("password");
 
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Field label - simple clean design
-          Text(
-            field.label,
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w500,
-              color: colorScheme.onSurface,
-            ),
-          ),
-          SizedBox(height: 8),
-
-          // Username field if available
-          if (username.isNotEmpty) ...[
-            _buildSimpleField(
-              context,
-              value: username,
-              onCopy: () => _copyToClipboard(username, 'Username'),
-              iconData: Icons.person_outline,
-            ),
+    return Card(
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Field label - simple clean design with larger font
+            Text(field.label, style: theme.textTheme.titleSmall),
             SizedBox(height: 8),
-          ],
 
-          // Password field if available
-          if (password.isNotEmpty)
-            _buildPasswordField(context, password: password),
-
-          // Empty state
-          if (username.isEmpty && password.isEmpty)
-            Text(
-              'No credentials set',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-                fontStyle: FontStyle.italic,
+            // Username field if available
+            if (username.isNotEmpty) ...[
+              _buildSimpleField(
+                context,
+                value: username,
+                onCopy: () => _copyToClipboard(username, 'Username'),
+                iconData: Icons.person_outline,
               ),
-            ),
-        ],
+            ],
+
+            // Password field if available
+            if (password.isNotEmpty)
+              _buildPasswordField(context, password: password),
+
+            // Empty state
+            if (username.isEmpty && password.isEmpty)
+              Text(
+                'No credentials set',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontStyle: FontStyle.italic,
+                  fontSize: 16, // Increased font size
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

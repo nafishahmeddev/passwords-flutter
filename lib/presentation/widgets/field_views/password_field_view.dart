@@ -39,33 +39,31 @@ class _PasswordFieldViewState extends State<PasswordFieldView> {
     final colorScheme = theme.colorScheme;
     final password = field.getMetadata("value");
 
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Field label - simple clean design
-          Text(
-            field.label,
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w500,
-              color: colorScheme.onSurface,
-            ),
-          ),
-          SizedBox(height: 8),
+    return Card(
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Field label - simple clean design with larger font
+            Text(field.label, style: theme.textTheme.titleSmall),
+            SizedBox(height: 8),
 
-          // Password content
-          if (password.isNotEmpty)
-            _buildPasswordRow(password)
-          else
-            Text(
-              'No password set',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-                fontStyle: FontStyle.italic,
+            // Password content
+            if (password.isNotEmpty)
+              _buildPasswordRow(password)
+            else
+              Text(
+                'No password set',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontStyle: FontStyle.italic,
+                  fontSize: 16, // Increased font size
+                ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }

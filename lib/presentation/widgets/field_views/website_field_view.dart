@@ -31,53 +31,47 @@ class _WebsiteFieldViewState extends State<WebsiteFieldView> {
     final colorScheme = theme.colorScheme;
     final url = field.getMetadata("value");
 
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Field label - simple clean design
-          Text(
-            field.label,
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w500,
-              color: colorScheme.onSurface,
-            ),
-          ),
-          SizedBox(height: 8),
+    return Card(
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Field label - simple clean design with larger font
+            Text(field.label, style: theme.textTheme.titleSmall),
+            SizedBox(height: 8),
 
-          // URL content
-          if (url.isNotEmpty)
-            _buildUrlRow(url)
-          else
-            Text(
-              'No URL set',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-                fontStyle: FontStyle.italic,
+            // URL content
+            if (url.isNotEmpty)
+              _buildUrlRow(url)
+            else
+              Text(
+                'No URL set',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontStyle: FontStyle.italic,
+                  fontSize: 16, // Increased font size
+                ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
-  
+
   Widget _buildUrlRow(String url) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Leading icon
-          Icon(
-            Icons.language,
-            size: 16,
-            color: colorScheme.tertiary,
-          ),
+          Icon(Icons.language, size: 16, color: colorScheme.tertiary),
           SizedBox(width: 12),
-          
+
           // URL value (with link styling)
           Expanded(
             child: Text(
@@ -89,7 +83,7 @@ class _WebsiteFieldViewState extends State<WebsiteFieldView> {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          
+
           // Open URL button
           IconButton(
             onPressed: () {
@@ -102,7 +96,7 @@ class _WebsiteFieldViewState extends State<WebsiteFieldView> {
             visualDensity: VisualDensity.compact,
             constraints: BoxConstraints(),
           ),
-          
+
           // Copy button
           IconButton(
             onPressed: () {

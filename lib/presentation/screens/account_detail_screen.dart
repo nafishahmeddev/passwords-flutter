@@ -110,41 +110,34 @@ class _AccountDetailScreenContentState
               slivers: [
                 // Account Header Section - Pixel style (minimal, clean)
                 SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.only(top: 16, bottom: 12),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: colorScheme.primaryContainer,
-                        foregroundColor: colorScheme.onPrimaryContainer,
-                        radius: 24,
-                        child: Icon(Icons.account_circle, size: 28),
+                  child: Card(
+                    margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 16, bottom: 12),
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: colorScheme.primaryContainer,
+                          foregroundColor: colorScheme.onPrimaryContainer,
+                          radius: 24,
+                          child: Icon(Icons.account_circle, size: 28),
+                        ),
+                        title: Text(
+                          account.name,
+                          style: theme.textTheme.titleLarge,
+                        ),
+                        subtitle:
+                            account.note != null && account.note!.isNotEmpty
+                            ? Text(
+                                account.note!,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              )
+                            : null,
                       ),
-                      title: Text(
-                        account.name,
-                        style: theme.textTheme.titleLarge,
-                      ),
-                      subtitle: account.note != null && account.note!.isNotEmpty
-                          ? Text(
-                              account.note!,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            )
-                          : null,
                     ),
-                  ),
-                ),
-
-                // Subtle divider (Pixel style)
-                SliverToBoxAdapter(
-                  child: Divider(
-                    height: 1,
-                    thickness: 0.5,
-                    color: colorScheme.outlineVariant.withOpacity(0.2),
-                    indent: 16,
-                    endIndent: 16,
                   ),
                 ),
 
