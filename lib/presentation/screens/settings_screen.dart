@@ -46,7 +46,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _isBiometricAvailable = isBiometricAvailable;
       _isBiometricEnabled = isBiometricEnabled;
       _isPinSetup = isPinSet;
-      
+
       // For now, general settings have default values
       // In a real implementation, these would be loaded from shared preferences or another storage
     });
@@ -125,7 +125,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // General settings section
           _buildSectionHeader(
             context,
-            'General Settings', 
+            'General Settings',
             Icons.settings_outlined,
           ),
           Card(
@@ -163,9 +163,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     // TODO: Implement theme switching
                   },
                 ),
-                
+
                 const Divider(height: 0),
-                
+
                 ListTile(
                   title: Text('About'),
                   subtitle: Text(
@@ -196,9 +196,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         size: 40,
                         color: Theme.of(context).colorScheme.primary,
                       ),
-                      children: [
-                        Text('A secure password manager application')
-                      ],
+                      children: [Text('A secure password manager application')],
                     );
                   },
                 ),
@@ -207,11 +205,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
 
           // Security settings section
-          _buildSectionHeader(
-            context, 
-            'Security', 
-            Icons.security_outlined,
-          ),
+          _buildSectionHeader(context, 'Security', Icons.security_outlined),
           Card(
             margin: EdgeInsets.only(bottom: 24),
             elevation: 0,
@@ -319,7 +313,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       child: Icon(
                         Icons.fingerprint,
-                        color: Theme.of(context).colorScheme.onTertiaryContainer,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onTertiaryContainer,
                       ),
                     ),
                     value: _isBiometricEnabled,
@@ -345,9 +341,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       });
                     },
                   ),
-                  
+
                 const Divider(height: 0),
-                
+
                 // Auto-lock option
                 SwitchListTile(
                   title: Text('Auto-Lock'),
@@ -376,7 +372,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     // TODO: Implement auto-lock
                   },
                 ),
-                
+
                 // Auto-lock duration
                 if (_autoLockEnabled)
                   Padding(
@@ -398,18 +394,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           _autoLockDuration = newValue!;
                         });
                       },
-                      items: <String>[
-                        '30 seconds',
-                        '1 minute',
-                        '5 minutes',
-                        '10 minutes',
-                        '30 minutes'
-                      ].map<DropdownMenuItem<String>>((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        );
-                      }).toList(),
+                      items:
+                          <String>[
+                            '30 seconds',
+                            '1 minute',
+                            '5 minutes',
+                            '10 minutes',
+                            '30 minutes',
+                          ].map<DropdownMenuItem<String>>((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            );
+                          }).toList(),
                     ),
                   ),
               ],
@@ -431,7 +428,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 subtitle: Text(
                   'Remove PIN and biometric authentication',
-                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 leading: Container(
                   padding: EdgeInsets.all(10),
@@ -470,17 +469,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     IconData icon,
   ) {
     return Padding(
-      padding: const EdgeInsets.only(
-        left: 8,
-        bottom: 8,
-      ),
+      padding: const EdgeInsets.only(left: 8, bottom: 8),
       child: Row(
         children: [
-          Icon(
-            icon,
-            size: 20,
-            color: Theme.of(context).colorScheme.primary,
-          ),
+          Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
           SizedBox(width: 8),
           Text(
             title.toUpperCase(),
