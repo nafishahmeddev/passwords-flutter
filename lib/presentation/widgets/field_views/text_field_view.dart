@@ -71,7 +71,7 @@ class _TextFieldViewState extends State<TextFieldView> {
           Icon(
             Icons.text_fields,
             size: 20, // Increased icon size
-            color: colorScheme.tertiary,
+            color: colorScheme.primary,
           ),
           SizedBox(width: 12),
 

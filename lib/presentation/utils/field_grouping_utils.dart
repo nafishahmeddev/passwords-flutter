@@ -18,7 +18,6 @@ class FieldGroupingUtils {
         groups[groupKey] = FieldGroup(
           title: groupInfo.title,
           icon: groupInfo.icon,
-          color: groupInfo.color,
           fields: [],
           order: groupInfo.order,
         );
@@ -44,48 +43,40 @@ class FieldGroupingUtils {
 
   /// Gets group information for a specific field type
   static _GroupInfo _getGroupInfo(AccountFieldType type, BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
     switch (type) {
       case AccountFieldType.credential:
         return _GroupInfo(
           key: 'credentials',
-          title: 'Login Credentials',
-          icon: Icons.account_circle,
-          color: colorScheme.primary,
+          title: 'CREDENTIALS',
+          icon: Icons.account_circle_outlined,
           order: 1,
         );
       case AccountFieldType.password:
         return _GroupInfo(
           key: 'passwords',
-          title: 'Passwords',
-          icon: Icons.lock,
-          color: colorScheme.secondary,
+          title: 'PASSWORDS',
+          icon: Icons.lock_outline,
           order: 2,
         );
       case AccountFieldType.website:
         return _GroupInfo(
           key: 'websites',
-          title: 'Websites & URLs',
-          icon: Icons.language,
-          color: colorScheme.tertiary,
+          title: 'WEBSITES',
+          icon: Icons.language_outlined,
           order: 3,
         );
       case AccountFieldType.otp:
         return _GroupInfo(
           key: 'otp',
-          title: 'Two-Factor Authentication',
-          icon: Icons.security,
-          color: colorScheme.primary.withOpacity(0.8),
+          title: '2FA / OTP',
+          icon: Icons.security_outlined,
           order: 4,
         );
       case AccountFieldType.text:
         return _GroupInfo(
           key: 'general',
-          title: 'General Information',
-          icon: Icons.description,
-          color: colorScheme.outline,
+          title: 'INFORMATION',
+          icon: Icons.description_outlined,
           order: 5,
         );
     }
@@ -96,14 +87,12 @@ class FieldGroupingUtils {
 class FieldGroup {
   final String title;
   final IconData icon;
-  final Color color;
   final List<AccountField> fields;
   final int order;
 
   FieldGroup({
     required this.title,
     required this.icon,
-    required this.color,
     required this.fields,
     required this.order,
   });
@@ -123,14 +112,12 @@ class _GroupInfo {
   final String key;
   final String title;
   final IconData icon;
-  final Color color;
   final int order;
 
   _GroupInfo({
     required this.key,
     required this.title,
     required this.icon,
-    required this.color,
     required this.order,
   });
 }

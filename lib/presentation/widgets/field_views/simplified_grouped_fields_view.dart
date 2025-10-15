@@ -69,13 +69,18 @@ class PixelGroupSection extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Icon(group.icon, color: group.color, size: 20),
+              Icon(
+                group.icon,
+                color: Theme.of(context).colorScheme.primary,
+                size: 16,
+              ),
               SizedBox(width: 12),
               Text(
                 group.title,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: group.color,
-                  fontWeight: FontWeight.w500,
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1.2,
                 ),
               ),
             ],
@@ -85,7 +90,7 @@ class PixelGroupSection extends StatelessWidget {
         // Fields (Pixel style)
         ...group.fields.map((field) {
           return _buildFieldWidget(field);
-        }).toList(),
+        }),
 
         // Bottom spacing unless it's the last group
         if (!isLastGroup) SizedBox(height: 8),

@@ -49,7 +49,7 @@ class _WebsiteFieldViewState extends State<WebsiteFieldView> {
               Text(
                 'No URL set',
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+                  color: colorScheme.primary,
                   fontStyle: FontStyle.italic,
                   fontSize: 16, // Increased font size
                 ),
@@ -69,7 +69,7 @@ class _WebsiteFieldViewState extends State<WebsiteFieldView> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Leading icon
-          Icon(Icons.language, size: 16, color: colorScheme.tertiary),
+          Icon(Icons.language, size: 16, color: colorScheme.primary),
           SizedBox(width: 12),
 
           // URL value (with link styling)

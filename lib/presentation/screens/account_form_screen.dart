@@ -311,14 +311,14 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
                                   decoration: BoxDecoration(
                                     color: Theme.of(
                                       context,
-                                    ).colorScheme.tertiary.withOpacity(0.1),
+                                    ).colorScheme.primary,
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Icon(
                                     Icons.note_outlined,
                                     color: Theme.of(
                                       context,
-                                    ).colorScheme.tertiary,
+                                    ).colorScheme.primary,
                                     size: 20,
                                   ),
                                 ),

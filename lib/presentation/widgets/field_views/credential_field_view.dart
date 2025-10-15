@@ -60,6 +60,7 @@ class _CredentialFieldViewState extends State<CredentialFieldView> {
                 onCopy: () => _copyToClipboard(username, 'Username'),
                 iconData: Icons.person_outline,
               ),
+              SizedBox(height: 8),
             ],
 
             // Password field if available
