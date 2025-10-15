@@ -4,8 +4,9 @@ import '../../../data/models/account_field.dart';
 
 class WebsiteFieldView extends StatefulWidget {
   final AccountField field;
+  final BorderRadius? borderRadius;
 
-  const WebsiteFieldView({super.key, required this.field});
+  const WebsiteFieldView({super.key, required this.field, this.borderRadius});
 
   @override
   State<WebsiteFieldView> createState() => _WebsiteFieldViewState();
@@ -32,7 +33,10 @@ class _WebsiteFieldViewState extends State<WebsiteFieldView> {
     final url = field.getMetadata("value");
 
     return Card(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: EdgeInsets.symmetric(horizontal: 16),
+      shape: widget.borderRadius != null
+          ? RoundedRectangleBorder(borderRadius: widget.borderRadius!)
+          : null,
       child: Padding(
         padding: EdgeInsets.all(16),
         child: Column(

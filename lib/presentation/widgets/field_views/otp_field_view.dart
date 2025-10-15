@@ -6,9 +6,15 @@ import '../../../data/models/account_field.dart';
 
 class OtpFieldView extends StatefulWidget {
   final AccountField field;
+  final BorderRadius? borderRadius;
   final void Function(AccountField field)? onFieldUpdate;
 
-  const OtpFieldView({super.key, required this.field, this.onFieldUpdate});
+  const OtpFieldView({
+    super.key,
+    required this.field,
+    this.borderRadius,
+    this.onFieldUpdate,
+  });
 
   @override
   State<OtpFieldView> createState() => _OtpFieldViewState();
@@ -193,7 +199,10 @@ class _OtpFieldViewState extends State<OtpFieldView> {
     final issuerText = _issuerText;
 
     return Card(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: EdgeInsets.symmetric(horizontal: 16),
+      shape: widget.borderRadius != null
+          ? RoundedRectangleBorder(borderRadius: widget.borderRadius!)
+          : null,
       child: Padding(
         padding: EdgeInsets.all(16),
         child: Column(

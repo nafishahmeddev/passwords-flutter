@@ -4,8 +4,9 @@ import '../../../data/models/account_field.dart';
 
 class PasswordFieldView extends StatefulWidget {
   final AccountField field;
+  final BorderRadius? borderRadius;
 
-  const PasswordFieldView({super.key, required this.field});
+  const PasswordFieldView({super.key, required this.field, this.borderRadius});
 
   @override
   State<PasswordFieldView> createState() => _PasswordFieldViewState();
@@ -40,7 +41,10 @@ class _PasswordFieldViewState extends State<PasswordFieldView> {
     final password = field.getMetadata("value");
 
     return Card(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: EdgeInsets.symmetric(horizontal: 16),
+      shape: widget.borderRadius != null
+          ? RoundedRectangleBorder(borderRadius: widget.borderRadius!)
+          : null,
       child: Padding(
         padding: EdgeInsets.all(16),
         child: Column(
