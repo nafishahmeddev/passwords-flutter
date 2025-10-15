@@ -6,7 +6,7 @@ import '../../data/templates/account_templates.dart';
 import '../widgets/account_list_item.dart';
 import 'account_detail_screen.dart';
 import 'account_form_screen.dart';
-import 'security_settings_screen.dart';
+import 'settings_screen.dart';
 
 class AccountSearchDelegate extends SearchDelegate<String> {
   final List<dynamic> accounts;
@@ -145,14 +145,11 @@ class _AccountListScreenState extends State<AccountListScreen> {
             icon: Icon(Icons.more_vert_rounded),
             onSelected: (value) {
               switch (value) {
-                case 'security':
+                case 'settings':
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => SecuritySettingsScreen()),
+                    MaterialPageRoute(builder: (_) => SettingsScreen()),
                   );
-                  break;
-                case 'settings':
-                  // TODO: Navigate to general settings
                   break;
                 case 'about':
                   // TODO: Show about dialog
@@ -160,16 +157,6 @@ class _AccountListScreenState extends State<AccountListScreen> {
               }
             },
             itemBuilder: (BuildContext context) => [
-              PopupMenuItem<String>(
-                value: 'security',
-                child: Row(
-                  children: [
-                    Icon(Icons.lock_outline_rounded, size: 20),
-                    SizedBox(width: 12),
-                    Text('Security'),
-                  ],
-                ),
-              ),
               PopupMenuItem<String>(
                 value: 'settings',
                 child: Row(
