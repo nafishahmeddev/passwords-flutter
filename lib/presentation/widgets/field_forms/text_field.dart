@@ -1,13 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../../data/models/account_field.dart';
+import '../../../data/models/account_field.dart';
 
-class WebsiteField extends StatefulWidget {
+class PlainTextField extends StatefulWidget {
   final AccountField field;
   final void Function(AccountField field) onChange;
   final VoidCallback onRemove;
 
-  const WebsiteField({
+  const PlainTextField({
     super.key,
     required this.field,
     required this.onChange,
@@ -15,10 +15,10 @@ class WebsiteField extends StatefulWidget {
   });
 
   @override
-  State<WebsiteField> createState() => _WebsiteFieldState();
+  State<PlainTextField> createState() => _PlainTextFieldState();
 }
 
-class _WebsiteFieldState extends State<WebsiteField> {
+class _PlainTextFieldState extends State<PlainTextField> {
   late TextEditingController _valueController;
   Timer? _debounceTimer;
 
@@ -64,12 +64,12 @@ class _WebsiteFieldState extends State<WebsiteField> {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: Colors.purple.withOpacity(0.1),
+                      color: Colors.green.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
-                      Icons.language,
-                      color: Colors.purple.shade700,
+                      Icons.text_fields,
+                      color: Colors.green.shade700,
                       size: 20,
                     ),
                   ),
@@ -97,9 +97,9 @@ class _WebsiteFieldState extends State<WebsiteField> {
               ),
               SizedBox(height: 20),
 
-              // Website field
+              // Text field
               Text(
-                'Website URL',
+                'Value',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -114,9 +114,8 @@ class _WebsiteFieldState extends State<WebsiteField> {
                 ),
                 child: TextFormField(
                   controller: _valueController,
-                  keyboardType: TextInputType.url,
                   decoration: InputDecoration(
-                    hintText: 'Enter website URL',
+                    hintText: 'Enter text value',
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.symmetric(
                       horizontal: 12,
@@ -124,6 +123,7 @@ class _WebsiteFieldState extends State<WebsiteField> {
                     ),
                   ),
                   style: Theme.of(context).textTheme.bodyLarge,
+                  maxLines: null,
                   onChanged: (_) => _onFieldChanged(),
                 ),
               ),

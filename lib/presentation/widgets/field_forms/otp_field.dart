@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../data/models/account_field.dart';
-import 'qr_scanner_screen.dart';
+import '../../../data/models/account_field.dart';
+import '../qr_scanner_screen.dart';
 
 class OtpField extends StatefulWidget {
   final AccountField field;

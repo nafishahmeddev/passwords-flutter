@@ -5,7 +5,7 @@ import 'field_views/credential_field_view.dart';
 import 'field_views/password_field_view.dart';
 import 'field_views/text_field_view.dart';
 import 'field_views/website_field_view.dart';
-import 'otp_field_view.dart';
+import 'field_views/otp_field_view.dart';
 import 'package:provider/provider.dart';
 import '../../business/providers/account_detail_provider.dart';
 

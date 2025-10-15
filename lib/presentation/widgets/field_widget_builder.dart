@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../data/models/account_field.dart';
 import '../../business/providers/account_form_provider.dart';
-import 'credential_field.dart';
-import 'password_field.dart';
-import 'text_field.dart';
-import 'website_field.dart';
-import 'otp_field.dart';
+import 'field_forms/credential_field.dart';
+import 'field_forms/password_field.dart';
+import 'field_forms/text_field.dart';
+import 'field_forms/website_field.dart';
+import 'field_forms/otp_field.dart';
 
 class FieldWidgetBuilder {
   static Widget buildFieldWidget(
