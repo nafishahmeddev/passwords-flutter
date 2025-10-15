@@ -92,8 +92,8 @@ class _OtpFieldViewState extends State<OtpFieldView> {
         secret,
         DateTime.now().millisecondsSinceEpoch,
         length: digits,
-        interval: int.tryParse(widget.field.getMetadata('period', '30')) ?? 30,
         algorithm: otpAlgorithm,
+        interval: int.tryParse(widget.field.getMetadata('period', '30')) ?? 30,
         isGoogle: true,
       );
 
@@ -178,7 +178,7 @@ class _OtpFieldViewState extends State<OtpFieldView> {
 
   String get _issuerText {
     final issuer = widget.field.getMetadata('issuer', '');
-    final accountName = widget.field.getMetadata('account_name', '');
+    final accountName = widget.field.getMetadata('accountName', '');
 
     if (issuer.isNotEmpty && accountName.isNotEmpty) {
       return '$issuer ($accountName)';
@@ -187,228 +187,166 @@ class _OtpFieldViewState extends State<OtpFieldView> {
     } else if (accountName.isNotEmpty) {
       return accountName;
     } else {
-      return 'OTP Code';
+      return '';
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final type = widget.field.getMetadata('type', 'totp');
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final type = widget.field.getMetadata('type', 'totp');
+    final period = int.tryParse(widget.field.getMetadata('period', '30')) ?? 30;
+    final issuerText = _issuerText;
 
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: Card(
-        elevation: 0,
-        child: Container(
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
-          child: Padding(
-            padding: EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header with icon and label - following the standard pattern
-                Row(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: (type == 'totp' ? Colors.green : Colors.blue)
-                            .withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(
-                        Icons.security,
-                        color: type == 'totp'
-                            ? Colors.green.shade700
-                            : Colors.blue.shade700,
-                        size: 18,
-                      ),
-                    ),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        widget.field.label,
-                        style: theme.textTheme.titleMedium,
-                      ),
-                    ),
-                    // Type indicator
-                    Text(
-                      type.toUpperCase(),
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 20),
-
-                // OTP code content - following the standard pattern
-                Container(
-                  padding: EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerHighest.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Column(
-                    children: [
-                      // Code display row
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.key,
-                            size: 16,
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                          SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              _isVisible ? _currentCode : '••••••',
-                              style: theme.textTheme.headlineSmall?.copyWith(
-                                fontFamily: 'monospace',
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 4,
-                              ),
-                            ),
-                          ),
-                          // Action buttons
-                          Material(
-                            color: Colors.transparent,
-                            borderRadius: BorderRadius.circular(20),
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(20),
-                              onTap: () {
-                                _toggleVisibility();
-                                HapticFeedback.lightImpact();
-                              },
-                              child: Padding(
-                                padding: EdgeInsets.all(6),
-                                child: Icon(
-                                  _isVisible
-                                      ? Icons.visibility_off
-                                      : Icons.visibility,
-                                  size: 18,
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ),
-                          ),
-                          Material(
-                            color: Colors.transparent,
-                            borderRadius: BorderRadius.circular(20),
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(20),
-                              onTap: () {
-                                _copyCode();
-                                HapticFeedback.lightImpact();
-                              },
-                              child: Padding(
-                                padding: EdgeInsets.all(6),
-                                child: Icon(
-                                  Icons.copy,
-                                  size: 18,
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ),
-                          ),
-                          if (type == 'hotp')
-                            Material(
-                              color: Colors.transparent,
-                              borderRadius: BorderRadius.circular(20),
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(20),
-                                onTap: () {
-                                  _generateCode();
-                                  HapticFeedback.lightImpact();
-                                },
-                                child: Padding(
-                                  padding: EdgeInsets.all(6),
-                                  child: Icon(
-                                    Icons.refresh,
-                                    size: 18,
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-
-                      // Timer for TOTP
-                      if (type == 'totp') ...[
-                        SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.timer,
-                              size: 14,
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                            SizedBox(width: 6),
-                            Text(
-                              'Expires in ${_timeRemaining}s',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            SizedBox(width: 8),
-                            Expanded(
-                              child: LinearProgressIndicator(
-                                value:
-                                    _timeRemaining /
-                                    (int.tryParse(
-                                          widget.field.getMetadata(
-                                            'period',
-                                            '30',
-                                          ),
-                                        ) ??
-                                        30),
-                                backgroundColor: colorScheme.outline
-                                    .withOpacity(0.1),
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  _timeRemaining <= 5
-                                      ? colorScheme.error
-                                      : colorScheme.primary,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-
-                      // Account info
-                      if (_issuerText != 'OTP Code') ...[
-                        SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.account_circle_outlined,
-                              size: 14,
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                            SizedBox(width: 6),
-                            Expanded(
-                              child: Text(
-                                _issuerText,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ],
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Field label - simple clean design
+          Text(
+            widget.field.label,
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w500,
+              color: colorScheme.onSurface,
             ),
           ),
-        ),
+          SizedBox(height: 8),
+
+          // OTP code row
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Leading icon - using security icon for all OTP fields
+              Icon(
+                Icons.security,
+                size: 16,
+                color: type == 'totp'
+                    ? Colors.green.shade700
+                    : Colors.blue.shade700,
+              ),
+              SizedBox(width: 12),
+              
+              // OTP code - formatted for readability
+              Expanded(
+                child: _isVisible
+                    ? Text(
+                        _formatOtpCode(_currentCode),
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          letterSpacing: 2,
+                          fontFamily: 'monospace',
+                          fontWeight: FontWeight.w500,
+                          color: colorScheme.onSurface,
+                        ),
+                      )
+                    : Text(
+                        '••••••',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          letterSpacing: 2,
+                        ),
+                      ),
+              ),
+
+              // Visibility toggle button (only for valid codes)
+              if (_currentCode != 'No secret' && _currentCode != 'Invalid secret')
+                IconButton(
+                  onPressed: _toggleVisibility,
+                  icon: Icon(
+                    _isVisible ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                    size: 18,
+                  ),
+                  color: colorScheme.onSurfaceVariant,
+                  padding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.compact,
+                  constraints: BoxConstraints(),
+                ),
+              
+              // Copy button (only for valid codes)
+              if (_currentCode != 'No secret' && _currentCode != 'Invalid secret')
+                IconButton(
+                  onPressed: () {
+                    _copyCode();
+                    HapticFeedback.lightImpact();
+                  },
+                  icon: Icon(Icons.copy_outlined, size: 18),
+                  color: colorScheme.onSurfaceVariant,
+                  padding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.compact,
+                  constraints: BoxConstraints(),
+                ),
+              
+              // Refresh button (only for HOTP)
+              if (type == 'hotp' && _currentCode != 'No secret' && _currentCode != 'Invalid secret')
+                IconButton(
+                  onPressed: () {
+                    _generateCode();
+                    HapticFeedback.mediumImpact();
+                  },
+                  icon: Icon(Icons.refresh, size: 18),
+                  color: colorScheme.onSurfaceVariant,
+                  padding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.compact,
+                  constraints: BoxConstraints(),
+                ),
+            ],
+          ),
+          
+          // Progress indicator for TOTP
+          if (type == 'totp' && _currentCode != 'No secret' && _currentCode != 'Invalid secret')
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: LinearProgressIndicator(
+                      value: _timeRemaining / period,
+                      backgroundColor: colorScheme.surfaceVariant,
+                      color: _timeRemaining < 5
+                          ? Colors.red
+                          : _timeRemaining < 10
+                              ? Colors.orange
+                              : Colors.green,
+                    ),
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    '$_timeRemaining s',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          
+          // Issuer/account info if available
+          if (issuerText.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 4.0),
+              child: Text(
+                issuerText,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+        ],
       ),
     );
+  }
+
+  String _formatOtpCode(String code) {
+    if (code == 'No secret' || code == 'Invalid secret') {
+      return code;
+    }
+    
+    // Format code in pairs for better readability
+    if (code.length == 6) {
+      return '${code.substring(0, 3)} ${code.substring(3)}';
+    } else if (code.length == 8) {
+      return '${code.substring(0, 4)} ${code.substring(4)}';
+    }
+    return code;
   }
 }

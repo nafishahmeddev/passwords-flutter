@@ -1,13 +1,8 @@
 // lib/presentation/screens/account_detail_screen.dart
 import 'package:flutter/material.dart';
-import 'package:passwords/presentation/widgets/field_views/credential_field_view.dart';
-import 'package:passwords/presentation/widgets/field_views/password_field_view.dart';
-import 'package:passwords/presentation/widgets/field_views/text_field_view.dart';
-import 'package:passwords/presentation/widgets/field_views/website_field_view.dart';
-import 'package:passwords/presentation/widgets/otp_field_view.dart';
+import 'package:passwords/presentation/widgets/simplified_grouped_fields_view.dart';
 import 'package:provider/provider.dart';
 import '../../data/models/account.dart';
-import '../../data/models/account_field.dart';
 import '../../data/repositories/account_repository.dart';
 import '../../business/providers/account_detail_provider.dart';
 import 'account_form_screen.dart';
@@ -102,7 +97,10 @@ class _AccountDetailScreenContentState
                 provider.loadFields();
               }
             },
-            child: Icon(Icons.edit),
+            elevation: 3,
+            backgroundColor: colorScheme.primaryContainer,
+            foregroundColor: colorScheme.onPrimaryContainer,
+            child: Icon(Icons.edit_rounded),
           ),
           body: RefreshIndicator(
             onRefresh: () async {
@@ -110,58 +108,43 @@ class _AccountDetailScreenContentState
             },
             child: CustomScrollView(
               slivers: [
-                // Account Header Section
+                // Account Header Section - Pixel style (minimal, clean)
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Card(
-                      child: Padding(
-                        padding: EdgeInsets.all(20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                CircleAvatar(
-                                  backgroundColor: colorScheme.primaryContainer,
-                                  foregroundColor:
-                                      colorScheme.onPrimaryContainer,
-                                  radius: 24,
-                                  child: Icon(Icons.account_circle, size: 28),
-                                ),
-                                SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        account.name,
-                                        style: theme.textTheme.headlineSmall,
-                                      ),
-                                      if (account.note != null &&
-                                          account.note!.isNotEmpty) ...[
-                                        SizedBox(height: 4),
-                                        Text(
-                                          account.note!,
-                                          style: theme.textTheme.bodyMedium
-                                              ?.copyWith(
-                                                color: colorScheme
-                                                    .onSurfaceVariant,
-                                              ),
-                                          maxLines: 3,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+                    padding: EdgeInsets.only(top: 16, bottom: 12),
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: colorScheme.primaryContainer,
+                        foregroundColor: colorScheme.onPrimaryContainer,
+                        radius: 24,
+                        child: Icon(Icons.account_circle, size: 28),
                       ),
+                      title: Text(
+                        account.name,
+                        style: theme.textTheme.titleLarge,
+                      ),
+                      subtitle: account.note != null && account.note!.isNotEmpty
+                          ? Text(
+                              account.note!,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            )
+                          : null,
                     ),
+                  ),
+                ),
+
+                // Subtle divider (Pixel style)
+                SliverToBoxAdapter(
+                  child: Divider(
+                    height: 1,
+                    thickness: 0.5,
+                    color: colorScheme.outlineVariant.withOpacity(0.2),
+                    indent: 16,
+                    endIndent: 16,
                   ),
                 ),
 
@@ -173,12 +156,15 @@ class _AccountDetailScreenContentState
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          CircularProgressIndicator(),
+                          CircularProgressIndicator(
+                            strokeWidth: 3,
+                            color: colorScheme.primary,
+                          ),
                           SizedBox(height: 16),
                           Text(
-                            'Loading fields...',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
+                            'Loading',
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              color: colorScheme.primary,
                             ),
                           ),
                         ],
@@ -190,19 +176,19 @@ class _AccountDetailScreenContentState
                     hasScrollBody: false,
                     child: Center(
                       child: Padding(
-                        padding: EdgeInsets.all(24),
+                        padding: EdgeInsets.symmetric(horizontal: 32),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
-                              Icons.error_outline,
-                              size: 64,
+                              Icons.error_outline_rounded,
+                              size: 48,
                               color: colorScheme.error,
                             ),
                             SizedBox(height: 16),
                             Text(
                               'Error loading fields',
-                              style: theme.textTheme.titleLarge?.copyWith(
+                              style: theme.textTheme.titleMedium?.copyWith(
                                 color: colorScheme.error,
                               ),
                             ),
@@ -225,30 +211,33 @@ class _AccountDetailScreenContentState
                     hasScrollBody: false,
                     child: Center(
                       child: Padding(
-                        padding: EdgeInsets.all(24),
+                        padding: EdgeInsets.symmetric(horizontal: 32),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
+                            // Pixel-style empty state
                             Icon(
-                              Icons.folder_open,
-                              size: 64,
-                              color: colorScheme.outline,
+                              Icons.note_alt_outlined,
+                              size: 48,
+                              color: colorScheme.primary.withOpacity(0.7),
                             ),
                             SizedBox(height: 16),
                             Text(
-                              'No fields yet',
-                              style: theme.textTheme.titleLarge,
+                              'No fields added yet',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                color: colorScheme.onSurface,
+                              ),
                             ),
                             SizedBox(height: 8),
                             Text(
-                              'Add some fields to get started with this account',
+                              'Add information to this account',
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 color: colorScheme.onSurfaceVariant,
                               ),
                               textAlign: TextAlign.center,
                             ),
                             SizedBox(height: 24),
-                            FilledButton.icon(
+                            FilledButton.tonal(
                               onPressed: () async {
                                 final result = await Navigator.push(
                                   context,
@@ -264,8 +253,7 @@ class _AccountDetailScreenContentState
                                   provider.loadFields();
                                 }
                               },
-                              icon: Icon(Icons.add),
-                              label: Text('Add Fields'),
+                              child: Text('Add Fields'),
                             ),
                           ],
                         ),
@@ -274,58 +262,17 @@ class _AccountDetailScreenContentState
                   )
                 else
                   SliverToBoxAdapter(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.only(left: 20, bottom: 8, top: 8),
-                          child: Text(
-                            'Fields (${provider.fields.length})',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ),
-                        ...provider.fields.map((field) {
-                          return _buildFieldTile(field);
-                        }).toList(),
-                      ],
-                    ),
+                    child: SimplifiedGroupedFieldsView(fields: provider.fields),
                   ),
 
-                // Bottom spacing for FAB
-                SliverToBoxAdapter(child: SizedBox(height: 80)),
+                // Bottom spacing for FAB (Pixel style)
+                SliverToBoxAdapter(child: SizedBox(height: 88)),
               ],
             ),
           ),
         );
       },
     );
-  }
-
-  Widget _buildFieldTile(AccountField field) {
-    // Use the existing field view widgets directly without extra card wrapper
-    switch (field.type) {
-      case AccountFieldType.credential:
-        return CredentialFieldView(field: field);
-      case AccountFieldType.password:
-        return PasswordFieldView(field: field);
-      case AccountFieldType.text:
-        return TextFieldView(field: field);
-      case AccountFieldType.website:
-        return WebsiteFieldView(field: field);
-      case AccountFieldType.otp:
-        return Consumer<AccountDetailProvider>(
-          builder: (context, provider, child) {
-            return OtpFieldView(
-              field: field,
-              onFieldUpdate: (updatedField) {
-                provider.updateField(updatedField);
-              },
-            );
-          },
-        );
-    }
   }
 
   void _handleMenuSelection(String value) {
