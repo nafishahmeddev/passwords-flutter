@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../business/providers/account_provider.dart';
 import '../../data/models/account_field.dart';
 import '../../data/templates/account_templates.dart';
+import '../widgets/qr_scanner_screen.dart';
 import 'account_detail_screen.dart';
 import 'account_form_screen.dart';
 import 'account_list_content.dart';
@@ -125,13 +126,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   subtitle: Text('Start with a blank account'),
                   onTap: () async {
                     Navigator.pop(context);
-                    
+
                     // Import necessary classes
-                    final provider = Provider.of<AccountProvider>(context, listen: false);
-                    
+                    final provider = Provider.of<AccountProvider>(
+                      context,
+                      listen: false,
+                    );
+
                     // Get template fields for the selected type
-                    List<AccountField> templateFields = getTemplateFields("Login", 'temp');
-                    
+                    List<AccountField> templateFields = getTemplateFields(
+                      "Login",
+                      'temp',
+                    );
+
                     // Navigate to create new account with template fields
                     final result = await Navigator.push(
                       context,
@@ -143,14 +150,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     );
-                    
+
                     // If account was successfully created, navigate to its detail screen
                     if (result == true) {
                       // Reload accounts to get the newly created account
                       await provider.loadAccounts();
 
                       // Find the newly created account
-                      if (provider.state == AccountState.loaded && 
+                      if (provider.state == AccountState.loaded &&
                           provider.accounts.isNotEmpty) {
                         final newestAccount = provider.accounts.reduce(
                           (a, b) => a.createdAt > b.createdAt ? a : b,
@@ -188,10 +195,48 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   title: Text('Scan QR Code'),
                   subtitle: Text('Import account from QR code'),
-                  onTap: () {
+                  onTap: () async {
                     Navigator.pop(context);
+
                     // Navigate to QR scanner
-                    // This would be handled by the AccountListContent widget
+                    final scannedData = await Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => QrScannerScreen()),
+                    );
+
+                    if (scannedData != null &&
+                        scannedData is String &&
+                        scannedData.isNotEmpty) {
+                      // Process the QR code data and create an account based on it
+                      // Here we could parse QR code data for specific formats like OTP
+                      // For now, just show a dialog with the scanned data
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: Text('QR Code Scanned'),
+                          content: Text(
+                            'Successfully scanned QR code data. Would you like to create an account with this data?',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              child: Text('Cancel'),
+                            ),
+                            FilledButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                                // Process and create account with QR data
+                                // This would typically involve parsing the QR data and
+                                // navigating to the AccountFormScreen with pre-populated fields
+                              },
+                              child: Text('Create Account'),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
                   },
                 ),
               ],
