@@ -219,8 +219,22 @@ class SettingsProvider extends ChangeNotifier {
     }
   }
 
+  // Flag to prevent multiple biometric authentication attempts running at once
+  bool _isAuthenticatingWithBiometrics = false;
+
   // Authenticate with biometrics
   Future<bool> authenticateWithBiometrics() async {
+    // Prevent multiple simultaneous authentication attempts
+    if (_isAuthenticatingWithBiometrics) {
+      debugPrint(
+        "Biometric authentication already in progress, skipping duplicate request",
+      );
+      return false;
+    }
+
+    _isAuthenticatingWithBiometrics = true;
+    _errorMessage = null;
+
     try {
       // Debug output to help diagnose issues
       debugPrint("Starting biometric authentication process");
@@ -253,13 +267,15 @@ class SettingsProvider extends ChangeNotifier {
         return false;
       }
 
-      // Try authentication with user presence only (less strict, more reliable)
+      // Try authentication with simpler options to avoid UI issues
       debugPrint("Attempting biometric authentication");
       final result = await _localAuth.authenticate(
         localizedReason: 'Authenticate to access your passwords',
         options: const AuthenticationOptions(
-          stickyAuth: true,
-          biometricOnly: false, // Allow any authentication method
+          stickyAuth: false, // Changed to false to avoid hanging auth sessions
+          biometricOnly:
+              true, // Use biometric only to avoid alternate auth methods
+          useErrorDialogs: true,
         ),
       );
 
@@ -297,6 +313,8 @@ class SettingsProvider extends ChangeNotifier {
       _errorMessage = 'Biometric authentication failed: ${e.toString()}';
       notifyListeners();
       return false;
+    } finally {
+      _isAuthenticatingWithBiometrics = false;
     }
   }
 
