@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import '../../data/models/account_field.dart';
-import '../utils/field_grouping_utils.dart';
-import 'field_views/credential_field_view.dart';
-import 'field_views/password_field_view.dart';
-import 'field_views/text_field_view.dart';
-import 'field_views/website_field_view.dart';
-import 'field_views/otp_field_view.dart';
+import '../../../data/models/account_field.dart';
+import '../../utils/field_grouping_utils.dart';
+import 'credential_field_view.dart';
+import 'password_field_view.dart';
+import 'text_field_view.dart';
+import 'website_field_view.dart';
+import 'otp_field_view.dart';
 import 'package:provider/provider.dart';
-import '../../business/providers/account_detail_provider.dart';
+import '../../../business/providers/account_detail_provider.dart';
 
 /// A pixel-style widget that displays all field groups in a clean, native Android layout
 class SimplifiedGroupedFieldsView extends StatelessWidget {
