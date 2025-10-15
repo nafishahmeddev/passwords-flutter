@@ -69,23 +69,19 @@ class _PasswordFieldViewState extends State<PasswordFieldView> {
       ),
     );
   }
-  
+
   Widget _buildPasswordRow(String password) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Leading icon
-          Icon(
-            Icons.lock_outline,
-            size: 16,
-            color: colorScheme.secondary,
-          ),
+          Icon(Icons.lock_outline, size: 16, color: colorScheme.secondary),
           SizedBox(width: 12),
-          
+
           // Password text
           Expanded(
             child: Text(
@@ -94,12 +90,14 @@ class _PasswordFieldViewState extends State<PasswordFieldView> {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          
+
           // Visibility toggle button
           IconButton(
             onPressed: _togglePasswordVisibility,
             icon: Icon(
-              _isPasswordVisible ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+              _isPasswordVisible
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
               size: 18,
             ),
             color: colorScheme.onSurfaceVariant,
@@ -108,7 +106,7 @@ class _PasswordFieldViewState extends State<PasswordFieldView> {
             constraints: BoxConstraints(),
           ),
           SizedBox(width: 8),
-          
+
           // Copy button
           IconButton(
             onPressed: () {

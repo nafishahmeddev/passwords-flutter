@@ -69,10 +69,7 @@ class _CredentialFieldViewState extends State<CredentialFieldView> {
 
           // Password field if available
           if (password.isNotEmpty)
-            _buildPasswordField(
-              context, 
-              password: password,
-            ),
+            _buildPasswordField(context, password: password),
 
           // Empty state
           if (username.isEmpty && password.isEmpty)
@@ -102,13 +99,9 @@ class _CredentialFieldViewState extends State<CredentialFieldView> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Leading icon
-          Icon(
-            iconData,
-            size: 16,
-            color: colorScheme.primary,
-          ),
+          Icon(iconData, size: 16, color: colorScheme.primary),
           SizedBox(width: 12),
-          
+
           // Value text
           Expanded(
             child: Text(
@@ -117,7 +110,7 @@ class _CredentialFieldViewState extends State<CredentialFieldView> {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          
+
           // Copy button
           IconButton(
             onPressed: () {
@@ -135,10 +128,7 @@ class _CredentialFieldViewState extends State<CredentialFieldView> {
     );
   }
 
-  Widget _buildPasswordField(
-    BuildContext context, {
-    required String password,
-  }) {
+  Widget _buildPasswordField(BuildContext context, {required String password}) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -147,13 +137,9 @@ class _CredentialFieldViewState extends State<CredentialFieldView> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Leading icon
-          Icon(
-            Icons.lock_outline,
-            size: 16,
-            color: colorScheme.primary,
-          ),
+          Icon(Icons.lock_outline, size: 16, color: colorScheme.primary),
           SizedBox(width: 12),
-          
+
           // Password text
           Expanded(
             child: Text(
@@ -162,12 +148,14 @@ class _CredentialFieldViewState extends State<CredentialFieldView> {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          
+
           // Visibility toggle button
           IconButton(
             onPressed: _togglePasswordVisibility,
             icon: Icon(
-              _isPasswordVisible ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+              _isPasswordVisible
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
               size: 18,
             ),
             color: colorScheme.onSurfaceVariant,
@@ -176,7 +164,7 @@ class _CredentialFieldViewState extends State<CredentialFieldView> {
             constraints: BoxConstraints(),
           ),
           SizedBox(width: 8),
-          
+
           // Copy button
           IconButton(
             onPressed: () {
