@@ -123,6 +123,7 @@ class MainApp extends StatelessWidget {
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
                 color: lightColorScheme.onSurface,
+                fontFamily: textTheme.headlineMedium?.fontFamily,
               ),
             ),
             filledButtonTheme: FilledButtonThemeData(
@@ -157,6 +158,7 @@ class MainApp extends StatelessWidget {
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
                 color: darkColorScheme.onSurface,
+                fontFamily: textTheme.headlineMedium?.fontFamily,
               ),
             ),
             filledButtonTheme: FilledButtonThemeData(
