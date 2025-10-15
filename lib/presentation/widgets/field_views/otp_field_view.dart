@@ -177,7 +177,7 @@ class _OtpFieldViewState extends State<OtpFieldView> {
 
   String get _issuerText {
     final issuer = widget.field.getMetadata('issuer', '');
-    final accountName = widget.field.getMetadata('accountName', '');
+    final accountName = widget.field.getMetadata('account_name', '');
 
     if (issuer.isNotEmpty && accountName.isNotEmpty) {
       return '$issuer ($accountName)';
@@ -217,10 +217,9 @@ class _OtpFieldViewState extends State<OtpFieldView> {
                   Padding(
                     padding: const EdgeInsets.only(left: 8.0),
                     child: Text(
-                      "($issuerText)",
+                      "- $issuerText",
                       style: theme.textTheme.titleSmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
-                        fontStyle: FontStyle.italic,
                         fontSize: 14,
                       ),
                     ),
@@ -281,7 +280,7 @@ class _OtpFieldViewState extends State<OtpFieldView> {
                     style: theme.textTheme.titleLarge?.copyWith(
                       letterSpacing: 2,
                       fontFamily: 'monospace',
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w400,
                       color: colorScheme.onSurface,
                     ),
                   ),

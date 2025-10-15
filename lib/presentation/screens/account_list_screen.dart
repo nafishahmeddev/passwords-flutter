@@ -293,18 +293,18 @@ class _AccountListScreenState extends State<AccountListScreen> {
 
                               BorderRadius borderRadius;
                               if (favoriteAccounts.length == 1) {
-                                borderRadius = BorderRadius.circular(12);
+                                borderRadius = BorderRadius.circular(16);
                               } else if (isFirst) {
                                 borderRadius = BorderRadius.only(
-                                  topLeft: Radius.circular(12),
-                                  topRight: Radius.circular(12),
+                                  topLeft: Radius.circular(16),
+                                  topRight: Radius.circular(16),
                                   bottomRight: Radius.circular(4),
                                   bottomLeft: Radius.circular(4),
                                 );
                               } else if (isLast) {
                                 borderRadius = BorderRadius.only(
-                                  bottomLeft: Radius.circular(12),
-                                  bottomRight: Radius.circular(12),
+                                  bottomLeft: Radius.circular(16),
+                                  bottomRight: Radius.circular(16),
                                   topLeft: Radius.circular(4),
                                   topRight: Radius.circular(4),
                                 );
@@ -371,18 +371,18 @@ class _AccountListScreenState extends State<AccountListScreen> {
 
                             BorderRadius borderRadius;
                             if (allAccounts.length == 1) {
-                              borderRadius = BorderRadius.circular(12);
+                              borderRadius = BorderRadius.circular(16);
                             } else if (isFirst) {
                               borderRadius = BorderRadius.only(
-                                topLeft: Radius.circular(12),
-                                topRight: Radius.circular(12),
+                                topLeft: Radius.circular(16),
+                                topRight: Radius.circular(16),
                                 bottomRight: Radius.circular(4),
                                 bottomLeft: Radius.circular(4),
                               );
                             } else if (isLast) {
                               borderRadius = BorderRadius.only(
-                                bottomLeft: Radius.circular(12),
-                                bottomRight: Radius.circular(12),
+                                bottomLeft: Radius.circular(16),
+                                bottomRight: Radius.circular(16),
                                 topLeft: Radius.circular(4),
                                 topRight: Radius.circular(4),
                               );

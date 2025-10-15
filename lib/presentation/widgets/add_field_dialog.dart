@@ -214,56 +214,6 @@ class AddFieldDialogState extends State<AddFieldDialog> {
               ),
               SizedBox(height: 20),
 
-              // Required field toggle
-              Container(
-                padding: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.surfaceContainerHighest.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.star_outline,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      size: 20,
-                    ),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Required Field',
-                            style: Theme.of(context).textTheme.bodyLarge,
-                          ),
-                          Text(
-                            'This field must be filled',
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Switch(
-                      value: _isRequired,
-                      onChanged: (value) {
-                        setState(() {
-                          _isRequired = value;
-                        });
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 32),
-
               // Action buttons
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -360,7 +310,6 @@ class AddFieldDialogState extends State<AddFieldDialog> {
         accountId: accountId,
         label: _labelController.text.trim(),
         type: AccountFieldType.fromString(_selectedType),
-        requiredField: _isRequired,
         order: maxOrder + 1,
       );
 

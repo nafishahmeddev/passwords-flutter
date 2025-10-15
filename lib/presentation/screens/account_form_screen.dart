@@ -177,7 +177,7 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
                       elevation: 0,
                       child: Container(
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
                         ),
                         child: Padding(
                           padding: EdgeInsets.all(16),
@@ -300,7 +300,7 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
                       elevation: 0,
                       child: Container(
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
                         ),
                         child: Padding(
                           padding: EdgeInsets.all(16),

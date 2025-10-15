@@ -5,69 +5,29 @@ import '../models/account_field.dart';
 /// Use these to create AccountField instances by parsing the maps.
 const Map<String, List<Map<String, dynamic>>> accountTemplates = {
   'Login': [
-    {
-      'label': 'Credential',
-      'type': 'credential',
-      'requiredField': true,
-      'order': 1,
-    },
-    {'label': 'Website', 'type': 'website', 'requiredField': true, 'order': 2},
+    {'label': 'Credential', 'type': 'credential', 'order': 1},
+    {'label': 'Website', 'type': 'website', 'order': 2},
   ],
   'Credit Card': [
-    {'label': 'Card Number', 'type': 'text', 'requiredField': true, 'order': 1},
-    {
-      'label': 'Expiration Date',
-      'type': 'text',
-      'requiredField': true,
-      'order': 2,
-    },
-    {'label': 'CVV', 'type': 'text', 'requiredField': true, 'order': 3},
-    {
-      'label': 'Name on Card',
-      'type': 'text',
-      'requiredField': true,
-      'order': 4,
-    },
+    {'label': 'Card Number', 'type': 'text', 'order': 1},
+    {'label': 'Expiration Date', 'type': 'text', 'order': 2},
+    {'label': 'CVV', 'type': 'text', 'order': 3},
+    {'label': 'Name on Card', 'type': 'text', 'order': 4},
   ],
   'Address': [
-    {
-      'label': 'Street Address',
-      'type': 'text',
-      'requiredField': true,
-      'order': 1,
-    },
-    {'label': 'City', 'type': 'text', 'requiredField': true, 'order': 2},
-    {
-      'label': 'State/Province',
-      'type': 'text',
-      'requiredField': false,
-      'order': 3,
-    },
-    {
-      'label': 'ZIP/Postal Code',
-      'type': 'text',
-      'requiredField': false,
-      'order': 4,
-    },
-    {'label': 'Country', 'type': 'text', 'requiredField': false, 'order': 5},
+    {'label': 'Street Address', 'type': 'text', 'order': 1},
+    {'label': 'City', 'type': 'text', 'order': 2},
+    {'label': 'State/Province', 'type': 'text', 'order': 3},
+    {'label': 'ZIP/Postal Code', 'type': 'text', 'order': 4},
+    {'label': 'Country', 'type': 'text', 'order': 5},
   ],
   'Website': [
-    {'label': 'URL', 'type': 'website', 'requiredField': true, 'order': 1},
-    {
-      'label': 'Username',
-      'type': 'credential',
-      'requiredField': false,
-      'order': 2,
-    },
-    {
-      'label': 'Password',
-      'type': 'password',
-      'requiredField': false,
-      'order': 3,
-    },
+    {'label': 'URL', 'type': 'website', 'order': 1},
+    {'label': 'Username', 'type': 'credential', 'order': 2},
+    {'label': 'Password', 'type': 'password', 'order': 3},
   ],
   'Note': [
-    {'label': 'Content', 'type': 'text', 'requiredField': true, 'order': 1},
+    {'label': 'Content', 'type': 'text', 'order': 1},
   ],
 };
 
@@ -80,7 +40,6 @@ AccountField createFieldFromTemplate(
     accountId: accountId,
     label: template['label'] as String,
     type: AccountFieldType.fromString(template['type'] as String),
-    requiredField: template['requiredField'] as bool,
     order: template['order'] as int,
   );
 }

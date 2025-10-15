@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'data/services/db_helper.dart';
@@ -36,6 +37,56 @@ class MainApp extends StatelessWidget {
             brightness: Brightness.dark,
           );
 
+          TextTheme textTheme = GoogleFonts.sourceSans3TextTheme(
+            TextTheme(
+              headlineLarge: TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.5,
+              ),
+              headlineMedium: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w600,
+                letterSpacing: -0.25,
+              ),
+              headlineSmall: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0,
+              ),
+              titleLarge: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 0,
+              ),
+              titleMedium: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 0.15,
+              ),
+              titleSmall: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 0.1,
+              ),
+              bodyLarge: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w400,
+                letterSpacing: 0.5,
+              ),
+              bodyMedium: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+                letterSpacing: 0.25,
+              ),
+              bodySmall: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w400,
+                letterSpacing: 0.4,
+              ),
+            ),
+            // Enhanced component themes for dark
+          );
           return MaterialApp(
             title: 'Passwords',
             theme: ThemeData(
@@ -43,53 +94,7 @@ class MainApp extends StatelessWidget {
               colorScheme: lightColorScheme,
               brightness: Brightness.light,
               // Enhanced typography
-              textTheme: TextTheme(
-                headlineLarge: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.5,
-                ),
-                headlineMedium: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: -0.25,
-                ),
-                headlineSmall: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0,
-                ),
-                titleLarge: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 0,
-                ),
-                titleMedium: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 0.15,
-                ),
-                titleSmall: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 0.1,
-                ),
-                bodyLarge: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w400,
-                  letterSpacing: 0.5,
-                ),
-                bodyMedium: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                  letterSpacing: 0.25,
-                ),
-                bodySmall: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w400,
-                  letterSpacing: 0.4,
-                ),
-              ),
+              textTheme: textTheme,
               // Enhanced component themes
               cardTheme: CardThemeData(
                 elevation: 0,
@@ -123,59 +128,13 @@ class MainApp extends StatelessWidget {
               colorScheme: darkColorScheme,
               brightness: Brightness.dark,
               // Same typography for dark theme
-              textTheme: TextTheme(
-                headlineLarge: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.5,
-                ),
-                headlineMedium: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: -0.25,
-                ),
-                headlineSmall: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0,
-                ),
-                titleLarge: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 0,
-                ),
-                titleMedium: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 0.15,
-                ),
-                titleSmall: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 0.1,
-                ),
-                bodyLarge: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w400,
-                  letterSpacing: 0.5,
-                ),
-                bodyMedium: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                  letterSpacing: 0.25,
-                ),
-                bodySmall: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w400,
-                  letterSpacing: 0.4,
-                ),
-              ),
+              textTheme: textTheme,
               // Enhanced component themes for dark
               cardTheme: CardThemeData(
                 elevation: 0,
                 color: darkColorScheme.surfaceContainer,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(18)),
+                  borderRadius: BorderRadius.all(Radius.circular(16)),
                 ),
               ),
               appBarTheme: AppBarTheme(

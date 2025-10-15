@@ -102,18 +102,18 @@ class PixelGroupSection extends StatelessWidget {
   Widget _buildFieldWidget(AccountField field, int index) {
     BorderRadius borderRadius;
     if (group.fields.length == 1) {
-      borderRadius = BorderRadius.all(Radius.circular(12));
+      borderRadius = BorderRadius.all(Radius.circular(16));
     } else if (index == 0) {
       borderRadius = BorderRadius.only(
-        topLeft: Radius.circular(12),
-        topRight: Radius.circular(12),
+        topLeft: Radius.circular(16),
+        topRight: Radius.circular(16),
         bottomRight: Radius.circular(4),
         bottomLeft: Radius.circular(4),
       );
     } else if (index == group.fields.length - 1) {
       borderRadius = BorderRadius.only(
-        bottomLeft: Radius.circular(12),
-        bottomRight: Radius.circular(12),
+        bottomLeft: Radius.circular(16),
+        bottomRight: Radius.circular(16),
         topLeft: Radius.circular(4),
         topRight: Radius.circular(4),
       );

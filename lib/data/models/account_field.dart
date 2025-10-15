@@ -24,7 +24,6 @@ class AccountField {
   String accountId;
   String label;
   AccountFieldType type; // Using enum directly
-  bool requiredField;
   int order;
   Map<String, String> metadata; // New metadata field
 
@@ -33,7 +32,6 @@ class AccountField {
     required this.accountId,
     required this.label,
     required this.type,
-    this.requiredField = false,
     this.order = 0,
     Map<String, String>? metadata,
   }) : id = id ?? const Uuid().v4(),
@@ -62,7 +60,6 @@ class AccountField {
     'accountId': accountId,
     'label': label,
     'type': type.name,
-    'required': requiredField ? 1 : 0,
     'fieldOrder': order,
     'metadata': metadata.isEmpty ? null : jsonEncode(metadata),
   };
@@ -87,7 +84,6 @@ class AccountField {
       accountId: map['accountId'] as String,
       label: map['label'],
       type: AccountFieldType.fromString(map['type']),
-      requiredField: map['required'] == 1,
       order: map['fieldOrder'] ?? 0,
       metadata: parsedMetadata,
     );
@@ -98,7 +94,6 @@ class AccountField {
     Object? accountId,
     String? label,
     AccountFieldType? type,
-    bool? requiredField,
     int? order,
     Map<String, String>? metadata,
   }) {
@@ -107,7 +102,6 @@ class AccountField {
       accountId: accountId != null ? accountId as String : this.accountId,
       label: label ?? this.label,
       type: type ?? this.type,
-      requiredField: requiredField ?? this.requiredField,
       order: order ?? this.order,
       metadata: metadata ?? this.metadata,
     );
