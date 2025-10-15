@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../widgets/auth/pin_input.dart';
-import '../../business/providers/auth_provider.dart';
-import '../../business/services/auth_service.dart';
+import '../../business/providers/settings_provider.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -12,21 +11,13 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  // Security section state
-  bool _isAuthEnabled = false;
-  bool _isBiometricAvailable = false;
-  bool _isBiometricEnabled = false;
-  bool _isPinSetup = false;
+  // UI state for PIN setup
   bool _isSettingPin = false;
   String? _newPin;
+  bool _isPinSetup = false;
 
-  final AuthService _authService = AuthService();
+  // Used for PIN input control
   final GlobalKey<PinInputState> _pinInputKey = GlobalKey<PinInputState>();
-
-  // General settings state
-  bool _isDarkMode = false;
-  bool _autoLockEnabled = false;
-  String _autoLockDuration = '1 minute';
 
   @override
   void initState() {
@@ -35,20 +26,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _loadSettings() async {
-    // Load security settings
-    final isAuthEnabled = await _authService.isAuthEnabled();
-    final isBiometricAvailable = await _authService.isBiometricAvailable();
-    final isBiometricEnabled = await _authService.isBiometricEnabled();
-    final isPinSet = await _authService.isPinSet();
+    final settingsProvider = Provider.of<SettingsProvider>(
+      context,
+      listen: false,
+    );
+    final isPinSet = await settingsProvider.isPinSet();
 
     setState(() {
-      _isAuthEnabled = isAuthEnabled;
-      _isBiometricAvailable = isBiometricAvailable;
-      _isBiometricEnabled = isBiometricEnabled;
       _isPinSetup = isPinSet;
-
-      // For now, general settings have default values
-      // In a real implementation, these would be loaded from shared preferences or another storage
     });
   }
 
@@ -90,15 +75,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _savePin(String pin) async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    await authProvider.savePin(pin);
-    await authProvider.setAuthEnabled(true);
+    final settingsProvider = Provider.of<SettingsProvider>(
+      context,
+      listen: false,
+    );
+    await settingsProvider.savePin(pin);
+    await settingsProvider.setAuthEnabled(true);
 
     setState(() {
       _isSettingPin = false;
       _newPin = null;
       _isPinSetup = true;
-      _isAuthEnabled = true;
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -113,111 +100,182 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return _isSettingPin ? _buildPinSetupScreen() : _buildSettingsScreen();
+    return Scaffold(
+      appBar: AppBar(title: Text('Settings'), elevation: 0),
+      body: _isSettingPin ? _buildPinSetupScreen() : _buildSettingsScreen(),
+    );
   }
 
   Widget _buildSettingsScreen() {
-    return Scaffold(
-      appBar: AppBar(title: Text('Settings'), elevation: 0),
-      body: ListView(
-        padding: EdgeInsets.all(16),
-        children: [
-          // General settings section
-          _buildSectionHeader(
-            context,
-            'General Settings',
-            Icons.settings_outlined,
-          ),
-          Card(
-            margin: EdgeInsets.only(bottom: 24),
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              children: [
-                SwitchListTile(
-                  title: Text('Dark Mode'),
-                  subtitle: Text(
-                    'Use dark theme',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  secondary: Container(
-                    padding: EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      Icons.dark_mode_outlined,
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    ),
-                  ),
-                  value: _isDarkMode,
-                  onChanged: (value) {
-                    setState(() {
-                      _isDarkMode = value;
-                    });
-                    // TODO: Implement theme switching
-                  },
-                ),
+    final settingsProvider = Provider.of<SettingsProvider>(context);
 
+    return ListView(
+      padding: EdgeInsets.all(16),
+      children: [
+        // General settings section
+        _buildSectionHeader(
+          context,
+          'General Settings',
+          Icons.settings_outlined,
+        ),
+        Card(
+          margin: EdgeInsets.only(bottom: 24),
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            children: [
+              // Theme mode setting
+              ListTile(
+                title: Text('Theme Mode'),
+                subtitle: Text(
+                  settingsProvider.themeMode.displayName,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                leading: Container(
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.dark_mode_outlined,
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
+                ),
+                onTap: () => _showThemeModeDialog(context),
+              ),
+
+              const Divider(height: 0),
+
+              // Dynamic color setting
+              SwitchListTile(
+                title: Text('Dynamic Colors'),
+                subtitle: Text(
+                  'Use system color palette',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                secondary: Container(
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.secondaryContainer,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.color_lens_outlined,
+                    color: Theme.of(context).colorScheme.onSecondaryContainer,
+                  ),
+                ),
+                value: settingsProvider.useDynamicColor,
+                onChanged: (value) async {
+                  await settingsProvider.setUseDynamicColor(value);
+                },
+              ),
+            ],
+          ),
+        ),
+
+        // Security settings section
+        _buildSectionHeader(
+          context,
+          'Security Settings',
+          Icons.security_outlined,
+        ),
+        Card(
+          margin: EdgeInsets.only(bottom: 24),
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            children: [
+              // App lock setting
+              SwitchListTile(
+                title: Text('App Lock'),
+                subtitle: Text(
+                  'Require authentication to access your passwords',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                secondary: Container(
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.lock_outline,
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
+                ),
+                value: settingsProvider.isAuthEnabled,
+                onChanged: (value) async {
+                  if (value && !_isPinSetup) {
+                    // Can't enable without setting up a PIN first
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Please set up a PIN first'),
+                        behavior: SnackBarBehavior.floating,
+                        margin: EdgeInsets.all(16),
+                      ),
+                    );
+                    return;
+                  }
+
+                  await settingsProvider.setAuthEnabled(value);
+                  if (!value) {
+                    await settingsProvider.setBiometricEnabled(false);
+                  }
+                },
+              ),
+
+              const Divider(height: 0),
+
+              // PIN setup option
+              ListTile(
+                title: Text(_isPinSetup ? 'Change PIN' : 'Set up PIN'),
+                subtitle: Text(
+                  _isPinSetup
+                      ? 'Change your current PIN'
+                      : 'Create a PIN to secure your app',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                leading: Container(
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.secondaryContainer,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.pin_outlined,
+                    color: Theme.of(context).colorScheme.onSecondaryContainer,
+                  ),
+                ),
+                onTap: () {
+                  setState(() {
+                    _isSettingPin = true;
+                    _newPin = null;
+                  });
+                },
+              ),
+
+              // Biometric option
+              if (settingsProvider.isBiometricAvailable)
                 const Divider(height: 0),
 
-                ListTile(
-                  title: Text('About'),
-                  subtitle: Text(
-                    'Version information and licenses',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  leading: Container(
-                    padding: EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.secondaryContainer,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      Icons.info_outline,
-                      color: Theme.of(context).colorScheme.onSecondaryContainer,
-                    ),
-                  ),
-                  onTap: () {
-                    // Show about dialog
-                    showAboutDialog(
-                      context: context,
-                      applicationName: 'Passwords',
-                      applicationVersion: '1.0.0',
-                      applicationIcon: Icon(
-                        Icons.lock_outline,
-                        size: 40,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      children: [Text('A secure password manager application')],
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-
-          // Security settings section
-          _buildSectionHeader(context, 'Security', Icons.security_outlined),
-          Card(
-            margin: EdgeInsets.only(bottom: 24),
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              children: [
+              if (settingsProvider.isBiometricAvailable)
                 SwitchListTile(
-                  title: Text('App Lock'),
+                  title: Text('Biometric Authentication'),
                   subtitle: Text(
-                    'Require authentication to access your passwords',
+                    'Use your fingerprint or face to unlock',
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
@@ -225,18 +283,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   secondary: Container(
                     padding: EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primaryContainer,
+                      color: Theme.of(context).colorScheme.tertiaryContainer,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
-                      Icons.lock_outline,
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      Icons.fingerprint,
+                      color: Theme.of(context).colorScheme.onTertiaryContainer,
                     ),
                   ),
-                  value: _isAuthEnabled,
+                  value: settingsProvider.isBiometricEnabled,
                   onChanged: (value) async {
-                    if (value && !_isPinSetup) {
-                      // Can't enable without setting up a PIN first
+                    if (!_isPinSetup) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text('Please set up a PIN first'),
@@ -247,187 +304,115 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       return;
                     }
 
-                    final authProvider = Provider.of<AuthProvider>(
-                      context,
-                      listen: false,
+                    await settingsProvider.setBiometricEnabled(value);
+                  },
+                ),
+
+              // Auto lock settings
+              const Divider(height: 0),
+
+              SwitchListTile(
+                title: Text('Auto Lock'),
+                subtitle: Text(
+                  'Automatically lock the app after inactivity',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                secondary: Container(
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.errorContainer,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.timer_outlined,
+                    color: Theme.of(context).colorScheme.onErrorContainer,
+                  ),
+                ),
+                value: settingsProvider.autoLockEnabled,
+                onChanged: (value) async {
+                  if (!settingsProvider.isAuthEnabled) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Please enable App Lock first'),
+                        behavior: SnackBarBehavior.floating,
+                        margin: EdgeInsets.all(16),
+                      ),
                     );
-                    await authProvider.setAuthEnabled(value);
-                    setState(() {
-                      _isAuthEnabled = value;
-                      if (!value) {
-                        _isBiometricEnabled = false;
-                      }
-                    });
-                  },
-                ),
+                    return;
+                  }
+                  await settingsProvider.setAutoLockEnabled(value);
+                },
+              ),
 
-                const Divider(height: 0),
-
-                // PIN setup option
-                ListTile(
-                  title: Text(_isPinSetup ? 'Change PIN' : 'Set up PIN'),
-                  subtitle: Text(
-                    _isPinSetup
-                        ? 'Change your current PIN'
-                        : 'Create a PIN to secure your app',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  leading: Container(
-                    padding: EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.secondaryContainer,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      Icons.pin_outlined,
-                      color: Theme.of(context).colorScheme.onSecondaryContainer,
-                    ),
-                  ),
-                  onTap: () {
-                    setState(() {
-                      _isSettingPin = true;
-                      _newPin = null;
-                    });
-                  },
-                ),
-
-                // Biometric option
-                if (_isBiometricAvailable) const Divider(height: 0),
-
-                if (_isBiometricAvailable)
-                  SwitchListTile(
-                    title: Text('Biometric Authentication'),
+              // Show auto lock duration only if auto lock is enabled
+              if (settingsProvider.autoLockEnabled)
+                Padding(
+                  padding: const EdgeInsets.only(left: 16.0, right: 16.0),
+                  child: ListTile(
+                    title: Text('Auto Lock After'),
                     subtitle: Text(
-                      'Use your fingerprint or face to unlock',
+                      '${settingsProvider.autoLockDuration} minute${settingsProvider.autoLockDuration > 1 ? 's' : ''}',
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
-                    secondary: Container(
-                      padding: EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.tertiaryContainer,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        Icons.fingerprint,
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onTertiaryContainer,
-                      ),
-                    ),
-                    value: _isBiometricEnabled,
-                    onChanged: (value) async {
-                      if (!_isPinSetup) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Please set up a PIN first'),
-                            behavior: SnackBarBehavior.floating,
-                            margin: EdgeInsets.all(16),
-                          ),
-                        );
-                        return;
-                      }
-
-                      final authProvider = Provider.of<AuthProvider>(
-                        context,
-                        listen: false,
-                      );
-                      await authProvider.setBiometricEnabled(value);
-                      setState(() {
-                        _isBiometricEnabled = value;
-                      });
-                    },
+                    onTap: () => _showAutoLockDurationDialog(context),
                   ),
-
-                const Divider(height: 0),
-
-                // Auto-lock option
-                SwitchListTile(
-                  title: Text('Auto-Lock'),
-                  subtitle: Text(
-                    'Automatically lock the app after a period of inactivity',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  secondary: Container(
-                    padding: EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.secondaryContainer,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      Icons.timer_outlined,
-                      color: Theme.of(context).colorScheme.onSecondaryContainer,
-                    ),
-                  ),
-                  value: _autoLockEnabled,
-                  onChanged: (value) {
-                    setState(() {
-                      _autoLockEnabled = value;
-                    });
-                    // TODO: Implement auto-lock
-                  },
                 ),
+            ],
+          ),
+        ),
 
-                // Auto-lock duration
-                if (_autoLockEnabled)
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      left: 72.0,
-                      right: 16.0,
-                      bottom: 16.0,
-                    ),
-                    child: DropdownButtonFormField<String>(
-                      decoration: InputDecoration(
-                        labelText: 'Auto-Lock Duration',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      value: _autoLockDuration,
-                      onChanged: (newValue) {
-                        setState(() {
-                          _autoLockDuration = newValue!;
-                        });
-                      },
-                      items:
-                          <String>[
-                            '30 seconds',
-                            '1 minute',
-                            '5 minutes',
-                            '10 minutes',
-                            '30 minutes',
-                          ].map<DropdownMenuItem<String>>((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value),
-                            );
-                          }).toList(),
-                    ),
-                  ),
-              ],
+        // Reset section
+        if (_isPinSetup)
+          Card(
+            margin: EdgeInsets.only(bottom: 24),
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: ListTile(
+              title: Text(
+                'Reset Security Settings',
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+              subtitle: Text(
+                'Remove PIN and biometric authentication',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              leading: Container(
+                padding: EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.errorContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.delete_outline,
+                  color: Theme.of(context).colorScheme.onErrorContainer,
+                ),
+              ),
+              onTap: _showResetConfirmation,
             ),
           ),
 
-          // Reset security section
-          if (_isPinSetup)
-            Card(
-              margin: EdgeInsets.only(bottom: 16),
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: ListTile(
-                title: Text(
-                  'Reset Security Settings',
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
-                ),
+        // About section
+        _buildSectionHeader(context, 'About', Icons.info_outlined),
+        Card(
+          margin: EdgeInsets.only(bottom: 24),
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            children: [
+              ListTile(
+                title: Text('Version'),
                 subtitle: Text(
-                  'Remove PIN and biometric authentication',
+                  '1.0.0',
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -435,31 +420,91 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 leading: Container(
                   padding: EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.errorContainer,
+                    color: Theme.of(context).colorScheme.primaryContainer,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
-                    Icons.delete_outline,
-                    color: Theme.of(context).colorScheme.onErrorContainer,
+                    Icons.info_outline,
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
                   ),
                 ),
-                onTap: _showResetConfirmation,
               ),
-            ),
+            ],
+          ),
+        ),
 
-          // Info text about security
-          Padding(
-            padding: const EdgeInsets.only(top: 8.0, bottom: 16.0),
-            child: Text(
-              'App lock ensures that your passwords remain secure even if someone gains access to your device. We recommend using both PIN and biometric authentication for the best security.',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+        // Info text about security
+        Padding(
+          padding: const EdgeInsets.only(top: 8.0, bottom: 24.0),
+          child: Text(
+            'App lock ensures that your passwords remain secure even if someone gains access to your device. We recommend using both PIN and biometric authentication for the best security.',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPinSetupScreen() {
+    return Column(
+      children: [
+        Expanded(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.lock_outlined,
+                    size: 48,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    _newPin == null ? 'Create PIN' : 'Confirm PIN',
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    _newPin == null
+                        ? 'Enter a 4-digit PIN to secure your app'
+                        : 'Enter the same PIN again to confirm',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 32),
+                  PinInput(key: _pinInputKey, onCompleted: _handlePinCompleted),
+                ],
               ),
-              textAlign: TextAlign.center,
             ),
           ),
-        ],
-      ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    _isSettingPin = false;
+                    _newPin = null;
+                  });
+                },
+                child: Text('Cancel'),
+              ),
+              // Right side empty for balance
+              SizedBox(width: 64),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -469,75 +514,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
     IconData icon,
   ) {
     return Padding(
-      padding: const EdgeInsets.only(left: 8, bottom: 8),
+      padding: const EdgeInsets.only(left: 8.0, bottom: 8.0),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
+          Icon(icon, size: 16, color: Theme.of(context).colorScheme.primary),
           SizedBox(width: 8),
           Text(
-            title.toUpperCase(),
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+            title,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
               color: Theme.of(context).colorScheme.primary,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 1.2,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPinSetupScreen() {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_newPin == null ? 'Create PIN' : 'Confirm PIN'),
-        leading: IconButton(
-          icon: Icon(Icons.close),
-          onPressed: () {
-            setState(() {
-              _isSettingPin = false;
-              _newPin = null;
-            });
-          },
-        ),
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.lock_outlined,
-                      size: 48,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    SizedBox(height: 16),
-                    Text(
-                      _newPin == null ? 'Create PIN' : 'Confirm PIN',
-                      style: Theme.of(context).textTheme.headlineMedium,
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      _newPin == null
-                          ? 'Enter a 4-digit PIN to secure your app'
-                          : 'Enter the same PIN again to confirm',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    SizedBox(height: 32),
-                    PinInput(
-                      key: _pinInputKey,
-                      onCompleted: _handlePinCompleted,
-                    ),
-                  ],
-                ),
-              ),
             ),
           ),
         ],
@@ -546,6 +533,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showResetConfirmation() {
+    final settingsProvider = Provider.of<SettingsProvider>(
+      context,
+      listen: false,
+    );
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -565,7 +557,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             onPressed: () async {
               Navigator.pop(context);
-              await _resetSecurity();
+              await settingsProvider.resetAuth();
+
+              setState(() {
+                _isPinSetup = false;
+              });
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Security settings reset'),
+                  behavior: SnackBarBehavior.floating,
+                  margin: EdgeInsets.all(16),
+                ),
+              );
             },
             child: Text('Reset'),
           ),
@@ -574,14 +578,79 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Future<void> _resetSecurity() async {
-    await _authService.resetAuth();
-    await _loadSettings();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Security settings reset'),
-        behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.all(16),
+  void _showThemeModeDialog(BuildContext context) {
+    final settingsProvider = Provider.of<SettingsProvider>(
+      context,
+      listen: false,
+    );
+
+    showDialog(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: Text('Theme Mode'),
+        children: [
+          RadioListTile<ThemeMode>(
+            title: Text('System'),
+            value: ThemeMode.system,
+            groupValue: settingsProvider.themeMode,
+            onChanged: (value) async {
+              if (value != null) {
+                await settingsProvider.setThemeMode(value);
+                Navigator.pop(context);
+              }
+            },
+          ),
+          RadioListTile<ThemeMode>(
+            title: Text('Light'),
+            value: ThemeMode.light,
+            groupValue: settingsProvider.themeMode,
+            onChanged: (value) async {
+              if (value != null) {
+                await settingsProvider.setThemeMode(value);
+                Navigator.pop(context);
+              }
+            },
+          ),
+          RadioListTile<ThemeMode>(
+            title: Text('Dark'),
+            value: ThemeMode.dark,
+            groupValue: settingsProvider.themeMode,
+            onChanged: (value) async {
+              if (value != null) {
+                await settingsProvider.setThemeMode(value);
+                Navigator.pop(context);
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAutoLockDurationDialog(BuildContext context) {
+    final settingsProvider = Provider.of<SettingsProvider>(
+      context,
+      listen: false,
+    );
+
+    showDialog(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: Text('Auto Lock Duration'),
+        children: [
+          for (final duration in [1, 5, 10, 30, 60])
+            RadioListTile<int>(
+              title: Text('${duration} minute${duration > 1 ? 's' : ''}'),
+              value: duration,
+              groupValue: settingsProvider.autoLockDuration,
+              onChanged: (value) async {
+                if (value != null) {
+                  await settingsProvider.setAutoLockDuration(value);
+                  Navigator.pop(context);
+                }
+              },
+            ),
+        ],
       ),
     );
   }

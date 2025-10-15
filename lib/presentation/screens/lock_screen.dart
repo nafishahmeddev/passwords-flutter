@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../business/providers/auth_provider.dart';
+import '../../../business/providers/settings_provider.dart';
 import '../widgets/auth/pin_input.dart';
 
 class LockScreen extends StatefulWidget {
@@ -22,9 +22,13 @@ class _LockScreenState extends State<LockScreen> {
   }
 
   Future<void> _checkBiometricAvailability() async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final biometricAvailable = await authProvider.isBiometricAvailable();
-    final biometricEnabled = await authProvider.isBiometricEnabled();
+    final settingsProvider = Provider.of<SettingsProvider>(
+      context,
+      listen: false,
+    );
+    final biometricAvailable = await settingsProvider
+        .checkBiometricAvailability();
+    final biometricEnabled = settingsProvider.isBiometricEnabled;
 
     setState(() {
       _isBiometricAvailable = biometricAvailable && biometricEnabled;
@@ -36,14 +40,20 @@ class _LockScreenState extends State<LockScreen> {
     await Future.delayed(Duration(milliseconds: 300));
 
     if (_isBiometricAvailable) {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      await authProvider.authenticateWithBiometrics();
+      final settingsProvider = Provider.of<SettingsProvider>(
+        context,
+        listen: false,
+      );
+      await settingsProvider.authenticateWithBiometrics();
     }
   }
 
   void _handlePinSubmit(String pin) async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final isValid = await authProvider.authenticateWithPin(pin);
+    final settingsProvider = Provider.of<SettingsProvider>(
+      context,
+      listen: false,
+    );
+    final isValid = await settingsProvider.authenticateWithPin(pin);
 
     if (!isValid && _pinInputKey.currentState != null) {
       _pinInputKey.currentState!.setError();

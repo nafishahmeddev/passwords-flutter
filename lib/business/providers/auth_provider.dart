@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../services/auth_service.dart';
+import 'settings_provider.dart';
 
 enum AuthStatus { initial, authenticated, unauthenticated, error }
 
@@ -7,13 +9,22 @@ class AuthProvider extends ChangeNotifier {
   final AuthService _authService = AuthService();
   AuthStatus _status = AuthStatus.initial;
   String? _errorMessage;
+  Timer? _autoLockTimer;
+  DateTime? _lastActivityTime;
+  SettingsProvider? _settingsProvider;
 
   AuthStatus get status => _status;
   String? get errorMessage => _errorMessage;
 
+  void setSettingsProvider(SettingsProvider settingsProvider) {
+    _settingsProvider = settingsProvider;
+    _setupAutoLock();
+  }
+
   AuthProvider() {
     // Check if authentication is enabled
     checkAuthStatus();
+    _lastActivityTime = DateTime.now();
   }
 
   // Check if any authentication is required
@@ -96,5 +107,56 @@ class AuthProvider extends ChangeNotifier {
   void lockApp() {
     _status = AuthStatus.unauthenticated;
     notifyListeners();
+  }
+
+  // Record user activity to prevent auto-lock during active use
+  void recordUserActivity() {
+    _lastActivityTime = DateTime.now();
+  }
+
+  // Setup auto-lock timer
+  void _setupAutoLock() {
+    // Cancel any existing timer
+    _autoLockTimer?.cancel();
+
+    // If settings provider is not set or auto-lock is disabled, return
+    if (_settingsProvider == null || !_settingsProvider!.autoLockEnabled) {
+      return;
+    }
+
+    // Create a periodic timer that checks if the app should be locked
+    _autoLockTimer = Timer.periodic(Duration(seconds: 15), (timer) {
+      _checkAutoLock();
+    });
+  }
+
+  // Check if the app should be auto-locked based on inactivity
+  void _checkAutoLock() {
+    if (_settingsProvider == null ||
+        !_settingsProvider!.autoLockEnabled ||
+        _status != AuthStatus.authenticated ||
+        _lastActivityTime == null) {
+      return;
+    }
+
+    final now = DateTime.now();
+    final inactivityDuration = now.difference(_lastActivityTime!);
+    final autoLockMinutes = _settingsProvider!.autoLockDuration;
+
+    // Lock the app if inactive for longer than the auto-lock duration
+    if (inactivityDuration.inMinutes >= autoLockMinutes) {
+      lockApp();
+    }
+  }
+
+  // Update auto-lock settings when they change
+  void updateAutoLockSettings() {
+    _setupAutoLock();
+  }
+
+  @override
+  void dispose() {
+    _autoLockTimer?.cancel();
+    super.dispose();
   }
 }

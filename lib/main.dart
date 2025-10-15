@@ -5,7 +5,7 @@ import 'package:dynamic_color/dynamic_color.dart';
 import 'data/services/db_helper.dart';
 import 'data/repositories/account_repository.dart';
 import 'business/providers/account_provider.dart';
-import 'business/providers/auth_provider.dart';
+import 'business/providers/settings_provider.dart';
 import 'presentation/screens/account_list_screen.dart';
 import 'presentation/screens/lock_screen.dart';
 
@@ -14,10 +14,12 @@ void main() async {
   final db = await DBHelper.init();
   final repository = AccountRepository(db);
 
+  final settingsProvider = SettingsProvider();
+
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => settingsProvider),
         ChangeNotifierProvider(
           create: (_) =>
               AccountProvider(repository: repository)..loadAccounts(),
@@ -35,16 +37,25 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final settingsProvider = Provider.of<SettingsProvider>(context);
+
     return DynamicColorBuilder(
       builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
-        print("lightDynamic: $lightDynamic, darkDynamic: $darkDynamic");
+        // Use dynamic colors only if enabled in settings
+        final useDynamicColor = settingsProvider.useDynamicColor;
+
         // Create custom color schemes with better contrast and harmony
         final lightColorScheme = ColorScheme.fromSeed(
-          seedColor: lightDynamic?.primary ?? Colors.green,
+          seedColor: useDynamicColor && lightDynamic != null
+              ? lightDynamic.primary
+              : Colors.green,
           brightness: Brightness.light,
         );
+
         final darkColorScheme = ColorScheme.fromSeed(
-          seedColor: darkDynamic?.primary ?? Colors.green,
+          seedColor: useDynamicColor && lightDynamic != null
+              ? lightDynamic.primary
+              : Colors.green,
           brightness: Brightness.dark,
         );
 
@@ -100,6 +111,7 @@ class MainApp extends StatelessWidget {
         );
         return MaterialApp(
           title: 'Passwords',
+          themeMode: settingsProvider.themeMode,
           theme: ThemeData(
             useMaterial3: true,
             colorScheme: lightColorScheme,
@@ -170,10 +182,10 @@ class MainApp extends StatelessWidget {
               ),
             ),
           ),
-          home: Consumer<AuthProvider>(
-            builder: (context, authProvider, child) {
+          home: Consumer<SettingsProvider>(
+            builder: (context, settingsProvider, child) {
               // Based on auth status, show either lock screen or home screen
-              switch (authProvider.status) {
+              switch (settingsProvider.authStatus) {
                 case AuthStatus.authenticated:
                   return AccountListScreen();
                 case AuthStatus.unauthenticated:
@@ -225,7 +237,7 @@ class MainApp extends StatelessWidget {
                           ),
                           SizedBox(height: 8),
                           Text(
-                            authProvider.errorMessage ?? 'Unknown error',
+                            settingsProvider.errorMessage ?? 'Unknown error',
                             textAlign: TextAlign.center,
                             style: textTheme.bodyMedium?.copyWith(
                               color: lightColorScheme.onSurfaceVariant,
@@ -234,7 +246,7 @@ class MainApp extends StatelessWidget {
                           SizedBox(height: 24),
                           ElevatedButton(
                             onPressed: () {
-                              authProvider.checkAuthStatus();
+                              settingsProvider.checkAuthStatus();
                             },
                             child: Text('Retry'),
                           ),
