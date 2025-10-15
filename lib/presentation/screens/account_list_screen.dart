@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:passwords/data/models/account_field.dart';
 import 'package:provider/provider.dart';
 import '../../business/providers/account_provider.dart';
+import '../../business/providers/settings_provider.dart';
 import '../../data/templates/account_templates.dart';
 import '../widgets/account_list_item.dart';
 import 'account_detail_screen.dart';
@@ -141,43 +142,26 @@ class _AccountListScreenState extends State<AccountListScreen> {
             },
             style: IconButton.styleFrom(backgroundColor: Colors.transparent),
           ),
-          PopupMenuButton<String>(
-            icon: Icon(Icons.more_vert_rounded),
-            onSelected: (value) {
-              switch (value) {
-                case 'settings':
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => SettingsScreen()),
-                  );
-                  break;
-                case 'about':
-                  // TODO: Show about dialog
-                  break;
-              }
+          IconButton(
+            icon: Icon(Icons.lock_outline_rounded),
+            tooltip: 'Lock App',
+            onPressed: () {
+              // Get the settings provider and lock the app
+              final settingsProvider = Provider.of<SettingsProvider>(
+                context,
+                listen: false,
+              );
+              settingsProvider.lockApp();
             },
-            itemBuilder: (BuildContext context) => [
-              PopupMenuItem<String>(
-                value: 'settings',
-                child: Row(
-                  children: [
-                    Icon(Icons.settings_rounded, size: 20),
-                    SizedBox(width: 12),
-                    Text('Settings'),
-                  ],
-                ),
-              ),
-              PopupMenuItem<String>(
-                value: 'about',
-                child: Row(
-                  children: [
-                    Icon(Icons.info_outline_rounded, size: 20),
-                    SizedBox(width: 12),
-                    Text('About'),
-                  ],
-                ),
-              ),
-            ],
+          ),
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => SettingsScreen()),
+              );
+            },
+            icon: Icon(Icons.settings_outlined),
           ),
         ],
       ),
