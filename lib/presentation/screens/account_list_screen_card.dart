@@ -1,0 +1,575 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../business/providers/account_provider.dart';
+import '../../business/providers/settings_provider.dart';
+import '../widgets/account_list_item.dart';
+import 'account_detail_screen.dart';
+import 'account_form_screen.dart';
+
+class AccountListScreenCard extends StatefulWidget {
+  const AccountListScreenCard({Key? key}) : super(key: key);
+
+  @override
+  _AccountListScreenCardState createState() => _AccountListScreenCardState();
+}
+
+class _AccountListScreenCardState extends State<AccountListScreenCard> {
+  late TextEditingController _searchController;
+  bool _isSearchActive = false;
+  String _searchQuery = '';
+  bool _showOnlyFavorites = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _toggleSearch() {
+    setState(() {
+      _isSearchActive = !_isSearchActive;
+      if (!_isSearchActive) {
+        _searchController.clear();
+      } else {
+        // Focus the search field when activated
+        FocusScope.of(context).requestFocus();
+      }
+    });
+  }
+
+  void _toggleFavoritesFilter() {
+    setState(() {
+      _showOnlyFavorites = !_showOnlyFavorites;
+    });
+  }
+
+  /// Filter accounts based on search query and favorites filter
+  List<dynamic> _filterAccounts(List<dynamic> accounts) {
+    // Apply favorites filter if enabled
+    var filteredAccounts = _showOnlyFavorites
+        ? accounts.where((account) => account.isFavorite).toList()
+        : accounts;
+
+    // Apply search filter if there's a query
+    if (_searchQuery.isEmpty) {
+      return filteredAccounts;
+    }
+
+    final query = _searchQuery.toLowerCase();
+
+    return filteredAccounts.where((account) {
+      // Match against account name
+      final nameMatches = account.name.toLowerCase().contains(query);
+
+      // Match against account notes (if they exist)
+      final noteMatches =
+          account.note != null && account.note!.toLowerCase().contains(query);
+
+      // Return true if either field matches
+      return nameMatches || noteMatches;
+    }).toList();
+  }
+
+  /// Build the app bar with search functionality
+  AppBar _buildAppBar() {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return AppBar(
+      title: _isSearchActive
+          ? TextField(
+              controller: _searchController,
+              autofocus: true,
+              decoration: InputDecoration(
+                hintText: "Search accounts...",
+                hintStyle: TextStyle(
+                  color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                ),
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.zero,
+              ),
+              style: textTheme.titleMedium,
+            )
+          : Text(
+              'Accounts',
+              style: textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+      elevation: 0,
+      scrolledUnderElevation: 1,
+      actions: [
+        // Favorites filter toggle
+        IconButton(
+          icon: Icon(
+            _showOnlyFavorites ? Icons.star : Icons.star_border,
+            color: _showOnlyFavorites ? colorScheme.primary : null,
+          ),
+          tooltip: _showOnlyFavorites
+              ? 'Show all accounts'
+              : 'Show favorites only',
+          onPressed: _toggleFavoritesFilter,
+        ),
+
+        // Search toggle button
+        IconButton(
+          icon: Icon(_isSearchActive ? Icons.close : Icons.search_rounded),
+          onPressed: _toggleSearch,
+          tooltip: _isSearchActive ? 'Cancel search' : 'Search accounts',
+        ),
+
+        // Lock app button
+        IconButton(
+          icon: const Icon(Icons.lock_outline_rounded),
+          tooltip: 'Lock App',
+          onPressed: () {
+            final settingsProvider = Provider.of<SettingsProvider>(
+              context,
+              listen: false,
+            );
+            settingsProvider.lockApp();
+          },
+        ),
+      ],
+    );
+  }
+
+  /// Shows a confirmation dialog for account deletion
+  Future<bool> _showDeleteConfirmationDialog(dynamic account) async {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return await showDialog<bool>(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              icon: Icon(
+                Icons.delete_outline_rounded,
+                color: colorScheme.error,
+                size: 32,
+              ),
+              title: Text('Delete Account', style: textTheme.headlineSmall),
+              content: Text(
+                'Are you sure you want to delete "${account.name}"? This action cannot be undone.',
+                style: textTheme.bodyMedium,
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('Cancel'),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: colorScheme.error,
+                    foregroundColor: colorScheme.onError,
+                  ),
+                  child: const Text('Delete'),
+                ),
+              ],
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            );
+          },
+        ) ??
+        false;
+  }
+
+  /// Build the empty state display when no accounts are found
+  Widget _buildEmptyState(bool isSearchActive) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    // Select the appropriate icon based on context
+    IconData emptyStateIcon;
+    String emptyStateMessage;
+
+    if (isSearchActive) {
+      // No search results
+      emptyStateIcon = Icons.search_off_rounded;
+      emptyStateMessage = _showOnlyFavorites
+          ? 'No matching favorites found'
+          : 'No matching accounts found';
+    } else {
+      // No accounts/favorites at all
+      emptyStateIcon = _showOnlyFavorites
+          ? Icons.star_outline_rounded
+          : Icons.account_circle_outlined;
+      emptyStateMessage = _showOnlyFavorites
+          ? 'No favorite accounts yet'
+          : 'No accounts yet';
+    }
+
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            emptyStateIcon,
+            size: 64,
+            color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            emptyStateMessage,
+            style: textTheme.titleMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          if (!isSearchActive && !_showOnlyFavorites)
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0, left: 32.0, right: 32.0),
+              child: Text(
+                'Tap the + button to add your first account',
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// Build a dismissible account list item with swipe-to-delete
+  Widget _buildAccountListItem(dynamic account, bool useAlternateBackground) {
+    return Dismissible(
+      key: Key(account.id),
+      background: Container(
+        color: Theme.of(context).colorScheme.error,
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 20),
+        child: const Icon(Icons.delete_forever, color: Colors.white),
+      ),
+      direction: DismissDirection.endToStart,
+      confirmDismiss: (direction) => _showDeleteConfirmationDialog(account),
+      onDismissed: (direction) {
+        final accountProvider = Provider.of<AccountProvider>(
+          context,
+          listen: false,
+        );
+        accountProvider.deleteAccount(account.id);
+
+        // Show confirmation snackbar
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${account.name} deleted'),
+            action: SnackBarAction(
+              label: 'UNDO',
+              onPressed: () {
+                // Undo delete functionality would go here
+                // Note: This would require implementing restore functionality in provider
+              },
+            ),
+          ),
+        );
+      },
+      child: AccountListItem(
+        account: account,
+        useAlternativeBackground: useAlternateBackground,
+        borderRadius: BorderRadius.circular(16),
+        onLongPress: () => _showAccountOptionsSheet(account),
+      ),
+    );
+  }
+
+  /// Show the options bottom sheet for an account
+  void _showAccountOptionsSheet(dynamic account) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => _buildAccountOptionsBottomSheet(account),
+    );
+  }
+
+  /// Build the header for the account options bottom sheet
+  Widget _buildAccountHeaderSection(dynamic account) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          // Account header with icon and details
+          Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: colorScheme.primary,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.account_circle_outlined,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      account.name,
+                      style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    if (account.note?.isNotEmpty == true)
+                      Text(
+                        account.note!,
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const Divider(height: 32),
+        ],
+      ),
+    );
+  }
+
+  /// Navigate to account detail screen
+  void _navigateToDetailScreen(dynamic account) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AccountDetailScreen(
+          account: account,
+          repository: Provider.of<AccountProvider>(
+            context,
+            listen: false,
+          ).repository,
+        ),
+      ),
+    );
+  }
+
+  /// Navigate to account edit screen
+  void _navigateToEditScreen(dynamic account) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AccountFormScreen(
+          repository: Provider.of<AccountProvider>(
+            context,
+            listen: false,
+          ).repository,
+          accountId: account.id,
+          isCreateMode: false,
+        ),
+      ),
+    );
+  }
+
+  /// Build the account options bottom sheet
+  Widget _buildAccountOptionsBottomSheet(dynamic account) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final accountProvider = Provider.of<AccountProvider>(
+      context,
+      listen: false,
+    );
+
+    return SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Account header section
+          _buildAccountHeaderSection(account),
+
+          // Action buttons
+          ListTile(
+            leading: const Icon(Icons.visibility_outlined),
+            title: const Text('View Account'),
+            onTap: () {
+              Navigator.pop(context);
+              _navigateToDetailScreen(account);
+            },
+          ),
+
+          ListTile(
+            leading: const Icon(Icons.edit_outlined),
+            title: const Text('Edit Account'),
+            onTap: () {
+              Navigator.pop(context);
+              _navigateToEditScreen(account);
+            },
+          ),
+
+          ListTile(
+            leading: Icon(
+              account.isFavorite
+                  ? Icons.star_rounded
+                  : Icons.star_outline_rounded,
+              color: account.isFavorite ? colorScheme.primary : null,
+            ),
+            title: Text(
+              account.isFavorite ? 'Remove from Favorites' : 'Add to Favorites',
+            ),
+            onTap: () {
+              Navigator.pop(context);
+              accountProvider.toggleFavorite(account.id);
+            },
+          ),
+
+          ListTile(
+            leading: Icon(
+              Icons.delete_outline_rounded,
+              color: colorScheme.error,
+            ),
+            title: Text(
+              'Delete Account',
+              style: TextStyle(color: colorScheme.error),
+            ),
+            onTap: () async {
+              Navigator.pop(context);
+              bool confirm = await _showDeleteConfirmationDialog(account);
+              if (confirm && context.mounted) {
+                accountProvider.deleteAccount(account.id);
+              }
+            },
+          ),
+
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: _buildAppBar(),
+      body: Consumer<AccountProvider>(
+        builder: (context, provider, child) {
+          if (provider.isLoading) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Loading accounts...',
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          } else if (provider.state == AccountState.loaded) {
+            final filteredAccounts = _filterAccounts(provider.accounts);
+
+            if (filteredAccounts.isEmpty) {
+              return _buildEmptyState(_searchQuery.isNotEmpty);
+            }
+
+            return Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8.0,
+              ),
+              child: ListView.builder(
+                padding: const EdgeInsets.only(bottom: 80),
+                itemCount: filteredAccounts.length,
+                itemBuilder: (context, index) {
+                  final account = filteredAccounts[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: _buildAccountListItem(account, index % 2 == 1),
+                  );
+                },
+              ),
+            );
+          } else if (provider.hasError) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.errorContainer.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(40),
+                      ),
+                      child: Icon(
+                        Icons.error_outline_rounded,
+                        size: 40,
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Something went wrong',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      provider.errorMessage ??
+                          'An error occurred while loading accounts',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    FilledButton.icon(
+                      onPressed: () => provider.loadAccounts(),
+                      icon: const Icon(Icons.refresh_rounded),
+                      label: const Text('Try Again'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          // Default state
+          return Center(
+            child: Text(
+              'Press + to add account',
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}

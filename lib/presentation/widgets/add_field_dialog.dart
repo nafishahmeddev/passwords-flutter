@@ -22,7 +22,7 @@ class AddFieldDialog extends StatefulWidget {
 class AddFieldDialogState extends State<AddFieldDialog> {
   final _labelController = TextEditingController();
   String _selectedType = 'text';
-  bool _isRequired = false;
+  // Removed unused _isRequired field
   bool _isLoading = false;
 
   final List<Map<String, String>> _fieldTypes = [

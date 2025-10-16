@@ -6,7 +6,7 @@ import '../../data/templates/account_templates.dart';
 import '../widgets/qr_scanner_screen.dart';
 import 'account_detail_screen.dart';
 import 'account_form_screen.dart';
-import 'account_list_content.dart';
+import 'account_list_screen_card.dart';
 import 'password_generator_screen.dart';
 import 'settings_screen.dart';
 
@@ -23,7 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // List of screens/pages for the bottom navigation
   final List<Widget> _screens = [
-    AccountListContent(),
+    AccountListScreenCard(), // Using the new card-based account list
     PasswordGeneratorScreen(),
     SettingsScreen(),
   ];

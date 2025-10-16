@@ -6,44 +6,88 @@ import '../screens/account_form_screen.dart';
 
 class AccountListItem extends StatelessWidget {
   final dynamic account;
+  final bool useAlternativeBackground;
+  final VoidCallback? onLongPress;
   final BorderRadius borderRadius;
+
+  // Define a constant BorderRadius for default value
+  static const BorderRadius defaultBorderRadius = BorderRadius.all(
+    Radius.circular(16),
+  );
 
   const AccountListItem({
     super.key,
     required this.account,
-    this.borderRadius = BorderRadius.zero,
+    this.useAlternativeBackground = false,
+    this.onLongPress,
+    this.borderRadius = defaultBorderRadius, // Default to rounded corners
   });
 
-  void _showDeleteConfirmationDialog(BuildContext context) async {
-    final confirmed = await showDialog<bool>(
+  Color _getIconBackgroundColor(BuildContext context) {
+    // Create a deterministic color based on the account name
+    final int hash = account.name.hashCode;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    // Use a list of predefined colors from the theme with consistent opacity
+    const double opacity = 0.9;
+
+    // Primary colors from theme
+    final List<Color> baseColors = [
+      colorScheme.primary,
+      colorScheme.secondary,
+      colorScheme.tertiary,
+    ];
+
+    // Generate additional blended colors for more variety
+    final List<Color> blendedColors = [
+      Color.lerp(colorScheme.primary, colorScheme.secondary, 0.5)!,
+      Color.lerp(colorScheme.secondary, colorScheme.tertiary, 0.5)!,
+      Color.lerp(colorScheme.tertiary, colorScheme.primary, 0.5)!,
+    ];
+
+    // Combine all colors and apply opacity
+    final List<Color> allColors = [
+      ...baseColors,
+      ...blendedColors,
+    ].map((color) => color.withOpacity(opacity)).toList();
+
+    // Return a color based on the account name's hash
+    return allColors[hash.abs() % allColors.length];
+  }
+
+  /// Shows a confirmation dialog before deleting an account
+  Future<void> _showDeleteConfirmationDialog(BuildContext context) async {
+    // Get theme elements for consistent styling
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    final bool? confirmed = await showDialog<bool>(
       context: context,
+      barrierDismissible: false, // User must take an action
       builder: (BuildContext context) {
         return AlertDialog(
           icon: Icon(
             Icons.delete_outline_rounded,
-            color: Theme.of(context).colorScheme.error,
+            color: colorScheme.error,
             size: 32,
           ),
-          title: Text(
-            'Delete Account',
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
+          title: Text('Delete Account', style: textTheme.headlineSmall),
           content: Text(
             'Are you sure you want to delete "${account.name}"? This action cannot be undone.',
-            style: Theme.of(context).textTheme.bodyMedium,
+            style: textTheme.bodyMedium,
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
             ),
             FilledButton(
               onPressed: () => Navigator.of(context).pop(true),
               style: FilledButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.error,
-                foregroundColor: Theme.of(context).colorScheme.onError,
+                backgroundColor: colorScheme.error,
+                foregroundColor: colorScheme.onError,
               ),
-              child: Text('Delete'),
+              child: const Text('Delete'),
             ),
           ],
           shape: RoundedRectangleBorder(
@@ -53,256 +97,214 @@ class AccountListItem extends StatelessWidget {
       },
     );
 
+    // Only delete if user confirmed
     if (confirmed == true) {
-      Provider.of<AccountProvider>(
-        context,
-        listen: false,
-      ).deleteAccount(account.id);
+      if (context.mounted) {
+        Provider.of<AccountProvider>(
+          context,
+          listen: false,
+        ).deleteAccount(account.id);
+      }
+    }
+  }
+
+  /// Builds the account icon avatar with dynamic color
+  Widget _buildAccountAvatar(BuildContext context, Color color) {
+    // Simplified avatar with clean styling, no shadows or gradients
+    return Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Center(
+        child: Icon(_getAccountIcon(), color: Colors.white, size: 24),
+      ),
+    );
+  }
+
+  /// Builds the account content section (name, favorite icon, description)
+  Widget _buildAccountContent(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Account name row with optional favorite star
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  account.name,
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (account.isFavorite) ...[
+                const SizedBox(width: 8),
+                Icon(Icons.star_rounded, color: colorScheme.primary, size: 16),
+              ],
+            ],
+          ),
+
+          // Account description or placeholder text
+          const SizedBox(height: 4),
+          Text(
+            account.note != null && account.note!.isNotEmpty
+                ? account.note!
+                : 'No description',
+            style: textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              fontStyle: account.note == null || account.note!.isEmpty
+                  ? FontStyle.italic
+                  : FontStyle.normal,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Handles the popup menu actions
+  void _handleMenuAction(BuildContext context, String value) {
+    switch (value) {
+      case 'edit':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => AccountFormScreen(
+              repository: Provider.of<AccountProvider>(
+                context,
+                listen: false,
+              ).repository,
+              accountId: account.id,
+              isCreateMode: false,
+            ),
+          ),
+        );
+        break;
+      case 'favorite':
+        Provider.of<AccountProvider>(
+          context,
+          listen: false,
+        ).toggleFavorite(account.id);
+        break;
+      case 'delete':
+        _showDeleteConfirmationDialog(context);
+        break;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: 1.0),
-      child: Card(
-        elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: borderRadius),
-        margin: EdgeInsets.zero,
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => AccountDetailScreen(
-                  account: account,
-                  repository: Provider.of<AccountProvider>(
-                    context,
-                    listen: false,
-                  ).repository,
-                ),
-              ),
-            );
-          },
-          child: Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Row(
-              children: [
-                // Avatar/Icon with better styling
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    _getAccountIcon(),
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    size: 24,
-                  ),
-                ),
-                SizedBox(width: 16),
-                // Content with improved typography
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              account.name,
-                              style: Theme.of(context).textTheme.titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.w500),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          if (account.isFavorite) ...[
-                            SizedBox(width: 8),
-                            Icon(
-                              Icons.star_rounded,
-                              color: Theme.of(context).colorScheme.primary,
-                              size: 16,
-                            ),
-                          ],
-                        ],
-                      ),
-                      if (account.note != null && account.note!.isNotEmpty) ...[
-                        SizedBox(height: 4),
-                        Text(
-                          account.note!,
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                              ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ] else ...[
-                        SizedBox(height: 4),
-                        Text(
-                          'No description',
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                                fontStyle: FontStyle.italic,
-                              ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                SizedBox(width: 8),
-                // Enhanced menu button
-                PopupMenuButton<String>(
-                  icon: Icon(
-                    Icons.more_vert_rounded,
-                    size: 20,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                  padding: EdgeInsets.all(8),
-                  onSelected: (value) {
-                    if (value == 'edit') {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => AccountFormScreen(
-                            repository: Provider.of<AccountProvider>(
-                              context,
-                              listen: false,
-                            ).repository,
-                            accountId: account.id,
-                            isCreateMode: false,
-                          ),
-                        ),
-                      );
-                    } else if (value == 'favorite') {
-                      Provider.of<AccountProvider>(
-                        context,
-                        listen: false,
-                      ).toggleFavorite(account.id);
-                    } else if (value == 'delete') {
-                      _showDeleteConfirmationDialog(context);
-                    }
-                  },
-                  itemBuilder: (BuildContext context) => [
-                    PopupMenuItem<String>(
-                      value: 'favorite',
-                      child: Row(
-                        children: [
-                          Icon(
-                            account.isFavorite
-                                ? Icons.star_rounded
-                                : Icons.star_outline_rounded,
-                            color: account.isFavorite
-                                ? Theme.of(context).colorScheme.primary
-                                : Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                            size: 20,
-                          ),
-                          SizedBox(width: 12),
-                          Text(
-                            account.isFavorite
-                                ? 'Remove from favorites'
-                                : 'Add to favorites',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem<String>(
-                      value: 'edit',
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.edit_outlined,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurfaceVariant,
-                            size: 20,
-                          ),
-                          SizedBox(width: 12),
-                          Text(
-                            'Edit',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem<String>(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.delete_outline_rounded,
-                            color: Theme.of(context).colorScheme.error,
-                            size: 20,
-                          ),
-                          SizedBox(width: 12),
-                          Text(
-                            'Delete',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(
-                                  color: Theme.of(context).colorScheme.error,
-                                ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ],
-            ),
+    final color = _getIconBackgroundColor(context);
+    return Card(
+      elevation: 0, // No shadow
+      shape: RoundedRectangleBorder(borderRadius: borderRadius),
+      margin: const EdgeInsets.all(0),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => _navigateToDetailScreen(context),
+        onLongPress: onLongPress,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Account avatar
+              _buildAccountAvatar(context, color),
+              const SizedBox(width: 16),
+              // Account content
+              _buildAccountContent(context),
+            ],
           ),
         ),
       ),
     );
   }
 
+  /// Navigate to the account detail screen
+  void _navigateToDetailScreen(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AccountDetailScreen(
+          account: account,
+          repository: Provider.of<AccountProvider>(
+            context,
+            listen: false,
+          ).repository,
+        ),
+      ),
+    );
+  }
+
   IconData _getAccountIcon() {
-    // You can customize this based on account type or use a default
-    if (account.name.toLowerCase().contains('email') ||
-        account.name.toLowerCase().contains('gmail') ||
-        account.name.toLowerCase().contains('outlook')) {
-      return Icons.email_outlined;
-    } else if (account.name.toLowerCase().contains('social') ||
-        account.name.toLowerCase().contains('facebook') ||
-        account.name.toLowerCase().contains('twitter') ||
-        account.name.toLowerCase().contains('instagram')) {
-      return Icons.share_outlined;
-    } else if (account.name.toLowerCase().contains('bank') ||
-        account.name.toLowerCase().contains('paypal') ||
-        account.name.toLowerCase().contains('payment')) {
-      return Icons.account_balance_outlined;
-    } else if (account.name.toLowerCase().contains('shop') ||
-        account.name.toLowerCase().contains('amazon') ||
-        account.name.toLowerCase().contains('store')) {
-      return Icons.shopping_bag_outlined;
-    } else if (account.name.toLowerCase().contains('work') ||
-        account.name.toLowerCase().contains('office') ||
-        account.name.toLowerCase().contains('company')) {
-      return Icons.work_outline;
-    } else if (account.name.toLowerCase().contains('game') ||
-        account.name.toLowerCase().contains('steam') ||
-        account.name.toLowerCase().contains('xbox')) {
-      return Icons.sports_esports_outlined;
-    } else if (account.name.toLowerCase().contains('netflix') ||
-        account.name.toLowerCase().contains('youtube') ||
-        account.name.toLowerCase().contains('spotify')) {
-      return Icons.movie_outlined;
-    } else {
-      return Icons.account_circle_outlined;
+    // Determine which icon to show based on account type or name
+    final String nameLower = account.name.toLowerCase();
+
+    // Map of keywords to icons for cleaner organization
+    final Map<IconData, List<String>> iconMappings = {
+      Icons.email_outlined: ['email', 'gmail', 'outlook', 'mail'],
+      Icons.share_outlined: [
+        'social',
+        'facebook',
+        'twitter',
+        'instagram',
+        'linkedin',
+      ],
+      Icons.account_balance_outlined: [
+        'bank',
+        'paypal',
+        'payment',
+        'credit',
+        'card',
+        'finance',
+      ],
+      Icons.shopping_bag_outlined: [
+        'shop',
+        'amazon',
+        'store',
+        'buy',
+        'purchase',
+      ],
+      Icons.work_outline: ['work', 'office', 'company', 'business', 'job'],
+      Icons.sports_esports_outlined: [
+        'game',
+        'steam',
+        'xbox',
+        'playstation',
+        'nintendo',
+      ],
+      Icons.movie_outlined: [
+        'netflix',
+        'youtube',
+        'spotify',
+        'hulu',
+        'disney',
+        'prime',
+        'video',
+      ],
+      Icons.vpn_key_outlined: ['password', 'key', 'security', 'access'],
+      Icons.language: ['web', 'site', 'www', 'http', '.com', '.org', '.net'],
+    };
+
+    // Find the first matching icon
+    for (final entry in iconMappings.entries) {
+      if (entry.value.any((keyword) => nameLower.contains(keyword))) {
+        return entry.key;
+      }
     }
+
+    // Default icon if no match found
+    return Icons.account_circle_outlined;
   }
 }
