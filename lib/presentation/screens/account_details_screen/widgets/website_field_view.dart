@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../data/models/account_field.dart';
 
 class WebsiteFieldView extends StatefulWidget {
@@ -23,6 +24,37 @@ class _WebsiteFieldViewState extends State<WebsiteFieldView> {
         duration: Duration(seconds: 2),
       ),
     );
+  }
+
+  Future<void> _launchUrl(String urlString) async {
+    // Ensure the URL has a proper scheme
+    String url = urlString;
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = 'https://$url';
+    }
+
+    final Uri uri = Uri.parse(url);
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not open the URL'),
+            behavior: SnackBarBehavior.floating,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error opening URL: ${e.toString()}'),
+          behavior: SnackBarBehavior.floating,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   @override
@@ -97,13 +129,13 @@ class _WebsiteFieldViewState extends State<WebsiteFieldView> {
           // Open URL button
           IconButton(
             onPressed: () {
-              // Open URL functionality would go here
+              // 'url' is already available as a parameter to this method
+              _launchUrl(url);
               HapticFeedback.lightImpact();
             },
             icon: Icon(Icons.open_in_new_rounded, size: 20),
             style: IconButton.styleFrom(
               foregroundColor: colorScheme.primary,
-
               minimumSize: Size(36, 36),
             ),
             tooltip: "Open URL",
