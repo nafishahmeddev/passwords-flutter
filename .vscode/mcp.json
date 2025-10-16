@@ -1,0 +1,8 @@
+{
+  "servers": {
+    "passwords-flutter Docs": {
+      "type": "sse",
+      "url": "https://gitmcp.io/nafishahmeddev/passwords-flutter"
+    }
+  }
+}
