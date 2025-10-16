@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../business/providers/account_provider.dart';
-import '../screens/account_detail_screen.dart';
-import '../screens/account_form_screen.dart';
+import '../../../../business/providers/account_provider.dart';
+import '../../account_details_screen/account_detail_screen.dart';
+import '../../account_form_screen/account_form_screen.dart';
 
 class AccountListItem extends StatelessWidget {
   final dynamic account;

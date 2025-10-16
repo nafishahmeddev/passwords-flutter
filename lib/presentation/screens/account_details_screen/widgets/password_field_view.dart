@@ -1,23 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../../data/models/account_field.dart';
 
-import '../../../data/models/account_field.dart';
-
-class CredentialFieldView extends StatefulWidget {
+class PasswordFieldView extends StatefulWidget {
   final AccountField field;
-  final BorderRadius borderRadius;
+  final BorderRadius? borderRadius;
 
-  const CredentialFieldView({
-    super.key,
-    required this.field,
-    this.borderRadius = const BorderRadius.all(Radius.circular(12)),
-  });
+  const PasswordFieldView({super.key, required this.field, this.borderRadius});
 
   @override
-  State<CredentialFieldView> createState() => _CredentialFieldViewState();
+  State<PasswordFieldView> createState() => _PasswordFieldViewState();
 }
 
-class _CredentialFieldViewState extends State<CredentialFieldView> {
+class _PasswordFieldViewState extends State<PasswordFieldView> {
   bool _isPasswordVisible = false;
 
   void _togglePasswordVisibility() {
@@ -26,11 +21,12 @@ class _CredentialFieldViewState extends State<CredentialFieldView> {
     });
   }
 
-  void _copyToClipboard(String value, String type) {
-    Clipboard.setData(ClipboardData(text: value));
+  void _copyToClipboard() {
+    final password = widget.field.getMetadata("value");
+    Clipboard.setData(ClipboardData(text: password));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('$type copied to clipboard'),
+        content: Text('Password copied to clipboard'),
         behavior: SnackBarBehavior.floating,
         duration: Duration(seconds: 2),
       ),
@@ -42,13 +38,13 @@ class _CredentialFieldViewState extends State<CredentialFieldView> {
     final field = widget.field;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-
-    final username = field.getMetadata("username");
-    final password = field.getMetadata("password");
+    final password = field.getMetadata("value");
 
     return Card(
       margin: EdgeInsets.symmetric(horizontal: 16),
-      shape: RoundedRectangleBorder(borderRadius: widget.borderRadius),
+      shape: widget.borderRadius != null
+          ? RoundedRectangleBorder(borderRadius: widget.borderRadius!)
+          : null,
       child: Padding(
         padding: EdgeInsets.all(16),
         child: Column(
@@ -58,25 +54,12 @@ class _CredentialFieldViewState extends State<CredentialFieldView> {
             Text(field.label, style: theme.textTheme.titleSmall),
             SizedBox(height: 8),
 
-            // Username field if available
-            if (username.isNotEmpty) ...[
-              _buildSimpleField(
-                context,
-                value: username,
-                onCopy: () => _copyToClipboard(username, 'Username'),
-                iconData: Icons.person_outline,
-              ),
-              SizedBox(height: 8),
-            ],
-
-            // Password field if available
+            // Password content
             if (password.isNotEmpty)
-              _buildPasswordField(context, password: password),
-
-            // Empty state
-            if (username.isEmpty && password.isEmpty)
+              _buildPasswordRow(password)
+            else
               Text(
-                'No credentials set',
+                'No password set',
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                   fontStyle: FontStyle.italic,
@@ -89,12 +72,7 @@ class _CredentialFieldViewState extends State<CredentialFieldView> {
     );
   }
 
-  Widget _buildSimpleField(
-    BuildContext context, {
-    required String value,
-    required VoidCallback onCopy,
-    required IconData iconData,
-  }) {
+  Widget _buildPasswordRow(String password) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -103,45 +81,7 @@ class _CredentialFieldViewState extends State<CredentialFieldView> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Leading icon
-          Icon(iconData, size: 16, color: colorScheme.primary),
-          SizedBox(width: 12),
-
-          // Value text
-          Expanded(
-            child: Text(
-              value,
-              style: theme.textTheme.bodyMedium,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-
-          // Copy button
-          IconButton(
-            onPressed: () {
-              onCopy();
-              HapticFeedback.lightImpact();
-            },
-            icon: Icon(Icons.copy_outlined, size: 18),
-            color: colorScheme.onSurfaceVariant,
-            padding: EdgeInsets.zero,
-            visualDensity: VisualDensity.compact,
-            constraints: BoxConstraints(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPasswordField(BuildContext context, {required String password}) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Leading icon
-          Icon(Icons.lock_outline, size: 16, color: colorScheme.primary),
+          Icon(Icons.lock_outline, size: 16, color: colorScheme.secondary),
           SizedBox(width: 12),
 
           // Password text
@@ -172,7 +112,7 @@ class _CredentialFieldViewState extends State<CredentialFieldView> {
           // Copy button
           IconButton(
             onPressed: () {
-              _copyToClipboard(password, 'Password');
+              _copyToClipboard();
               HapticFeedback.lightImpact();
             },
             icon: Icon(Icons.copy_outlined, size: 18),

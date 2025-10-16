@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../business/providers/account_form_provider.dart';
-import '../../data/models/account.dart';
-import '../../data/models/account_field.dart';
-import '../../data/repositories/account_repository.dart';
-import '../widgets/add_field_dialog.dart';
-import '../widgets/field_forms/grouped_fields_form.dart';
+import '../../../business/providers/account_form_provider.dart';
+import '../../../data/models/account.dart';
+import '../../../data/models/account_field.dart';
+import '../../../data/repositories/account_repository.dart';
+import 'widgets/add_field_dialog.dart';
+import 'widgets/grouped_fields_form.dart';
 
 class AccountFormScreen extends StatelessWidget {
   final AccountRepository repository;

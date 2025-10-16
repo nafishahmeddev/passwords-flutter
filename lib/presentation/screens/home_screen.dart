@@ -3,10 +3,10 @@ import 'package:provider/provider.dart';
 import '../../business/providers/account_provider.dart';
 import '../../data/models/account_field.dart';
 import '../../data/templates/account_templates.dart';
-import '../widgets/qr_scanner_screen.dart';
-import 'account_detail_screen.dart';
-import 'account_form_screen.dart';
-import 'account_list_screen.dart';
+import 'qr_scanner_screen/qr_scanner_screen.dart';
+import 'account_details_screen/account_detail_screen.dart';
+import 'account_form_screen/account_form_screen.dart';
+import 'account_list_screen/account_list_screen.dart';
 import 'password_generator_screen.dart';
 import 'settings_screen.dart';
 

@@ -1,32 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../../data/models/account_field.dart';
+import '../../../../data/models/account_field.dart';
 
-class PasswordFieldView extends StatefulWidget {
+class WebsiteFieldView extends StatefulWidget {
   final AccountField field;
   final BorderRadius? borderRadius;
 
-  const PasswordFieldView({super.key, required this.field, this.borderRadius});
+  const WebsiteFieldView({super.key, required this.field, this.borderRadius});
 
   @override
-  State<PasswordFieldView> createState() => _PasswordFieldViewState();
+  State<WebsiteFieldView> createState() => _WebsiteFieldViewState();
 }
 
-class _PasswordFieldViewState extends State<PasswordFieldView> {
-  bool _isPasswordVisible = false;
-
-  void _togglePasswordVisibility() {
-    setState(() {
-      _isPasswordVisible = !_isPasswordVisible;
-    });
-  }
-
+class _WebsiteFieldViewState extends State<WebsiteFieldView> {
   void _copyToClipboard() {
-    final password = widget.field.getMetadata("value");
-    Clipboard.setData(ClipboardData(text: password));
+    final url = widget.field.getMetadata("value");
+    Clipboard.setData(ClipboardData(text: url));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Password copied to clipboard'),
+        content: Text('URL copied to clipboard'),
         behavior: SnackBarBehavior.floating,
         duration: Duration(seconds: 2),
       ),
@@ -38,7 +30,7 @@ class _PasswordFieldViewState extends State<PasswordFieldView> {
     final field = widget.field;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final password = field.getMetadata("value");
+    final url = field.getMetadata("value");
 
     return Card(
       margin: EdgeInsets.symmetric(horizontal: 16),
@@ -54,14 +46,14 @@ class _PasswordFieldViewState extends State<PasswordFieldView> {
             Text(field.label, style: theme.textTheme.titleSmall),
             SizedBox(height: 8),
 
-            // Password content
-            if (password.isNotEmpty)
-              _buildPasswordRow(password)
+            // URL content
+            if (url.isNotEmpty)
+              _buildUrlRow(url)
             else
               Text(
-                'No password set',
+                'No URL set',
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+                  color: colorScheme.primary,
                   fontStyle: FontStyle.italic,
                   fontSize: 16, // Increased font size
                 ),
@@ -72,7 +64,7 @@ class _PasswordFieldViewState extends State<PasswordFieldView> {
     );
   }
 
-  Widget _buildPasswordRow(String password) {
+  Widget _buildUrlRow(String url) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -81,33 +73,33 @@ class _PasswordFieldViewState extends State<PasswordFieldView> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Leading icon
-          Icon(Icons.lock_outline, size: 16, color: colorScheme.secondary),
+          Icon(Icons.language, size: 16, color: colorScheme.primary),
           SizedBox(width: 12),
 
-          // Password text
+          // URL value (with link styling)
           Expanded(
             child: Text(
-              _isPasswordVisible ? password : '••••••••',
-              style: theme.textTheme.bodyMedium,
+              url,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.primary,
+                decoration: TextDecoration.underline,
+              ),
               overflow: TextOverflow.ellipsis,
             ),
           ),
 
-          // Visibility toggle button
+          // Open URL button
           IconButton(
-            onPressed: _togglePasswordVisibility,
-            icon: Icon(
-              _isPasswordVisible
-                  ? Icons.visibility_off_outlined
-                  : Icons.visibility_outlined,
-              size: 18,
-            ),
+            onPressed: () {
+              // Open URL functionality would go here
+              HapticFeedback.lightImpact();
+            },
+            icon: Icon(Icons.open_in_new, size: 18),
             color: colorScheme.onSurfaceVariant,
             padding: EdgeInsets.zero,
             visualDensity: VisualDensity.compact,
             constraints: BoxConstraints(),
           ),
-          SizedBox(width: 8),
 
           // Copy button
           IconButton(

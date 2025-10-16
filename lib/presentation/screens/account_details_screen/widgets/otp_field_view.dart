@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:otp/otp.dart';
-import '../../../data/models/account_field.dart';
+import '../../../../data/models/account_field.dart';
 
 class OtpFieldView extends StatefulWidget {
   final AccountField field;

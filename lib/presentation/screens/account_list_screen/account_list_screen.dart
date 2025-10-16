@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../business/providers/account_provider.dart';
-import '../../business/providers/settings_provider.dart';
-import '../widgets/account_list_item.dart';
-import 'account_detail_screen.dart';
-import 'account_form_screen.dart';
+import '../../../business/providers/account_provider.dart';
+import '../../../business/providers/settings_provider.dart';
+import 'widgets/account_list_item.dart';
+import '../account_details_screen/account_detail_screen.dart';
+import '../account_form_screen/account_form_screen.dart';
 
 class AccountListScreenCard extends StatefulWidget {
   const AccountListScreenCard({Key? key}) : super(key: key);

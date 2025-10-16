@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../data/models/account_field.dart';
-import '../../business/providers/account_form_provider.dart';
+import '../../../../data/models/account_field.dart';
+import '../../../../business/providers/account_form_provider.dart';
 
 class AddFieldDialog extends StatefulWidget {
   final AccountFormProvider formProvider;

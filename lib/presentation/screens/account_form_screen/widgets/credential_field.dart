@@ -1,14 +1,14 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../../../data/models/account_field.dart';
+import '../../../../data/models/account_field.dart';
 
-class PlainTextField extends StatefulWidget {
+class CredentialField extends StatefulWidget {
   final AccountField field;
   final void Function(AccountField field) onChange;
   final VoidCallback onRemove;
   final BorderRadius? borderRadius;
 
-  const PlainTextField({
+  const CredentialField({
     super.key,
     required this.field,
     required this.onChange,
@@ -17,24 +17,30 @@ class PlainTextField extends StatefulWidget {
   });
 
   @override
-  State<PlainTextField> createState() => _PlainTextFieldState();
+  State<CredentialField> createState() => _CredentialFieldState();
 }
 
-class _PlainTextFieldState extends State<PlainTextField> {
-  late TextEditingController _valueController;
+class _CredentialFieldState extends State<CredentialField> {
+  late TextEditingController _usernameController;
+  late TextEditingController _passwordController;
   Timer? _debounceTimer;
+  bool _isPasswordVisible = false;
 
   @override
   void initState() {
     super.initState();
-    _valueController = TextEditingController(
-      text: widget.field.getMetadata('value'),
+    _usernameController = TextEditingController(
+      text: widget.field.getMetadata('username'),
+    );
+    _passwordController = TextEditingController(
+      text: widget.field.getMetadata('password'),
     );
   }
 
   @override
   void dispose() {
-    _valueController.dispose();
+    _usernameController.dispose();
+    _passwordController.dispose();
     _debounceTimer?.cancel();
     super.dispose();
   }
@@ -42,9 +48,18 @@ class _PlainTextFieldState extends State<PlainTextField> {
   void _onFieldChanged() {
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 500), () {
-      widget.field.setMetadataMap({'value': _valueController.text});
+      widget.field.setMetadataMap({
+        'username': _usernameController.text,
+        'password': _passwordController.text,
+      });
 
       widget.onChange(widget.field);
+    });
+  }
+
+  void _togglePasswordVisibility() {
+    setState(() {
+      _isPasswordVisible = !_isPasswordVisible;
     });
   }
 
@@ -70,12 +85,14 @@ class _PlainTextFieldState extends State<PlainTextField> {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: Colors.green.withOpacity(0.1),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primaryContainer.withAlpha(180),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
-                      Icons.text_fields,
-                      color: Colors.green.shade700,
+                      Icons.person,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
                       size: 20,
                     ),
                   ),
@@ -103,9 +120,9 @@ class _PlainTextFieldState extends State<PlainTextField> {
               ),
               SizedBox(height: 20),
 
-              // Text field
+              // Username field
               Text(
-                'Value',
+                'Username',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -119,9 +136,9 @@ class _PlainTextFieldState extends State<PlainTextField> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: TextFormField(
-                  controller: _valueController,
+                  controller: _usernameController,
                   decoration: InputDecoration(
-                    hintText: 'Enter text value',
+                    hintText: 'Enter username or email',
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.symmetric(
                       horizontal: 12,
@@ -129,7 +146,51 @@ class _PlainTextFieldState extends State<PlainTextField> {
                     ),
                   ),
                   style: Theme.of(context).textTheme.bodyLarge,
-                  maxLines: null,
+                  onChanged: (_) => _onFieldChanged(),
+                ),
+              ),
+              SizedBox(height: 16),
+
+              // Password field
+              Text(
+                'Password',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              SizedBox(height: 8),
+              Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: TextFormField(
+                  controller: _passwordController,
+                  obscureText: !_isPasswordVisible,
+                  keyboardType: TextInputType.visiblePassword,
+                  autocorrect: false,
+                  enableSuggestions: false,
+                  textCapitalization: TextCapitalization.none,
+                  decoration: InputDecoration(
+                    hintText: 'Enter password',
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
+                    suffixIcon: IconButton(
+                      onPressed: _togglePasswordVisibility,
+                      icon: Icon(
+                        _isPasswordVisible
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                  style: Theme.of(context).textTheme.bodyLarge,
                   onChanged: (_) => _onFieldChanged(),
                 ),
               ),

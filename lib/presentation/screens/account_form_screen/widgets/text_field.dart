@@ -1,14 +1,14 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../../../data/models/account_field.dart';
+import '../../../../data/models/account_field.dart';
 
-class PasswordField extends StatefulWidget {
+class PlainTextField extends StatefulWidget {
   final AccountField field;
   final void Function(AccountField field) onChange;
   final VoidCallback onRemove;
   final BorderRadius? borderRadius;
 
-  const PasswordField({
+  const PlainTextField({
     super.key,
     required this.field,
     required this.onChange,
@@ -17,13 +17,12 @@ class PasswordField extends StatefulWidget {
   });
 
   @override
-  State<PasswordField> createState() => _PasswordFieldState();
+  State<PlainTextField> createState() => _PlainTextFieldState();
 }
 
-class _PasswordFieldState extends State<PasswordField> {
+class _PlainTextFieldState extends State<PlainTextField> {
   late TextEditingController _valueController;
   Timer? _debounceTimer;
-  bool _isPasswordVisible = false;
 
   @override
   void initState() {
@@ -49,12 +48,6 @@ class _PasswordFieldState extends State<PasswordField> {
     });
   }
 
-  void _togglePasswordVisibility() {
-    setState(() {
-      _isPasswordVisible = !_isPasswordVisible;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -77,12 +70,12 @@ class _PasswordFieldState extends State<PasswordField> {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: Colors.orange.withOpacity(0.1),
+                      color: Colors.green.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
-                      Icons.lock,
-                      color: Colors.orange.shade700,
+                      Icons.text_fields,
+                      color: Colors.green.shade700,
                       size: 20,
                     ),
                   ),
@@ -110,9 +103,9 @@ class _PasswordFieldState extends State<PasswordField> {
               ),
               SizedBox(height: 20),
 
-              // Password field
+              // Text field
               Text(
-                'Password',
+                'Value',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -127,29 +120,16 @@ class _PasswordFieldState extends State<PasswordField> {
                 ),
                 child: TextFormField(
                   controller: _valueController,
-                  obscureText: !_isPasswordVisible,
-                  keyboardType: TextInputType.visiblePassword,
-                  autocorrect: false,
-                  enableSuggestions: false,
-                  textCapitalization: TextCapitalization.none,
                   decoration: InputDecoration(
-                    hintText: 'Enter password',
+                    hintText: 'Enter text value',
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.symmetric(
                       horizontal: 12,
                       vertical: 12,
                     ),
-                    suffixIcon: IconButton(
-                      onPressed: _togglePasswordVisibility,
-                      icon: Icon(
-                        _isPasswordVisible
-                            ? Icons.visibility_off
-                            : Icons.visibility,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
                   ),
                   style: Theme.of(context).textTheme.bodyLarge,
+                  maxLines: null,
                   onChanged: (_) => _onFieldChanged(),
                 ),
               ),

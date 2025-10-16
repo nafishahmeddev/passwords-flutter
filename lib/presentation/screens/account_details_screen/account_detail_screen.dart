@@ -1,11 +1,11 @@
 // lib/presentation/screens/account_detail_screen.dart
 import 'package:flutter/material.dart';
-import 'package:passwords/presentation/widgets/field_views/grouped_fields_view.dart';
+import 'package:passwords/presentation/screens/account_details_screen/widgets/grouped_fields_view.dart';
 import 'package:provider/provider.dart';
-import '../../data/models/account.dart';
-import '../../data/repositories/account_repository.dart';
-import '../../business/providers/account_detail_provider.dart';
-import 'account_form_screen.dart';
+import '../../../data/models/account.dart';
+import '../../../data/repositories/account_repository.dart';
+import '../../../business/providers/account_detail_provider.dart';
+import '../account_form_screen/account_form_screen.dart';
 
 class AccountDetailScreen extends StatelessWidget {
   final Account account;

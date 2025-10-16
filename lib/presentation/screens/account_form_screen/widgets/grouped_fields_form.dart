@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../data/models/account_field.dart';
-import '../../../business/providers/account_form_provider.dart';
-import '../../utils/field_grouping_utils.dart';
+import '../../../../data/models/account_field.dart';
+import '../../../../business/providers/account_form_provider.dart';
+import '../../../utils/field_grouping_utils.dart';
 import 'credential_field.dart';
 import 'password_field.dart';
 import 'text_field.dart';
