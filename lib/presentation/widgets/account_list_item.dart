@@ -173,43 +173,14 @@ class AccountListItem extends StatelessWidget {
     );
   }
 
-  /// Handles the popup menu actions
-  void _handleMenuAction(BuildContext context, String value) {
-    switch (value) {
-      case 'edit':
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => AccountFormScreen(
-              repository: Provider.of<AccountProvider>(
-                context,
-                listen: false,
-              ).repository,
-              accountId: account.id,
-              isCreateMode: false,
-            ),
-          ),
-        );
-        break;
-      case 'favorite':
-        Provider.of<AccountProvider>(
-          context,
-          listen: false,
-        ).toggleFavorite(account.id);
-        break;
-      case 'delete':
-        _showDeleteConfirmationDialog(context);
-        break;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final color = _getIconBackgroundColor(context);
     return Card(
       elevation: 0, // No shadow
       shape: RoundedRectangleBorder(borderRadius: borderRadius),
-      margin: const EdgeInsets.all(0),
+      margin:
+          EdgeInsets.zero, // No margin for consistent spacing in grouped layout
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => _navigateToDetailScreen(context),

@@ -17,7 +17,6 @@ class _AccountListScreenCardState extends State<AccountListScreenCard> {
   late TextEditingController _searchController;
   bool _isSearchActive = false;
   String _searchQuery = '';
-  bool _showOnlyFavorites = false;
 
   @override
   void initState() {
@@ -48,27 +47,16 @@ class _AccountListScreenCardState extends State<AccountListScreenCard> {
     });
   }
 
-  void _toggleFavoritesFilter() {
-    setState(() {
-      _showOnlyFavorites = !_showOnlyFavorites;
-    });
-  }
-
-  /// Filter accounts based on search query and favorites filter
+  /// Filter accounts based on search query
   List<dynamic> _filterAccounts(List<dynamic> accounts) {
-    // Apply favorites filter if enabled
-    var filteredAccounts = _showOnlyFavorites
-        ? accounts.where((account) => account.isFavorite).toList()
-        : accounts;
-
     // Apply search filter if there's a query
     if (_searchQuery.isEmpty) {
-      return filteredAccounts;
+      return accounts;
     }
 
     final query = _searchQuery.toLowerCase();
 
-    return filteredAccounts.where((account) {
+    return accounts.where((account) {
       // Match against account name
       final nameMatches = account.name.toLowerCase().contains(query);
 
@@ -110,18 +98,6 @@ class _AccountListScreenCardState extends State<AccountListScreenCard> {
       elevation: 0,
       scrolledUnderElevation: 1,
       actions: [
-        // Favorites filter toggle
-        IconButton(
-          icon: Icon(
-            _showOnlyFavorites ? Icons.star : Icons.star_border,
-            color: _showOnlyFavorites ? colorScheme.primary : null,
-          ),
-          tooltip: _showOnlyFavorites
-              ? 'Show all accounts'
-              : 'Show favorites only',
-          onPressed: _toggleFavoritesFilter,
-        ),
-
         // Search toggle button
         IconButton(
           icon: Icon(_isSearchActive ? Icons.close : Icons.search_rounded),
@@ -199,17 +175,11 @@ class _AccountListScreenCardState extends State<AccountListScreenCard> {
     if (isSearchActive) {
       // No search results
       emptyStateIcon = Icons.search_off_rounded;
-      emptyStateMessage = _showOnlyFavorites
-          ? 'No matching favorites found'
-          : 'No matching accounts found';
+      emptyStateMessage = 'No matching accounts found';
     } else {
       // No accounts/favorites at all
-      emptyStateIcon = _showOnlyFavorites
-          ? Icons.star_outline_rounded
-          : Icons.account_circle_outlined;
-      emptyStateMessage = _showOnlyFavorites
-          ? 'No favorite accounts yet'
-          : 'No accounts yet';
+      emptyStateIcon = Icons.account_circle_outlined;
+      emptyStateMessage = 'No accounts yet';
     }
 
     return Center(
@@ -219,7 +189,7 @@ class _AccountListScreenCardState extends State<AccountListScreenCard> {
           Icon(
             emptyStateIcon,
             size: 64,
-            color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+            color: colorScheme.onSurfaceVariant.withAlpha(178),
           ),
           const SizedBox(height: 16),
           Text(
@@ -229,7 +199,7 @@ class _AccountListScreenCardState extends State<AccountListScreenCard> {
             ),
             textAlign: TextAlign.center,
           ),
-          if (!isSearchActive && !_showOnlyFavorites)
+          if (!isSearchActive)
             Padding(
               padding: const EdgeInsets.only(top: 8.0, left: 32.0, right: 32.0),
               child: Text(
@@ -246,13 +216,32 @@ class _AccountListScreenCardState extends State<AccountListScreenCard> {
   }
 
   /// Build a dismissible account list item with swipe-to-delete
-  Widget _buildAccountListItem(dynamic account, bool useAlternateBackground) {
+  Widget _buildAccountListItem(dynamic account, int index, int length) {
+    final bool useAlternateBackground = index % 2 == 1;
+    BorderRadius borderRadius = BorderRadius.circular(16);
+    if (length == 1) {
+      borderRadius = BorderRadius.circular(16);
+    } else if (index == 0) {
+      borderRadius = BorderRadius.only(
+        topLeft: Radius.circular(16),
+        topRight: Radius.circular(16),
+        bottomLeft: Radius.circular(4),
+        bottomRight: Radius.circular(4),
+      );
+    } else if (index == length - 1) {
+      borderRadius = BorderRadius.only(
+        bottomLeft: Radius.circular(16),
+        bottomRight: Radius.circular(16),
+        topLeft: Radius.circular(4),
+        topRight: Radius.circular(4),
+      );
+    }
+
     return Dismissible(
       key: Key(account.id),
       background: Container(
         color: Theme.of(context).colorScheme.error,
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
         child: const Icon(Icons.delete_forever, color: Colors.white),
       ),
       direction: DismissDirection.endToStart,
@@ -281,8 +270,8 @@ class _AccountListScreenCardState extends State<AccountListScreenCard> {
       child: AccountListItem(
         account: account,
         useAlternativeBackground: useAlternateBackground,
-        borderRadius: BorderRadius.circular(16),
         onLongPress: () => _showAccountOptionsSheet(account),
+        borderRadius: borderRadius,
       ),
     );
   }
@@ -492,21 +481,128 @@ class _AccountListScreenCardState extends State<AccountListScreenCard> {
               return _buildEmptyState(_searchQuery.isNotEmpty);
             }
 
+            // If we're not already showing only favorites, split into sections
+            final favoriteAccounts = filteredAccounts
+                .where((account) => account.isFavorite)
+                .toList();
+            final otherAccounts = filteredAccounts
+                .where((account) => !account.isFavorite)
+                .toList();
+
             return Container(
               padding: const EdgeInsets.symmetric(
                 horizontal: 16.0,
                 vertical: 8.0,
               ),
-              child: ListView.builder(
+              child: ListView(
                 padding: const EdgeInsets.only(bottom: 80),
-                itemCount: filteredAccounts.length,
-                itemBuilder: (context, index) {
-                  final account = filteredAccounts[index];
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 8.0),
-                    child: _buildAccountListItem(account, index % 2 == 1),
-                  );
-                },
+                children: [
+                  // Favorites section
+                  if (favoriteAccounts.isNotEmpty) ...[
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        left: 4.0,
+                        top: 8.0,
+                        bottom: 12.0,
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.star_rounded,
+                            size: 18,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Favorites',
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                          ),
+                          const Spacer(),
+                          Text(
+                            '${favoriteAccounts.length}',
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    ...favoriteAccounts.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final account = entry.value;
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 3),
+                        child: _buildAccountListItem(
+                          account,
+                          index,
+                          favoriteAccounts.length,
+                        ),
+                      );
+                    }),
+                  ],
+
+                  // Others section
+                  if (otherAccounts.isNotEmpty) ...[
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        left: 4.0,
+                        top: 16.0,
+                        bottom: 12.0,
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.account_circle_outlined,
+                            size: 18,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Others',
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                          ),
+                          const Spacer(),
+                          Text(
+                            '${otherAccounts.length}',
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    ...otherAccounts.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final account = entry.value;
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 3),
+                        child: _buildAccountListItem(
+                          account,
+                          index,
+                          otherAccounts.length,
+                        ),
+                      );
+                    }),
+                  ],
+                ],
               ),
             );
           } else if (provider.hasError) {
