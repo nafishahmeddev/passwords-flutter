@@ -63,42 +63,7 @@ class ModernGroupSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Section header with icon like settings screen
-          Padding(
-            padding: const EdgeInsets.only(
-              left: 4,
-              right: 4,
-              top: 16,
-              bottom: 12,
-            ),
-            child: Row(
-              children: [
-                // Icon container like in settings screen
-                Container(
-                  padding: EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    group.icon,
-                    color: colorScheme.onPrimaryContainer,
-                    size: 20,
-                  ),
-                ),
-                SizedBox(width: 12),
-
-                // Section title like in settings screen
-                Text(
-                  group.title,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: colorScheme.onSurface,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          _buildSectionHeader(context, group.title, group.icon),
 
           // Card container matching settings and list screens style
           Card(
@@ -135,6 +100,30 @@ class ModernGroupSection extends StatelessWidget {
 
           // Bottom spacing unless it's the last group
           if (!isLastGroup) SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(
+    BuildContext context,
+    String title,
+    IconData icon,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 8.0, bottom: 8.0),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: Theme.of(context).colorScheme.primary),
+          SizedBox(width: 8),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
         ],
       ),
     );

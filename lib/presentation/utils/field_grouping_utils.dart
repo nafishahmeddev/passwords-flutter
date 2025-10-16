@@ -47,21 +47,21 @@ class FieldGroupingUtils {
       case AccountFieldType.credential:
         return _GroupInfo(
           key: 'credentials',
-          title: 'CREDENTIALS',
+          title: 'Credentials',
           icon: Icons.account_circle_outlined,
           order: 1,
         );
       case AccountFieldType.password:
         return _GroupInfo(
           key: 'passwords',
-          title: 'PASSWORDS',
+          title: 'Passwords',
           icon: Icons.lock_outline,
           order: 2,
         );
       case AccountFieldType.website:
         return _GroupInfo(
           key: 'websites',
-          title: 'WEBSITES',
+          title: 'Websites',
           icon: Icons.language_outlined,
           order: 3,
         );

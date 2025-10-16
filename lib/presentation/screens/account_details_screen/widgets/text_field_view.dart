@@ -82,9 +82,9 @@ class _TextFieldViewState extends State<TextFieldView> {
     final colorScheme = theme.colorScheme;
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceVariant.withOpacity(0.3),
+        color: colorScheme.surfaceContainerHighest.withAlpha(78),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -109,10 +109,11 @@ class _TextFieldViewState extends State<TextFieldView> {
             icon: Icon(Icons.copy_rounded, size: 20),
             style: IconButton.styleFrom(
               foregroundColor: colorScheme.primary,
-              backgroundColor: colorScheme.primaryContainer.withOpacity(0.4),
+
               minimumSize: Size(36, 36),
             ),
             tooltip: "Copy to clipboard",
+            visualDensity: VisualDensity(horizontal: -4.0, vertical: 0),
           ),
         ],
       ),

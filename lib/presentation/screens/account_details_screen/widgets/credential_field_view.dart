@@ -107,9 +107,9 @@ class _CredentialFieldViewState extends State<CredentialFieldView> {
     final colorScheme = theme.colorScheme;
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceVariant.withOpacity(0.3),
+        color: colorScheme.surfaceContainerHighest.withAlpha(78),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -137,7 +137,7 @@ class _CredentialFieldViewState extends State<CredentialFieldView> {
             icon: Icon(Icons.copy_rounded, size: 20),
             style: IconButton.styleFrom(
               foregroundColor: colorScheme.primary,
-              backgroundColor: colorScheme.primaryContainer.withOpacity(0.4),
+
               minimumSize: Size(36, 36),
             ),
             tooltip: "Copy to clipboard",
@@ -152,9 +152,9 @@ class _CredentialFieldViewState extends State<CredentialFieldView> {
     final colorScheme = theme.colorScheme;
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceVariant.withOpacity(0.3),
+        color: colorScheme.surfaceContainerHighest.withAlpha(78),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -184,13 +184,13 @@ class _CredentialFieldViewState extends State<CredentialFieldView> {
             ),
             style: IconButton.styleFrom(
               foregroundColor: colorScheme.primary,
-              backgroundColor: colorScheme.primaryContainer.withOpacity(0.4),
+
               minimumSize: Size(36, 36),
             ),
+            visualDensity: VisualDensity(horizontal: -4.0, vertical: 0),
             tooltip: _isPasswordVisible ? "Hide password" : "Show password",
           ),
           SizedBox(width: 8),
-
           // Copy button
           IconButton(
             onPressed: () {
@@ -200,9 +200,10 @@ class _CredentialFieldViewState extends State<CredentialFieldView> {
             icon: Icon(Icons.copy_rounded, size: 20),
             style: IconButton.styleFrom(
               foregroundColor: colorScheme.primary,
-              backgroundColor: colorScheme.primaryContainer.withOpacity(0.4),
+
               minimumSize: Size(36, 36),
             ),
+            visualDensity: VisualDensity(horizontal: -4.0, vertical: 0),
             tooltip: "Copy to clipboard",
           ),
         ],

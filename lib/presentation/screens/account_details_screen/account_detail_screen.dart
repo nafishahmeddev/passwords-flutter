@@ -108,8 +108,6 @@ class _AccountDetailScreenContentState
                 fontWeight: FontWeight.w600,
               ),
             ),
-            scrolledUnderElevation: 0,
-            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
             actions: [
               IconButton(
                 icon: Icon(Icons.favorite_border_rounded),
@@ -183,14 +181,16 @@ class _AccountDetailScreenContentState
                 // Simple non-animated header
                 SliverToBoxAdapter(
                   child: Container(
-                    height: 120,
-                    padding: EdgeInsets.fromLTRB(16, 16, 16, 16),
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    margin: EdgeInsets.only(
+                      bottom: 8,
+                      left: 16,
+                      right: 16,
+                      top: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.only(
-                        bottomLeft: Radius.circular(16),
-                        bottomRight: Radius.circular(16),
-                      ),
+                      borderRadius: BorderRadius.circular(16),
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,

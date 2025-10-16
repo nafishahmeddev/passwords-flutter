@@ -250,9 +250,9 @@ class _OtpFieldViewState extends State<OtpFieldView> {
 
           // OTP code container with modern styling
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: colorScheme.surfaceVariant.withOpacity(0.3),
+              color: colorScheme.surfaceContainerHighest.withAlpha(78),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -265,10 +265,7 @@ class _OtpFieldViewState extends State<OtpFieldView> {
                   Container(
                     width: 36,
                     height: 36,
-                    decoration: BoxDecoration(
-                      color: colorScheme.primaryContainer.withOpacity(0.7),
-                      shape: BoxShape.circle,
-                    ),
+                    decoration: BoxDecoration(shape: BoxShape.circle),
                     child: TweenAnimationBuilder(
                       tween: Tween<double>(
                         begin: 0,
@@ -279,7 +276,7 @@ class _OtpFieldViewState extends State<OtpFieldView> {
                       builder: (context, value, child) {
                         return CircularProgressIndicator(
                           value: value,
-                          strokeWidth: 3,
+                          strokeWidth: 7,
                           strokeCap: StrokeCap.round,
                           backgroundColor: colorScheme.surfaceVariant,
                           color: _timeRemaining < 5
@@ -366,11 +363,13 @@ class _OtpFieldViewState extends State<OtpFieldView> {
                         icon: Icon(Icons.copy_rounded, size: 20),
                         style: IconButton.styleFrom(
                           foregroundColor: colorScheme.primary,
-                          backgroundColor: colorScheme.primaryContainer
-                              .withOpacity(0.4),
                           minimumSize: Size(36, 36),
                         ),
                         tooltip: 'Copy code',
+                        visualDensity: VisualDensity(
+                          horizontal: -4.0,
+                          vertical: 0,
+                        ),
                       ),
 
                     // Refresh button (only for HOTP)
@@ -387,11 +386,14 @@ class _OtpFieldViewState extends State<OtpFieldView> {
                           icon: Icon(Icons.refresh_rounded, size: 20),
                           style: IconButton.styleFrom(
                             foregroundColor: colorScheme.primary,
-                            backgroundColor: colorScheme.primaryContainer
-                                .withOpacity(0.4),
+
                             minimumSize: Size(36, 36),
                           ),
                           tooltip: 'Generate new code',
+                          visualDensity: VisualDensity(
+                            horizontal: -4.0,
+                            vertical: 0,
+                          ),
                         ),
                       ),
                   ],
