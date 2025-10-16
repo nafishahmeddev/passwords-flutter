@@ -32,34 +32,34 @@ class _WebsiteFieldViewState extends State<WebsiteFieldView> {
     final colorScheme = theme.colorScheme;
     final url = field.getMetadata("value");
 
-    return Card(
-      margin: EdgeInsets.symmetric(horizontal: 16),
-      shape: widget.borderRadius != null
-          ? RoundedRectangleBorder(borderRadius: widget.borderRadius!)
-          : null,
-      child: Padding(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Field label - simple clean design with larger font
-            Text(field.label, style: theme.textTheme.titleSmall),
-            SizedBox(height: 8),
+    return Padding(
+      padding: EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Field label - simple clean design with larger font
+          Text(
+            field.label,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w500,
+              fontSize: 16,
+            ),
+          ),
+          SizedBox(height: 12),
 
-            // URL content
-            if (url.isNotEmpty)
-              _buildUrlRow(url)
-            else
-              Text(
-                'No URL set',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.primary,
-                  fontStyle: FontStyle.italic,
-                  fontSize: 16, // Increased font size
-                ),
+          // URL content
+          if (url.isNotEmpty)
+            _buildUrlRow(url)
+          else
+            Text(
+              'No URL set',
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                fontStyle: FontStyle.italic,
+                fontSize: 15,
               ),
-          ],
-        ),
+            ),
+        ],
       ),
     );
   }
@@ -68,7 +68,12 @@ class _WebsiteFieldViewState extends State<WebsiteFieldView> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return IntrinsicHeight(
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceVariant.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -80,9 +85,10 @@ class _WebsiteFieldViewState extends State<WebsiteFieldView> {
           Expanded(
             child: Text(
               url,
-              style: theme.textTheme.bodyMedium?.copyWith(
+              style: theme.textTheme.bodyLarge?.copyWith(
                 color: theme.colorScheme.primary,
                 decoration: TextDecoration.underline,
+                fontSize: 15,
               ),
               overflow: TextOverflow.ellipsis,
             ),
@@ -94,12 +100,15 @@ class _WebsiteFieldViewState extends State<WebsiteFieldView> {
               // Open URL functionality would go here
               HapticFeedback.lightImpact();
             },
-            icon: Icon(Icons.open_in_new, size: 18),
-            color: colorScheme.onSurfaceVariant,
-            padding: EdgeInsets.zero,
-            visualDensity: VisualDensity.compact,
-            constraints: BoxConstraints(),
+            icon: Icon(Icons.open_in_new_rounded, size: 20),
+            style: IconButton.styleFrom(
+              foregroundColor: colorScheme.primary,
+              backgroundColor: colorScheme.primaryContainer.withOpacity(0.4),
+              minimumSize: Size(36, 36),
+            ),
+            tooltip: "Open URL",
           ),
+          SizedBox(width: 8),
 
           // Copy button
           IconButton(
@@ -107,11 +116,13 @@ class _WebsiteFieldViewState extends State<WebsiteFieldView> {
               _copyToClipboard();
               HapticFeedback.lightImpact();
             },
-            icon: Icon(Icons.copy_outlined, size: 18),
-            color: colorScheme.onSurfaceVariant,
-            padding: EdgeInsets.zero,
-            visualDensity: VisualDensity.compact,
-            constraints: BoxConstraints(),
+            icon: Icon(Icons.copy_rounded, size: 20),
+            style: IconButton.styleFrom(
+              foregroundColor: colorScheme.primary,
+              backgroundColor: colorScheme.primaryContainer.withOpacity(0.4),
+              minimumSize: Size(36, 36),
+            ),
+            tooltip: "Copy to clipboard",
           ),
         ],
       ),

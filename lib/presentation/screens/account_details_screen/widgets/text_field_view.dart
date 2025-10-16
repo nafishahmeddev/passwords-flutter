@@ -17,9 +17,17 @@ class _TextFieldViewState extends State<TextFieldView> {
     Clipboard.setData(ClipboardData(text: value));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Text copied to clipboard'),
+        content: Row(
+          children: [
+            Icon(Icons.check_circle_outline, color: Colors.white),
+            SizedBox(width: 12),
+            Text('Text copied'),
+          ],
+        ),
         behavior: SnackBarBehavior.floating,
         duration: Duration(seconds: 2),
+        margin: EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -31,34 +39,40 @@ class _TextFieldViewState extends State<TextFieldView> {
     final colorScheme = theme.colorScheme;
     final value = field.getMetadata("value");
 
-    return Card(
-      margin: EdgeInsets.symmetric(horizontal: 16),
-      shape: widget.borderRadius != null
-          ? RoundedRectangleBorder(borderRadius: widget.borderRadius!)
-          : null,
-      child: Padding(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Field label - simple clean design with larger font
-            Text(field.label, style: theme.textTheme.titleSmall),
-            SizedBox(height: 8),
-
-            // Text content
-            if (value.isNotEmpty)
-              _buildTextRow(value)
-            else
+    return Padding(
+      padding: EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Field label with icon
+          Row(
+            children: [
+              Icon(Icons.notes_rounded, size: 18, color: colorScheme.secondary),
+              SizedBox(width: 12),
               Text(
-                'No text set',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                  fontStyle: FontStyle.italic,
-                  fontSize: 16, // Increased font size
+                field.label,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 16,
                 ),
               ),
-          ],
-        ),
+            ],
+          ),
+          SizedBox(height: 12),
+
+          // Text content
+          if (value.isNotEmpty)
+            _buildTextRow(value)
+          else
+            Text(
+              'No text set',
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                fontSize: 15,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -67,40 +81,38 @@ class _TextFieldViewState extends State<TextFieldView> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return IntrinsicHeight(
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceVariant.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Leading icon
-          Icon(
-            Icons.text_fields,
-            size: 20, // Increased icon size
-            color: colorScheme.primary,
-          ),
-          SizedBox(width: 12),
-
           // Text value
           Expanded(
             child: Text(
               value,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontSize: 16, // Increased font size
-              ),
+              style: theme.textTheme.bodyLarge?.copyWith(fontSize: 15),
               overflow: TextOverflow.ellipsis,
+              maxLines: 3,
             ),
           ),
 
-          // Copy button
+          // Copy button with modern styling
           IconButton(
             onPressed: () {
               _copyToClipboard();
               HapticFeedback.lightImpact();
             },
-            icon: Icon(Icons.copy_outlined, size: 18),
-            color: colorScheme.onSurfaceVariant,
-            padding: EdgeInsets.zero,
-            visualDensity: VisualDensity.compact,
-            constraints: BoxConstraints(),
+            icon: Icon(Icons.copy_rounded, size: 20),
+            style: IconButton.styleFrom(
+              foregroundColor: colorScheme.primary,
+              backgroundColor: colorScheme.primaryContainer.withOpacity(0.4),
+              minimumSize: Size(36, 36),
+            ),
+            tooltip: "Copy to clipboard",
           ),
         ],
       ),

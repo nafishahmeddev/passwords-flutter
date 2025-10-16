@@ -9,7 +9,7 @@ import 'otp_field_view.dart';
 import 'package:provider/provider.dart';
 import '../../../../business/providers/account_detail_provider.dart';
 
-/// A pixel-style widget that displays all field groups in a clean, native Android layout
+/// A modern styled widget that displays all field groups in a clean layout
 class SimplifiedGroupedFieldsView extends StatelessWidget {
   final List<AccountField> fields;
 
@@ -32,7 +32,7 @@ class SimplifiedGroupedFieldsView extends StatelessWidget {
         final group = sortedGroups[index];
         if (group.isEmpty) return SizedBox.shrink();
 
-        return PixelGroupSection(
+        return ModernGroupSection(
           group: group,
           isLastGroup: index == sortedGroups.length - 1,
         );
@@ -41,12 +41,12 @@ class SimplifiedGroupedFieldsView extends StatelessWidget {
   }
 }
 
-/// A Pixel-style group section with header and fields
-class PixelGroupSection extends StatelessWidget {
+/// A modern-style group section with header and fields
+class ModernGroupSection extends StatelessWidget {
   final FieldGroup group;
   final bool isLastGroup;
 
-  const PixelGroupSection({
+  const ModernGroupSection({
     super.key,
     required this.group,
     this.isLastGroup = false,
@@ -54,81 +54,105 @@ class PixelGroupSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: 3,
-      children: [
-        // Group Header (Pixel style)
-        Padding(
-          padding: const EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: 24,
-            bottom: 8,
-          ),
-          child: Row(
-            children: [
-              Icon(
-                group.icon,
-                color: Theme.of(context).colorScheme.primary,
-                size: 16,
-              ),
-              SizedBox(width: 12),
-              Text(
-                group.title,
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 1.2,
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Section header with icon like settings screen
+          Padding(
+            padding: const EdgeInsets.only(
+              left: 4,
+              right: 4,
+              top: 16,
+              bottom: 12,
+            ),
+            child: Row(
+              children: [
+                // Icon container like in settings screen
+                Container(
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    group.icon,
+                    color: colorScheme.onPrimaryContainer,
+                    size: 20,
+                  ),
                 ),
-              ),
-            ],
+                SizedBox(width: 12),
+
+                // Section title like in settings screen
+                Text(
+                  group.title,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: colorScheme.onSurface,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
 
-        // Fields (Pixel style)
-        ...group.fields.asMap().entries.map((entry) {
-          final index = entry.key;
-          final field = entry.value;
-          return _buildFieldWidget(field, index);
-        }),
+          // Card container matching settings and list screens style
+          Card(
+            elevation: 0,
+            margin: EdgeInsets.zero,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              children: [
+                // Fields with consistent styling
+                ...group.fields.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final field = entry.value;
+                  final isLast = index == group.fields.length - 1;
 
-        // Bottom spacing unless it's the last group
-        if (!isLastGroup) SizedBox(height: 8),
-      ],
+                  return Column(
+                    children: [
+                      _buildFieldWidget(field, index),
+                      if (!isLast)
+                        Divider(
+                          height: 1,
+                          thickness: 0.5,
+                          indent: 16,
+                          endIndent: 16,
+                        ),
+                    ],
+                  );
+                }),
+              ],
+            ),
+          ),
+
+          // Bottom spacing unless it's the last group
+          if (!isLastGroup) SizedBox(height: 16),
+        ],
+      ),
     );
   }
 
   Widget _buildFieldWidget(AccountField field, int index) {
-    BorderRadius borderRadius;
-    if (group.fields.length == 1) {
-      borderRadius = BorderRadius.all(Radius.circular(16));
-    } else if (index == 0) {
-      borderRadius = BorderRadius.only(
-        topLeft: Radius.circular(16),
-        topRight: Radius.circular(16),
-        bottomRight: Radius.circular(4),
-        bottomLeft: Radius.circular(4),
-      );
-    } else if (index == group.fields.length - 1) {
-      borderRadius = BorderRadius.only(
-        bottomLeft: Radius.circular(16),
-        bottomRight: Radius.circular(16),
-        topLeft: Radius.circular(4),
-        topRight: Radius.circular(4),
-      );
-    } else {
-      borderRadius = BorderRadius.zero;
-    }
+    // No need for border radius calculation as we're handling that with the Card wrapper
+    // and using dividers between items
+
     switch (field.type) {
       case AccountFieldType.credential:
-        return CredentialFieldView(field: field, borderRadius: borderRadius);
+        return CredentialFieldView(field: field);
       case AccountFieldType.password:
-        return PasswordFieldView(field: field, borderRadius: borderRadius);
+        return PasswordFieldView(field: field);
       case AccountFieldType.text:
-        return TextFieldView(field: field, borderRadius: borderRadius);
+        return TextFieldView(field: field);
       case AccountFieldType.website:
-        return WebsiteFieldView(field: field, borderRadius: borderRadius);
+        return WebsiteFieldView(field: field);
       case AccountFieldType.otp:
         return Consumer<AccountDetailProvider>(
           builder: (context, provider, child) {
@@ -137,7 +161,6 @@ class PixelGroupSection extends StatelessWidget {
               onFieldUpdate: (updatedField) {
                 provider.updateField(updatedField);
               },
-              borderRadius: borderRadius,
             );
           },
         );

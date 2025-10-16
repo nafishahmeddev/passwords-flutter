@@ -35,6 +35,24 @@ class AccountDetailProvider extends ChangeNotifier {
   bool get isLoading => _state == AccountDetailState.loading;
   bool get hasError => _state == AccountDetailState.error;
 
+  // Toggle favorite status
+  Future<void> toggleFavorite(String accountId) async {
+    if (_account == null) return;
+
+    try {
+      final updatedAccount = _account!.copyWith(
+        isFavorite: !(_account!.isFavorite),
+      );
+
+      await updateAccount(updatedAccount);
+      // Account will be reloaded by updateAccount
+    } catch (e) {
+      _state = AccountDetailState.error;
+      _errorMessage = 'Failed to update favorite status';
+      notifyListeners();
+    }
+  }
+
   Future<void> loadFields() async {
     try {
       _state = AccountDetailState.loading;

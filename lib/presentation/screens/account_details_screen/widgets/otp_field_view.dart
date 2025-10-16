@@ -167,9 +167,19 @@ class _OtpFieldViewState extends State<OtpFieldView> {
       Clipboard.setData(ClipboardData(text: _currentCode));
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('OTP code copied to clipboard'),
-          behavior: SnackBarBehavior.fixed,
+          content: Row(
+            children: [
+              Icon(Icons.check_circle_outline, color: Colors.white),
+              SizedBox(width: 12),
+              Text('OTP code copied'),
+            ],
+          ),
+          behavior: SnackBarBehavior.floating,
           duration: Duration(seconds: 2),
+          margin: EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       );
     }
@@ -198,128 +208,198 @@ class _OtpFieldViewState extends State<OtpFieldView> {
     final period = int.tryParse(widget.field.getMetadata('period', '30')) ?? 30;
     final issuerText = _issuerText;
 
-    return Card(
-      margin: EdgeInsets.symmetric(horizontal: 16),
-      shape: widget.borderRadius != null
-          ? RoundedRectangleBorder(borderRadius: widget.borderRadius!)
-          : null,
-      child: Padding(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Field label - simple clean design with larger font
-            Row(
-              children: [
-                Text(widget.field.label, style: theme.textTheme.titleSmall),
+    return Padding(
+      padding: EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Field label with icon
+          Row(
+            children: [
+              Icon(
+                Icons.security_rounded,
+                size: 18,
+                color: type == 'totp'
+                    ? Colors.green.shade700
+                    : Colors.blue.shade700,
+              ),
+              SizedBox(width: 12),
+              Text(
+                widget.field.label,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 16,
+                ),
+              ),
 
-                if (issuerText.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8.0),
-                    child: Text(
-                      "- $issuerText",
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                        fontSize: 14,
-                      ),
+              if (issuerText.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(left: 8.0),
+                  child: Text(
+                    "• $issuerText",
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      fontSize: 15,
                     ),
                   ),
-              ],
+                ),
+            ],
+          ),
+
+          SizedBox(height: 16),
+
+          // OTP code container with modern styling
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceVariant.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(12),
             ),
-
-            SizedBox(height: 8),
-
-            // OTP code row
-            Row(
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 // For TOTP, show circular progress indicator
                 if (type == 'totp' &&
                     _currentCode != 'No secret' &&
                     _currentCode != 'Invalid secret')
-                  SizedBox(
-                    width: 18,
-                    height: 18,
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: colorScheme.primaryContainer.withOpacity(0.7),
+                      shape: BoxShape.circle,
+                    ),
                     child: TweenAnimationBuilder(
                       tween: Tween<double>(
                         begin: 0,
                         end: _timeRemaining / period,
                       ),
-                      duration: const Duration(
-                        milliseconds: 1000,
-                      ), // Adjust duration for desired speed
-                      curve: Curves.easeInOut, // Choose a suitable curve
+                      duration: const Duration(milliseconds: 500),
+                      curve: Curves.easeInOut,
                       builder: (context, value, child) {
-                        // Circular progress indicator
                         return CircularProgressIndicator(
                           value: value,
-                          strokeWidth: 4,
+                          strokeWidth: 3,
                           strokeCap: StrokeCap.round,
-                          backgroundColor: theme.colorScheme.outline.withAlpha(
-                            50,
-                          ),
+                          backgroundColor: colorScheme.surfaceVariant,
+                          color: _timeRemaining < 5
+                              ? Colors.red
+                              : colorScheme.primary,
                         );
                       },
                     ),
                   )
-                // For HOTP or error states, show regular icon
-                else
-                  Icon(
-                    Icons.security,
-                    size: 20,
-                    color: type == 'totp'
-                        ? Colors.green.shade700
-                        : Colors.blue.shade700,
-                  ),
-                SizedBox(width: 12),
-
-                // OTP code - formatted for readability with increased font size
-                Expanded(
-                  child: Text(
-                    _formatOtpCode(_currentCode),
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      letterSpacing: 2,
-                      fontFamily: 'monospace',
-                      fontWeight: FontWeight.w400,
-                      color: colorScheme.onSurface,
+                else if (type == 'hotp')
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: colorScheme.secondaryContainer.withOpacity(0.7),
+                      shape: BoxShape.circle,
                     ),
+                    child: Icon(
+                      Icons.dialpad_rounded,
+                      color: colorScheme.onSecondaryContainer,
+                      size: 20,
+                    ),
+                  )
+                else
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: colorScheme.errorContainer.withOpacity(0.7),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.warning_rounded,
+                      color: colorScheme.onErrorContainer,
+                      size: 20,
+                    ),
+                  ),
+                SizedBox(width: 16),
+
+                // OTP code with modern styling
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Timer countdown for TOTP
+                      if (type == 'totp' &&
+                          _currentCode != 'No secret' &&
+                          _currentCode != 'Invalid secret')
+                        Text(
+                          'Expires in $_timeRemaining seconds',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: _timeRemaining < 5
+                                ? Colors.red
+                                : colorScheme.onSurfaceVariant,
+                            fontSize: 14,
+                          ),
+                        ),
+
+                      // OTP code
+                      Text(
+                        _formatOtpCode(_currentCode),
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          letterSpacing: 2,
+                          fontFamily: 'monospace',
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
 
-                // Copy button (only for valid codes)
-                if (_currentCode != 'No secret' &&
-                    _currentCode != 'Invalid secret')
-                  IconButton(
-                    onPressed: () {
-                      _copyCode();
-                      HapticFeedback.lightImpact();
-                    },
-                    icon: Icon(Icons.copy_outlined, size: 18),
-                    color: colorScheme.onSurfaceVariant,
-                    padding: EdgeInsets.zero,
-                    visualDensity: VisualDensity.compact,
-                    constraints: BoxConstraints(),
-                  ),
+                // Action buttons with modern styling
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Copy button
+                    if (_currentCode != 'No secret' &&
+                        _currentCode != 'Invalid secret')
+                      IconButton(
+                        onPressed: () {
+                          _copyCode();
+                          HapticFeedback.lightImpact();
+                        },
+                        icon: Icon(Icons.copy_rounded, size: 20),
+                        style: IconButton.styleFrom(
+                          foregroundColor: colorScheme.primary,
+                          backgroundColor: colorScheme.primaryContainer
+                              .withOpacity(0.4),
+                          minimumSize: Size(36, 36),
+                        ),
+                        tooltip: 'Copy code',
+                      ),
 
-                // Refresh button (only for HOTP)
-                if (type == 'hotp' &&
-                    _currentCode != 'No secret' &&
-                    _currentCode != 'Invalid secret')
-                  IconButton(
-                    onPressed: () {
-                      _generateCode();
-                      HapticFeedback.mediumImpact();
-                    },
-                    icon: Icon(Icons.refresh, size: 18),
-                    color: colorScheme.onSurfaceVariant,
-                    padding: EdgeInsets.zero,
-                    visualDensity: VisualDensity.compact,
-                    constraints: BoxConstraints(),
-                  ),
+                    // Refresh button (only for HOTP)
+                    if (type == 'hotp' &&
+                        _currentCode != 'No secret' &&
+                        _currentCode != 'Invalid secret')
+                      Padding(
+                        padding: EdgeInsets.only(left: 8),
+                        child: IconButton(
+                          onPressed: () {
+                            _generateCode();
+                            HapticFeedback.mediumImpact();
+                          },
+                          icon: Icon(Icons.refresh_rounded, size: 20),
+                          style: IconButton.styleFrom(
+                            foregroundColor: colorScheme.primary,
+                            backgroundColor: colorScheme.primaryContainer
+                                .withOpacity(0.4),
+                            minimumSize: Size(36, 36),
+                          ),
+                          tooltip: 'Generate new code',
+                        ),
+                      ),
+                  ],
+                ),
               ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

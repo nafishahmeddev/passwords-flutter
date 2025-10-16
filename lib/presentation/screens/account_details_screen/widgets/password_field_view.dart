@@ -26,9 +26,17 @@ class _PasswordFieldViewState extends State<PasswordFieldView> {
     Clipboard.setData(ClipboardData(text: password));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Password copied to clipboard'),
+        content: Row(
+          children: [
+            Icon(Icons.check_circle_outline, color: Colors.white),
+            SizedBox(width: 12),
+            Text('Password copied'),
+          ],
+        ),
         behavior: SnackBarBehavior.floating,
         duration: Duration(seconds: 2),
+        margin: EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -40,34 +48,44 @@ class _PasswordFieldViewState extends State<PasswordFieldView> {
     final colorScheme = theme.colorScheme;
     final password = field.getMetadata("value");
 
-    return Card(
-      margin: EdgeInsets.symmetric(horizontal: 16),
-      shape: widget.borderRadius != null
-          ? RoundedRectangleBorder(borderRadius: widget.borderRadius!)
-          : null,
-      child: Padding(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Field label - simple clean design with larger font
-            Text(field.label, style: theme.textTheme.titleSmall),
-            SizedBox(height: 8),
-
-            // Password content
-            if (password.isNotEmpty)
-              _buildPasswordRow(password)
-            else
+    return Padding(
+      padding: EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Field label with icon
+          Row(
+            children: [
+              Icon(
+                Icons.password_rounded,
+                size: 20,
+                color: colorScheme.secondary,
+              ),
+              SizedBox(width: 12),
               Text(
-                'No password set',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                  fontStyle: FontStyle.italic,
-                  fontSize: 16, // Increased font size
+                field.label,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 16,
                 ),
               ),
-          ],
-        ),
+            ],
+          ),
+          SizedBox(height: 12),
+
+          // Password content
+          if (password.isNotEmpty)
+            _buildPasswordRow(password)
+          else
+            Text(
+              'No password set',
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                fontStyle: FontStyle.italic,
+                fontSize: 15,
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -76,19 +94,24 @@ class _PasswordFieldViewState extends State<PasswordFieldView> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return IntrinsicHeight(
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceVariant.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Leading icon
-          Icon(Icons.lock_outline, size: 16, color: colorScheme.secondary),
-          SizedBox(width: 12),
-
           // Password text
           Expanded(
             child: Text(
               _isPasswordVisible ? password : '••••••••',
-              style: theme.textTheme.bodyMedium,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                fontFamily: _isPasswordVisible ? null : 'monospace',
+                letterSpacing: _isPasswordVisible ? null : 2.0,
+                fontSize: 15,
+              ),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -98,14 +121,16 @@ class _PasswordFieldViewState extends State<PasswordFieldView> {
             onPressed: _togglePasswordVisibility,
             icon: Icon(
               _isPasswordVisible
-                  ? Icons.visibility_off_outlined
-                  : Icons.visibility_outlined,
-              size: 18,
+                  ? Icons.visibility_off_rounded
+                  : Icons.visibility_rounded,
+              size: 20,
             ),
-            color: colorScheme.onSurfaceVariant,
-            padding: EdgeInsets.zero,
-            visualDensity: VisualDensity.compact,
-            constraints: BoxConstraints(),
+            style: IconButton.styleFrom(
+              foregroundColor: colorScheme.primary,
+              backgroundColor: colorScheme.primaryContainer.withOpacity(0.4),
+              minimumSize: Size(36, 36),
+            ),
+            tooltip: _isPasswordVisible ? "Hide password" : "Show password",
           ),
           SizedBox(width: 8),
 
@@ -115,11 +140,13 @@ class _PasswordFieldViewState extends State<PasswordFieldView> {
               _copyToClipboard();
               HapticFeedback.lightImpact();
             },
-            icon: Icon(Icons.copy_outlined, size: 18),
-            color: colorScheme.onSurfaceVariant,
-            padding: EdgeInsets.zero,
-            visualDensity: VisualDensity.compact,
-            constraints: BoxConstraints(),
+            icon: Icon(Icons.copy_rounded, size: 20),
+            style: IconButton.styleFrom(
+              foregroundColor: colorScheme.primary,
+              backgroundColor: colorScheme.primaryContainer.withOpacity(0.4),
+              minimumSize: Size(36, 36),
+            ),
+            tooltip: "Copy to clipboard",
           ),
         ],
       ),
