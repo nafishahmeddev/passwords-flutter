@@ -421,7 +421,7 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
                           ),
                           SizedBox(width: 12),
                           Text(
-                            "INFORMATION",
+                            "Information",
                             style: Theme.of(context).textTheme.labelMedium
                                 ?.copyWith(
                                   color: Theme.of(context).colorScheme.primary,

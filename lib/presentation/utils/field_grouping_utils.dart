@@ -75,7 +75,7 @@ class FieldGroupingUtils {
       case AccountFieldType.text:
         return _GroupInfo(
           key: 'general',
-          title: 'INFORMATION',
+          title: 'Information',
           icon: Icons.description_outlined,
           order: 5,
         );
