@@ -404,6 +404,9 @@ class AccountFormProvider extends ChangeNotifier {
           );
           savedAccountId = await repository.insertAccount(accountToInsert);
         } else {
+          debugPrint('Updating account in edit mode');
+          print(_account?.logo ?? "<no logo>");
+          print(_account?.logoType ?? "<no website>");
           // Edit mode: update existing account
           await repository.updateAccount(
             _account!.copyWith(
