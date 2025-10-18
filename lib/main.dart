@@ -6,6 +6,7 @@ import 'data/services/db_helper.dart';
 import 'data/repositories/account_repository.dart';
 import 'business/providers/account_provider.dart';
 import 'business/providers/settings_provider.dart';
+import 'business/services/favicon_service.dart';
 import 'presentation/screens/home_screen.dart';
 import 'presentation/screens/lock_screen.dart';
 
@@ -15,6 +16,11 @@ void main() async {
   final repository = AccountRepository(db);
 
   final settingsProvider = SettingsProvider();
+
+  // Initialize favicon cache and clear expired entries on startup
+  FaviconService.clearExpiredCache().catchError((e) {
+    debugPrint('Error clearing expired favicon cache on startup: $e');
+  });
 
   runApp(
     MultiProvider(

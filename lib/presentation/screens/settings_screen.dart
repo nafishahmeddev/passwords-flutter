@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../widgets/auth/pin_input.dart';
 import '../../business/providers/settings_provider.dart';
+import '../../business/services/favicon_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -365,6 +366,95 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ),
 
+        // Storage section
+        _buildSectionHeader(context, 'Storage', Icons.storage_outlined),
+        Card(
+          margin: EdgeInsets.only(bottom: 24),
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            children: [
+              // Cache info tile
+              ListTile(
+                title: Text('Favicon Cache'),
+                subtitle: FutureBuilder<int>(
+                  future: FaviconService.getCacheSize(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      final sizeInMB = (snapshot.data! / (1024 * 1024))
+                          .toStringAsFixed(2);
+                      return Text('Cache size: ${sizeInMB} MB');
+                    }
+                    return Text('Calculating cache size...');
+                  },
+                ),
+                leading: Container(
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.image_outlined,
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
+                ),
+                trailing: IconButton(
+                  icon: Icon(Icons.refresh_outlined),
+                  onPressed: () {
+                    setState(() {}); // Refresh the cache size display
+                  },
+                ),
+              ),
+
+              const Divider(height: 0),
+
+              // Clear expired cache
+              ListTile(
+                title: Text('Clear Expired Cache'),
+                subtitle: Text('Remove favicon cache older than 7 days'),
+                leading: Container(
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.tertiaryContainer,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.auto_delete_outlined,
+                    color: Theme.of(context).colorScheme.onTertiaryContainer,
+                  ),
+                ),
+                onTap: () => _clearExpiredCache(context),
+              ),
+
+              const Divider(height: 0),
+
+              // Clear all cache
+              ListTile(
+                title: Text(
+                  'Clear All Cache',
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+                subtitle: Text('Remove all cached favicons'),
+                leading: Container(
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.errorContainer,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.clear_all_outlined,
+                    color: Theme.of(context).colorScheme.onErrorContainer,
+                  ),
+                ),
+                onTap: () => _clearAllCache(context),
+              ),
+            ],
+          ),
+        ),
+
         // Reset section
         if (_isPinSetup)
           Card(
@@ -526,6 +616,80 @@ class _SettingsScreenState extends State<SettingsScreen> {
               fontWeight: FontWeight.bold,
               color: Theme.of(context).colorScheme.primary,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _clearExpiredCache(BuildContext context) async {
+    try {
+      await FaviconService.clearExpiredCache();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Expired favicon cache cleared'),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+          ),
+        );
+        setState(() {}); // Refresh the cache size display
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to clear expired cache: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
+  }
+
+  void _clearAllCache(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Clear All Cache?'),
+        content: Text(
+          'This will remove all cached favicons. They will need to be downloaded again when viewing accounts.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
+            onPressed: () async {
+              Navigator.pop(context);
+
+              try {
+                await FaviconService.clearCache();
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('All favicon cache cleared'),
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                    ),
+                  );
+                  setState(() {}); // Refresh the cache size display
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Failed to clear cache: $e'),
+                      backgroundColor: Theme.of(context).colorScheme.error,
+                    ),
+                  );
+                }
+              }
+            },
+            child: Text('Clear All'),
           ),
         ],
       ),
