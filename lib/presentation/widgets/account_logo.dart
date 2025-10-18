@@ -39,15 +39,24 @@ class _AccountLogoState extends State<AccountLogo> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.account?.logo != widget.account?.logo ||
         oldWidget.websiteUrl != widget.websiteUrl) {
-      _loadLogo();
+      // Defer logo loading to avoid setState during build
+      Future.microtask(() {
+        if (mounted) {
+          _loadLogo();
+        }
+      });
     }
   }
 
   Future<void> _loadLogo() async {
     // Reset state
-    _faviconData = null;
-    _isLoadingFavicon = false;
-    _faviconLoadFailed = false;
+    if (mounted) {
+      setState(() {
+        _faviconData = null;
+        _isLoadingFavicon = false;
+        _faviconLoadFailed = false;
+      });
+    }
 
     // If account has a custom logo, use it
     if (widget.account?.logo != null && widget.account?.logoType != null) {
@@ -160,7 +169,8 @@ class _AccountLogoState extends State<AccountLogo> {
     }
 
     // If account has custom icon type, show it
-    if (widget.account?.logoType == LogoType.icon && widget.account?.logo != null) {
+    if (widget.account?.logoType == LogoType.icon &&
+        widget.account?.logo != null) {
       return _buildCustomIcon(widget.account!.logo!);
     }
 
@@ -193,20 +203,23 @@ class _AccountLogoState extends State<AccountLogo> {
       final service = ServiceIconService.getAllServices()
           .where((s) => s.name.toLowerCase() == iconData.toLowerCase())
           .firstOrNull;
-      
+
       if (service != null) {
         return Container(
           width: widget.size,
           height: widget.size,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(widget.size * 0.25),
-            color: service.color?.withOpacity(0.1) ?? 
-                   Theme.of(context).colorScheme.primaryContainer,
+            color:
+                service.color?.withOpacity(0.1) ??
+                Theme.of(context).colorScheme.primaryContainer,
           ),
           child: Icon(
             service.icon,
             size: widget.size * 0.5,
-            color: service.color ?? Theme.of(context).colorScheme.onPrimaryContainer,
+            color:
+                service.color ??
+                Theme.of(context).colorScheme.onPrimaryContainer,
           ),
         );
       }
@@ -234,13 +247,16 @@ class _AccountLogoState extends State<AccountLogo> {
         height: widget.size,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(widget.size * 0.25),
-          color: knownService.color?.withOpacity(0.1) ?? 
-                 Theme.of(context).colorScheme.primaryContainer,
+          color:
+              knownService.color?.withOpacity(0.1) ??
+              Theme.of(context).colorScheme.primaryContainer,
         ),
         child: Icon(
           knownService.icon,
           size: widget.size * 0.5,
-          color: knownService.color ?? Theme.of(context).colorScheme.onPrimaryContainer,
+          color:
+              knownService.color ??
+              Theme.of(context).colorScheme.onPrimaryContainer,
         ),
       );
     }
@@ -283,11 +299,7 @@ class AccountLogoSelector extends StatelessWidget {
       onTap: onTap,
       child: Stack(
         children: [
-          AccountLogo(
-            account: account,
-            websiteUrl: websiteUrl,
-            size: size,
-          ),
+          AccountLogo(account: account, websiteUrl: websiteUrl, size: size),
           Positioned(
             right: 0,
             bottom: 0,

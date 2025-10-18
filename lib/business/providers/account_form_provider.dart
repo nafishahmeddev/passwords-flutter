@@ -140,10 +140,7 @@ class AccountFormProvider extends ChangeNotifier {
   // Update account logo
   void updateAccountLogo(LogoType? logoType, String? logoData) {
     if (_state == AccountFormState.loaded && _account != null) {
-      _account = _account!.copyWith(
-        logoType: logoType,
-        logo: logoData,
-      );
+      _account = _account!.copyWith(logoType: logoType, logo: logoData);
       _hasUnsavedChanges = true;
       notifyListeners();
     }
@@ -169,13 +166,31 @@ class AccountFormProvider extends ChangeNotifier {
       print('❌ Account validation error: Account name is required'); // DEBUG
     } else if (_account!.name.trim().length < 2) {
       _validationErrors['name'] = 'Account name must be at least 2 characters';
-      print('❌ Account validation error: Account name must be at least 2 characters'); // DEBUG
+      print(
+        '❌ Account validation error: Account name must be at least 2 characters',
+      ); // DEBUG
     } else if (_account!.name.trim().length > 100) {
       _validationErrors['name'] =
           'Account name must be less than 100 characters';
-      print('❌ Account validation error: Account name must be less than 100 characters'); // DEBUG
+      print(
+        '❌ Account validation error: Account name must be less than 100 characters',
+      ); // DEBUG
     } else {
       print('✅ Account validation passed'); // DEBUG
+    }
+  }
+
+  // Silent version that doesn't call notifyListeners
+  void _validateAccountSilent() {
+    _validationErrors.clear();
+
+    if (_account?.name.trim().isEmpty ?? true) {
+      _validationErrors['name'] = 'Account name is required';
+    } else if (_account!.name.trim().length < 2) {
+      _validationErrors['name'] = 'Account name must be at least 2 characters';
+    } else if (_account!.name.trim().length > 100) {
+      _validationErrors['name'] =
+          'Account name must be less than 100 characters';
     }
   }
 
@@ -189,10 +204,14 @@ class AccountFormProvider extends ChangeNotifier {
       print('❌ Field validation error: Field label is required'); // DEBUG
     } else if (field.label.trim().length < 2) {
       errors['label'] = 'Field label must be at least 2 characters';
-      print('❌ Field validation error: Field label must be at least 2 characters'); // DEBUG
+      print(
+        '❌ Field validation error: Field label must be at least 2 characters',
+      ); // DEBUG
     } else if (field.label.trim().length > 50) {
       errors['label'] = 'Field label must be less than 50 characters';
-      print('❌ Field validation error: Field label must be less than 50 characters'); // DEBUG
+      print(
+        '❌ Field validation error: Field label must be less than 50 characters',
+      ); // DEBUG
     }
 
     // Validate field-specific data
@@ -225,13 +244,55 @@ class AccountFormProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Silent version that doesn't call notifyListeners
+  void _validateFieldSilent(AccountField field) {
+    final errors = <String, String>{};
+
+    // Validate label
+    if (field.label.trim().isEmpty) {
+      errors['label'] = 'Field label is required';
+    } else if (field.label.trim().length < 2) {
+      errors['label'] = 'Field label must be at least 2 characters';
+    } else if (field.label.trim().length > 50) {
+      errors['label'] = 'Field label must be less than 50 characters';
+    }
+
+    // Validate field-specific data
+    switch (field.type) {
+      case AccountFieldType.credential:
+        _validateCredentialField(field, errors);
+        break;
+      case AccountFieldType.password:
+        _validatePasswordField(field, errors);
+        break;
+      case AccountFieldType.website:
+        _validateWebsiteField(field, errors);
+        break;
+      case AccountFieldType.text:
+        _validateTextField(field, errors);
+        break;
+      case AccountFieldType.otp:
+        _validateOtpField(field, errors);
+        break;
+    }
+
+    if (errors.isEmpty) {
+      _fieldValidationErrors.remove(field.id);
+    } else {
+      _fieldValidationErrors[field.id] = errors;
+    }
+    // Note: No notifyListeners() call here
+  }
+
   void _validateCredentialField(
     AccountField field,
     Map<String, String> errors,
   ) {
     final username = field.getMetadata('username');
     final password = field.getMetadata('password');
-    print('🔍 Validating credential field - username: "$username", password: "$password"'); // DEBUG
+    print(
+      '🔍 Validating credential field - username: "$username", password: "$password"',
+    ); // DEBUG
 
     // Validate username
     if (username.isEmpty) {
@@ -239,10 +300,14 @@ class AccountFormProvider extends ChangeNotifier {
       print('❌ Credential error: Username is required'); // DEBUG
     } else if (username.length < 2) {
       errors['username'] = 'Username must be at least 2 characters';
-      print('❌ Credential error: Username must be at least 2 characters'); // DEBUG
+      print(
+        '❌ Credential error: Username must be at least 2 characters',
+      ); // DEBUG
     } else if (username.length > 100) {
       errors['username'] = 'Username must be less than 100 characters';
-      print('❌ Credential error: Username must be less than 100 characters'); // DEBUG
+      print(
+        '❌ Credential error: Username must be less than 100 characters',
+      ); // DEBUG
     }
 
     // Validate password
@@ -251,7 +316,9 @@ class AccountFormProvider extends ChangeNotifier {
       print('❌ Credential error: Password is required'); // DEBUG
     } else if (password.length > 500) {
       errors['password'] = 'Password must be less than 500 characters';
-      print('❌ Credential error: Password must be less than 500 characters'); // DEBUG
+      print(
+        '❌ Credential error: Password must be less than 500 characters',
+      ); // DEBUG
     }
   }
 
@@ -333,15 +400,15 @@ class AccountFormProvider extends ChangeNotifier {
   ValidationResult validateForm() {
     final errors = <String>[];
 
-    // Validate account
-    _validateAccount();
+    // Validate account (silent version)
+    _validateAccountSilent();
     if (_validationErrors.isNotEmpty) {
       errors.addAll(_validationErrors.values);
     }
 
-    // Validate all fields
+    // Validate all fields (silent version)
     for (final field in _fields) {
-      validateField(field);
+      _validateFieldSilent(field);
     }
 
     if (_fieldValidationErrors.isNotEmpty) {

@@ -1,4 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Internet permission for favicon fetching and network requests -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <!-- Camera permission for QR code scanning -->
     <uses-permission android:name="android.permission.CAMERA" />
     <!-- Biometric authentication permissions -->

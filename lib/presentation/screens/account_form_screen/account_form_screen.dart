@@ -115,14 +115,20 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
     return null;
   }
 
-  void _showLogoPickerDialog(BuildContext context, AccountFormProvider provider) {
+  void _showLogoPickerDialog(
+    BuildContext context,
+    AccountFormProvider provider,
+  ) {
     showDialog(
       context: context,
       builder: (context) => LogoPickerDialog(
         account: provider.account,
         websiteUrl: _getWebsiteUrl(provider),
         onLogoSelected: (logoType, logoData) {
-          provider.updateAccountLogo(logoType, logoData);
+          // Defer the provider update to avoid setState during build
+          Future.microtask(() {
+            provider.updateAccountLogo(logoType, logoData);
+          });
         },
       ),
     );
@@ -313,7 +319,10 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
                                         account: provider.account,
                                         websiteUrl: _getWebsiteUrl(provider),
                                         size: 40,
-                                        onTap: () => _showLogoPickerDialog(context, provider),
+                                        onTap: () => _showLogoPickerDialog(
+                                          context,
+                                          provider,
+                                        ),
                                       );
                                     },
                                   ),
