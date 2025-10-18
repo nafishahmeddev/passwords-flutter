@@ -446,6 +446,7 @@ class _AccountDetailScreenContentState
   }
 
   void _confirmAndDeleteAccount() {
+    final provider = Provider.of<AccountDetailProvider>(context, listen: false);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -533,10 +534,7 @@ class _AccountDetailScreenContentState
           ),
           FilledButton(
             onPressed: () {
-              Provider.of<AccountDetailProvider>(
-                context,
-                listen: false,
-              ).deleteAccount(widget.account.id);
+              provider.deleteAccount(widget.account.id);
               Navigator.pop(context); // Close dialog
               Navigator.pop(context); // Go back to previous screen
             },
