@@ -58,6 +58,7 @@ class AccountProvider extends ChangeNotifier {
       notifyListeners();
 
       await repository.insertAccount(account);
+      AccountEventBus().publish(AccountCreated(account));
       await loadAccounts(); // refresh
     } catch (e) {
       _state = AccountState.error;
