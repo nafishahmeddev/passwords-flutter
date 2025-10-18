@@ -124,18 +124,18 @@ class AccountFormProvider extends ChangeNotifier {
       }).toList();
       _hasUnsavedChanges = true;
       validateField(updatedField);
-      
+
       // Auto-fetch favicon for website fields
       if (updatedField.type == AccountFieldType.website) {
         _autoFetchFaviconIfNeeded(updatedField);
       }
-      
+
       // Auto-assign logo when name or website fields change
-      if (updatedField.type == AccountFieldType.website || 
+      if (updatedField.type == AccountFieldType.website ||
           updatedField.getMetadata('field_name') == 'name') {
         _autoAssignLogoIfNeeded();
       }
-      
+
       notifyListeners();
     }
   }
@@ -146,12 +146,12 @@ class AccountFormProvider extends ChangeNotifier {
       _fields = List<AccountField>.from(_fields)..add(newField);
       _hasUnsavedChanges = true;
       validateField(newField);
-      
+
       // Auto-fetch favicon for website fields
       if (newField.type == AccountFieldType.website) {
         _autoFetchFaviconIfNeeded(newField);
       }
-      
+
       notifyListeners();
     }
   }
@@ -163,10 +163,10 @@ class AccountFormProvider extends ChangeNotifier {
       _account = updatedAccount;
       _hasUnsavedChanges = true;
       _validateAccount();
-      
+
       // Auto-assign logo when account name changes
       _autoAssignLogoIfNeeded();
-      
+
       notifyListeners();
     }
   }
@@ -565,7 +565,10 @@ class AccountFormProvider extends ChangeNotifier {
     if (url.isEmpty || !FaviconService.isValidUrl(url)) return;
 
     // Check if service is already known
-    final knownService = ServiceIconService.findServiceIcon(_account?.name, url);
+    final knownService = ServiceIconService.findServiceIcon(
+      _account?.name,
+      url,
+    );
     if (knownService != null) {
       // Service is known, no need to fetch favicon
       return;
@@ -599,27 +602,33 @@ class AccountFormProvider extends ChangeNotifier {
   void _autoAssignLogoIfNeeded() {
     // Only auto-assign for new accounts (create mode)
     if (!isCreateMode || _account?.logo != null) return;
-    
+
     // Priority 1: Check for service detection
     final websiteUrls = getWebsiteUrls();
     final firstWebsiteUrl = websiteUrls.isNotEmpty ? websiteUrls.first : null;
-    final detectedService = ServiceIconService.findServiceIcon(_account?.name, firstWebsiteUrl);
-    
+    final detectedService = ServiceIconService.findServiceIcon(
+      _account?.name,
+      firstWebsiteUrl,
+    );
+
     if (detectedService != null) {
       updateAccountLogo(LogoType.icon, detectedService.name);
       return;
     }
-    
+
     // Priority 2: Use first available cached favicon
     final firstCachedFavicon = websiteUrls
-        .where((url) => _cachedFavicons.containsKey(url) && _cachedFavicons[url] != null)
+        .where(
+          (url) =>
+              _cachedFavicons.containsKey(url) && _cachedFavicons[url] != null,
+        )
         .firstOrNull;
-    
+
     if (firstCachedFavicon != null) {
       updateAccountLogo(LogoType.url, firstCachedFavicon);
       return;
     }
-    
+
     // Priority 3: Fallback - let AccountLogo widget handle this
     // No explicit action needed, widget will show fallback
   }
@@ -638,7 +647,7 @@ class AccountFormProvider extends ChangeNotifier {
     if (_isLoadingFavicon || _state != AccountFormState.loaded) {
       return false;
     }
-    
+
     // For create mode, allow saving when form is valid (even without changes)
     // For edit mode, require unsaved changes
     return isCreateMode || _hasUnsavedChanges;

@@ -154,8 +154,8 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
                 message: provider.isSaving
                     ? 'Saving...'
                     : hasErrors
-                        ? 'Please fix validation errors before saving'
-                        : 'Save changes',
+                    ? 'Please fix validation errors before saving'
+                    : 'Save changes',
                 child: TextButton(
                   onPressed: (provider.isSaving || !canSave)
                       ? null
@@ -191,26 +191,26 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : provider.isLoadingFavicon
-                          ? Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                SizedBox(
-                                  width: 14,
-                                  height: 14,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                ),
-                                SizedBox(width: 8),
-                                Text('Loading...'),
-                              ],
-                            )
-                          : Text(
-                              'Save',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                color: !canSave
-                                    ? Theme.of(
-                                        context,
-                                      ).colorScheme.onSurface.withOpacity(0.38)
+                      ? Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              width: 14,
+                              height: 14,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                            SizedBox(width: 8),
+                            Text('Loading...'),
+                          ],
+                        )
+                      : Text(
+                          'Save',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: !canSave
+                                ? Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface.withOpacity(0.38)
                                 : null,
                           ),
                         ),

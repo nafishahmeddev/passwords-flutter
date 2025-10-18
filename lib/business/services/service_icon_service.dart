@@ -81,7 +81,15 @@ class ServiceIconService {
     ),
     KnownServiceIcon(
       name: 'Outlook',
-      keywords: ['outlook', 'hotmail', 'live', 'msn', 'outlook.com', 'hotmail.com', 'live.com'],
+      keywords: [
+        'outlook',
+        'hotmail',
+        'live',
+        'msn',
+        'outlook.com',
+        'hotmail.com',
+        'live.com',
+      ],
       icon: Icons.mail_outline,
       color: Color(0xFF0078D4),
     ),
@@ -264,7 +272,10 @@ class ServiceIconService {
   ];
 
   /// Find a known service icon based on account name or website URL
-  static KnownServiceIcon? findServiceIcon(String? accountName, [String? websiteUrl]) {
+  static KnownServiceIcon? findServiceIcon(
+    String? accountName, [
+    String? websiteUrl,
+  ]) {
     if (accountName == null && websiteUrl == null) return null;
 
     // Extract domain from URL for better matching
@@ -278,14 +289,17 @@ class ServiceIconService {
       }
     }
 
-    final searchText = '${accountName ?? ''} ${websiteUrl ?? ''} ${domain ?? ''}'.toLowerCase();
+    final searchText =
+        '${accountName ?? ''} ${websiteUrl ?? ''} ${domain ?? ''}'
+            .toLowerCase();
 
     // First, try exact domain matching for better accuracy
     if (domain != null) {
       for (final service in _knownServices) {
         for (final keyword in service.keywords) {
           // Check if domain contains the keyword (e.g., facebook.com matches 'facebook')
-          if (domain.contains(keyword.toLowerCase()) || keyword.toLowerCase().contains(domain)) {
+          if (domain.contains(keyword.toLowerCase()) ||
+              keyword.toLowerCase().contains(domain)) {
             return service;
           }
         }
@@ -327,7 +341,9 @@ class ServiceIconService {
     final queryLower = query.toLowerCase();
     return _knownServices.where((service) {
       return service.name.toLowerCase().contains(queryLower) ||
-          service.keywords.any((keyword) => keyword.toLowerCase().contains(queryLower));
+          service.keywords.any(
+            (keyword) => keyword.toLowerCase().contains(queryLower),
+          );
     }).toList();
   }
 }

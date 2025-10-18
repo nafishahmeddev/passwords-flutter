@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:typed_data';
 import '../../../../data/models/account.dart';
 import '../../../../business/services/service_icon_service.dart';
 import '../../../../business/services/favicon_service.dart';
@@ -11,7 +10,8 @@ import '../../../widgets/account_logo.dart';
 class LogoPickerDialog extends StatefulWidget {
   final Account? account;
   final String? websiteUrl;
-  final AccountFormProvider? formProvider; // Add provider to access cached favicons
+  final AccountFormProvider?
+  formProvider; // Add provider to access cached favicons
   final Function(LogoType? logoType, String? logoData) onLogoSelected;
 
   const LogoPickerDialog({
@@ -28,7 +28,40 @@ class LogoPickerDialog extends StatefulWidget {
 
 class _LogoPickerDialogState extends State<LogoPickerDialog> {
   @override
+  void initState() {
+    super.initState();
+    // Trigger favicon fetching for any website URLs when dialog opens
+    _triggerFaviconFetching();
+
+    // Listen to provider changes to update UI when favicons are loaded
+    if (widget.formProvider != null) {
+      widget.formProvider!.addListener(_onProviderChanged);
+    }
+  }
+
+  void _onProviderChanged() {
+    if (mounted) {
+      setState(() {
+        // Rebuild when provider changes (e.g., when favicons are loaded)
+      });
+    }
+  }
+
+  void _triggerFaviconFetching() {
+    if (widget.formProvider != null) {
+      final websiteUrls = widget.formProvider!.getWebsiteUrls();
+      print('DEBUG: Triggering favicon fetching for URLs: $websiteUrls');
+      // Favicon fetching is automatically triggered by the provider when fields are updated
+      // or when auto-assignment runs, so we don't need to manually trigger it here
+    }
+  }
+
+  @override
   void dispose() {
+    // Remove listener to prevent memory leaks
+    if (widget.formProvider != null) {
+      widget.formProvider!.removeListener(_onProviderChanged);
+    }
     super.dispose();
   }
 
@@ -89,22 +122,12 @@ class _LogoPickerDialogState extends State<LogoPickerDialog> {
 
   @override
   Widget build(BuildContext context) {
-    // Detect known service automatically
-    String? firstWebsiteUrl;
-    if (widget.formProvider != null) {
-      final websiteUrls = widget.formProvider!.getWebsiteUrls();
-      firstWebsiteUrl = websiteUrls.isNotEmpty ? websiteUrls.first : null;
-    }
-    
-    final detectedService = ServiceIconService.findServiceIcon(
-      widget.account?.name,
-      firstWebsiteUrl ?? widget.websiteUrl,
-    );
-
     return Dialog(
       child: Container(
         width: MediaQuery.of(context).size.width * 0.9,
-        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.8),
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.8,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -149,11 +172,30 @@ class _LogoPickerDialogState extends State<LogoPickerDialog> {
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                   SizedBox(height: 8),
-                  AccountLogo(
-                    account: widget.account,
-                    websiteUrl: widget.websiteUrl,
-                    size: 64,
-                  ),
+                  // For new accounts, show a simple preview without loading states
+                  widget.account?.logo != null
+                      ? AccountLogo(
+                          account: widget.account,
+                          websiteUrl: widget.websiteUrl,
+                          size: 64,
+                        )
+                      : Container(
+                          width: 64,
+                          height: 64,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primaryContainer,
+                          ),
+                          child: Icon(
+                            Icons.account_circle_outlined,
+                            size: 32,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onPrimaryContainer,
+                          ),
+                        ),
                   SizedBox(height: 8),
                   if (widget.account?.logo != null)
                     TextButton.icon(
@@ -172,24 +214,42 @@ class _LogoPickerDialogState extends State<LogoPickerDialog> {
             Flexible(
               child: SingleChildScrollView(
                 padding: EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Auto-detected service section
-                    if (detectedService != null) ...[
-                      _buildDetectedServiceSection(detectedService),
-                      SizedBox(height: 24),
-                    ],
+                child: Builder(
+                  builder: (context) {
+                    // Detect known service automatically
+                    String? firstWebsiteUrl;
+                    if (widget.formProvider != null) {
+                      final websiteUrls = widget.formProvider!.getWebsiteUrls();
+                      firstWebsiteUrl = websiteUrls.isNotEmpty
+                          ? websiteUrls.first
+                          : null;
+                    }
 
-                    // Cached favicons section
-                    if (widget.formProvider != null) ...[
-                      _buildCachedFaviconsSection(),
-                      SizedBox(height: 24),
-                    ],
+                    final detectedService = ServiceIconService.findServiceIcon(
+                      widget.account?.name,
+                      firstWebsiteUrl ?? widget.websiteUrl,
+                    );
 
-                    // Manual options section
-                    _buildManualOptionsSection(),
-                  ],
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Auto-detected service section
+                        if (detectedService != null) ...[
+                          _buildDetectedServiceSection(detectedService),
+                          SizedBox(height: 24),
+                        ],
+
+                        // Cached favicons section
+                        if (widget.formProvider != null) ...[
+                          _buildCachedFaviconsSection(),
+                          SizedBox(height: 24),
+                        ],
+
+                        // Manual options section
+                        _buildManualOptionsSection(),
+                      ],
+                    );
+                  },
                 ),
               ),
             ),
@@ -229,21 +289,23 @@ class _LogoPickerDialogState extends State<LogoPickerDialog> {
               height: 48,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
-                color: service.color ?? Theme.of(context).colorScheme.primaryContainer,
+                color:
+                    service.color ??
+                    Theme.of(context).colorScheme.primaryContainer,
               ),
               child: Icon(
                 service.icon,
-                color: service.color != null 
-                  ? Colors.white 
-                  : Theme.of(context).colorScheme.onPrimaryContainer,
+                color: service.color != null
+                    ? Colors.white
+                    : Theme.of(context).colorScheme.onPrimaryContainer,
                 size: 24,
               ),
             ),
             title: Text(
               service.name,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
             subtitle: Text('Use ${service.name} icon'),
             trailing: Icon(Icons.arrow_forward_ios, size: 16),
@@ -339,11 +401,60 @@ class _LogoPickerDialogState extends State<LogoPickerDialog> {
     final formProvider = widget.formProvider!;
     final websiteUrls = formProvider.getWebsiteUrls();
     final cachedFavicons = formProvider.cachedFavicons;
-    
+    final isLoadingFavicon = formProvider.isLoadingFavicon;
+
+    // Debug info
+    print('DEBUG: Website URLs: $websiteUrls');
+    print('DEBUG: Cached favicons keys: ${cachedFavicons.keys.toList()}');
+    print('DEBUG: Is loading favicon: $isLoadingFavicon');
+
     // Filter URLs that have cached favicons (successful fetches)
     final availableFavicons = websiteUrls
-        .where((url) => cachedFavicons.containsKey(url) && cachedFavicons[url] != null)
+        .where(
+          (url) =>
+              cachedFavicons.containsKey(url) && cachedFavicons[url] != null,
+        )
         .toList();
+
+    print('DEBUG: Available favicons: ${availableFavicons.length}');
+
+    // Show loading state if favicon is being fetched
+    if (isLoadingFavicon && availableFavicons.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.web,
+                color: Theme.of(context).colorScheme.primary,
+                size: 20,
+              ),
+              SizedBox(width: 8),
+              Text(
+                'Website Favicons',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 12),
+          Card(
+            child: ListTile(
+              leading: SizedBox(
+                width: 48,
+                height: 48,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+              title: Text('Loading favicons...'),
+              subtitle: Text('Please wait while we fetch website icons'),
+            ),
+          ),
+        ],
+      );
+    }
 
     if (availableFavicons.isEmpty) {
       return SizedBox.shrink(); // Don't show section if no favicons
@@ -376,7 +487,7 @@ class _LogoPickerDialogState extends State<LogoPickerDialog> {
               final index = entry.key;
               final url = entry.value;
               final domain = FaviconService.extractDomain(url) ?? url;
-              
+
               return Column(
                 children: [
                   if (index > 0) Divider(height: 1),
@@ -399,13 +510,17 @@ class _LogoPickerDialogState extends State<LogoPickerDialog> {
                                 errorBuilder: (context, error, stackTrace) {
                                   return Icon(
                                     Icons.language,
-                                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onPrimaryContainer,
                                   );
                                 },
                               )
                             : Icon(
                                 Icons.language,
-                                color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onPrimaryContainer,
                               ),
                       ),
                     ),
