@@ -335,7 +335,7 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
                                       return AccountLogoSelector(
                                         account: provider.account,
                                         websiteUrl: _getWebsiteUrl(provider),
-                                        size: 40,
+                                        size: 60,
                                         onTap: () => _showLogoPickerDialog(
                                           context,
                                           provider,

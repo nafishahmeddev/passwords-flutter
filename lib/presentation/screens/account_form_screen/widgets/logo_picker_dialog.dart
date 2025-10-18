@@ -288,7 +288,7 @@ class _LogoPickerDialogState extends State<LogoPickerDialog> {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(24),
                 color:
                     service.color ??
                     Theme.of(context).colorScheme.primaryContainer,
@@ -496,11 +496,11 @@ class _LogoPickerDialogState extends State<LogoPickerDialog> {
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(24),
                         color: Theme.of(context).colorScheme.primaryContainer,
                       ),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(24),
                         child: cachedFavicons[url] != null
                             ? Image.memory(
                                 cachedFavicons[url]!,

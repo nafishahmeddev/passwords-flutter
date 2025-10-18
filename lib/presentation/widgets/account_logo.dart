@@ -42,7 +42,7 @@ class AccountLogo extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(size * 0.25),
+        borderRadius: BorderRadius.circular(size / 2),
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
       ),
       clipBehavior: Clip.antiAlias,
@@ -71,7 +71,7 @@ class AccountLogo extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(size * 0.25),
+        borderRadius: BorderRadius.circular(size / 2),
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
       ),
       clipBehavior: Clip.antiAlias,
@@ -102,7 +102,7 @@ class AccountLogo extends StatelessWidget {
         width: size,
         height: size,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(size * 0.25),
+          borderRadius: BorderRadius.circular(size / 2),
           color: Theme.of(context).colorScheme.primaryContainer,
         ),
         child: Icon(
@@ -143,7 +143,7 @@ class AccountLogo extends StatelessWidget {
         width: size,
         height: size,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(size * 0.25),
+          borderRadius: BorderRadius.circular(size / 2),
           color:
               knownService.color?.withOpacity(0.1) ??
               Theme.of(context).colorScheme.primaryContainer,
@@ -163,7 +163,7 @@ class AccountLogo extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(size * 0.25),
+        borderRadius: BorderRadius.circular(size / 2),
         color: Theme.of(context).colorScheme.primaryContainer,
       ),
       child: Icon(
