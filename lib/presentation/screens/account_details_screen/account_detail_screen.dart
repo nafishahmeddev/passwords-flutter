@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:passwords/presentation/screens/account_details_screen/widgets/grouped_fields_view.dart';
 import 'package:provider/provider.dart';
 import '../../../data/models/account.dart';
@@ -93,6 +94,15 @@ class _AccountDetailScreenContentState
     super.dispose();
   }
 
+  Future<void> _handleRefresh() async {
+    // Provide haptic feedback
+    HapticFeedback.mediumImpact();
+
+    // Refresh account details and fields
+    final provider = Provider.of<AccountDetailProvider>(context, listen: false);
+    await provider.loadFields();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<AccountDetailProvider>(
@@ -176,9 +186,9 @@ class _AccountDetailScreenContentState
             ),
           ),
           body: RefreshIndicator(
-            onRefresh: () async {
-              await provider.loadFields();
-            },
+            onRefresh: _handleRefresh,
+            color: Theme.of(context).colorScheme.primary,
+            backgroundColor: Theme.of(context).colorScheme.surface,
             child: CustomScrollView(
               controller: _scrollController,
               physics: const BouncingScrollPhysics(),
