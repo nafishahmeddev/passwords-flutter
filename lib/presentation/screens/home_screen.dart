@@ -131,26 +131,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     Navigator.pop(context, 'create_account');
                   },
                 ),
-                ListTile(
-                  leading: Container(
-                    padding: EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      Icons.qr_code_scanner,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                  title: Text('Scan QR Code'),
-                  subtitle: Text('Import account from QR code'),
-                  onTap: () {
-                    Navigator.pop(context, 'scan_qr');
-                  },
-                ),
               ],
             ),
           ),
