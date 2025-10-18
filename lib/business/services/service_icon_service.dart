@@ -100,6 +100,14 @@ class ServiceIconService {
       color: Color(0xFF6001D2),
     ),
 
+    // Google Services
+    KnownServiceIcon(
+      name: 'Google',
+      keywords: ['google.com', 'www.google.com', 'google search'],
+      icon: Icons.search,
+      color: Color(0xFF4285F4),
+    ),
+
     // Cloud Storage
     KnownServiceIcon(
       name: 'Google Drive',
@@ -297,19 +305,59 @@ class ServiceIconService {
     if (domain != null) {
       for (final service in _knownServices) {
         for (final keyword in service.keywords) {
-          // Check if domain contains the keyword (e.g., facebook.com matches 'facebook')
-          if (domain.contains(keyword.toLowerCase()) ||
-              keyword.toLowerCase().contains(domain)) {
+          final keywordLower = keyword.toLowerCase();
+          
+          // Prioritize exact domain matches
+          if (domain == keywordLower) {
             return service;
+          }
+          
+          // Check for exact domain matches with common variations
+          if (domain == 'www.$keywordLower' || 'www.$domain' == keywordLower) {
+            return service;
+          }
+          
+          // For domain-based keywords (those containing dots), only match if they're subdomains
+          if (keywordLower.contains('.')) {
+            if (domain.endsWith('.$keywordLower') || keywordLower.endsWith('.$domain')) {
+              return service;
+            }
+          }
+        }
+      }
+      
+      // Second pass: looser domain matching for services without exact domain matches
+      for (final service in _knownServices) {
+        for (final keyword in service.keywords) {
+          final keywordLower = keyword.toLowerCase();
+          
+          // Skip domain-based keywords in this pass
+          if (keywordLower.contains('.')) continue;
+          
+          // Only match if the keyword is a clear part of the domain
+          // e.g., "facebook" matches "facebook.com" but "gmail" doesn't match "google.com"
+          if (domain.contains(keywordLower) && keywordLower.length >= 4) {
+            // Additional check: ensure it's not a substring match that would be misleading
+            final domainParts = domain.split('.');
+            final mainDomain = domainParts.isNotEmpty ? domainParts[0] : domain;
+            
+            if (mainDomain == keywordLower || mainDomain.startsWith(keywordLower)) {
+              return service;
+            }
           }
         }
       }
     }
 
-    // Fallback to general text matching
+    // Fallback to general text matching (for account names, etc.)
     for (final service in _knownServices) {
       for (final keyword in service.keywords) {
-        if (searchText.contains(keyword.toLowerCase())) {
+        final keywordLower = keyword.toLowerCase();
+        
+        // Skip domain-based keywords for text matching
+        if (keywordLower.contains('.')) continue;
+        
+        if (searchText.contains(keywordLower) && keywordLower.length >= 3) {
           return service;
         }
       }
