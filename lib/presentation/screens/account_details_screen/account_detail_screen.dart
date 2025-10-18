@@ -191,7 +191,9 @@ class _AccountDetailScreenContentState
             backgroundColor: Theme.of(context).colorScheme.surface,
             child: CustomScrollView(
               controller: _scrollController,
-              physics: const BouncingScrollPhysics(),
+              physics: const AlwaysScrollableScrollPhysics(
+                parent: BouncingScrollPhysics(),
+              ),
               slivers: [
                 // Simple non-animated header
                 SliverToBoxAdapter(
