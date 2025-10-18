@@ -17,9 +17,28 @@ class KnownServiceIcon {
 class ServiceIconService {
   static const List<KnownServiceIcon> _knownServices = [
     // Social Media
+    // Meta/Facebook Services (Combined)
     KnownServiceIcon(
-      name: 'Facebook',
-      keywords: ['facebook', 'fb', 'meta', 'facebook.com'],
+      name: 'Meta/Facebook',
+      keywords: [
+        'facebook',
+        'fb',
+        'facebook.com',
+        'meta',
+        'meta.com',
+        'instagram',
+        'insta',
+        'ig',
+        'instagram.com',
+        'whatsapp',
+        'whats app',
+        'wa',
+        'whatsapp.com',
+        'messenger',
+        'messenger.com',
+        'workplace',
+        'workplace.com',
+      ],
       icon: Icons.facebook,
       color: Color(0xFF1877F2),
     ),
@@ -29,12 +48,7 @@ class ServiceIconService {
       icon: Icons.alternate_email,
       color: Color(0xFF1DA1F2),
     ),
-    KnownServiceIcon(
-      name: 'Instagram',
-      keywords: ['instagram', 'insta', 'ig', 'instagram.com'],
-      icon: Icons.camera_alt,
-      color: Color(0xFFE4405F),
-    ),
+
     KnownServiceIcon(
       name: 'LinkedIn',
       keywords: ['linkedin', 'linked', 'linkedin.com'],
@@ -53,12 +67,7 @@ class ServiceIconService {
       icon: Icons.music_video,
       color: Color(0xFF000000),
     ),
-    KnownServiceIcon(
-      name: 'WhatsApp',
-      keywords: ['whatsapp', 'whats app', 'wa', 'whatsapp.com'],
-      icon: Icons.chat,
-      color: Color(0xFF25D366),
-    ),
+
     KnownServiceIcon(
       name: 'Telegram',
       keywords: ['telegram', 'tg', 'telegram.org', 't.me'],
@@ -72,15 +81,9 @@ class ServiceIconService {
       color: Color(0xFF5865F2),
     ),
 
-    // Email Services
+    // Microsoft Services (Combined)
     KnownServiceIcon(
-      name: 'Gmail',
-      keywords: ['gmail', 'google mail', 'gmail.com', 'mail.google.com'],
-      icon: Icons.email,
-      color: Color(0xFFEA4335),
-    ),
-    KnownServiceIcon(
-      name: 'Outlook',
+      name: 'Microsoft',
       keywords: [
         'outlook',
         'hotmail',
@@ -89,8 +92,32 @@ class ServiceIconService {
         'outlook.com',
         'hotmail.com',
         'live.com',
+        'microsoft',
+        'office',
+        'word',
+        'excel',
+        'powerpoint',
+        'office.com',
+        'onedrive',
+        'one drive',
+        'onedrive.live.com',
+        'xbox',
+        'microsoft gaming',
+        'xbox.com',
+        'teams',
+        'microsoft teams',
+        'teams.microsoft.com',
+        'azure',
+        'azure.microsoft.com',
+        'portal.azure.com',
+        'skype',
+        'skype.com',
+        'login.microsoftonline.com',
+        'microsoft365',
+        'office365',
+        'microsoft.com',
       ],
-      icon: Icons.mail_outline,
+      icon: Icons.business,
       color: Color(0xFF0078D4),
     ),
     KnownServiceIcon(
@@ -100,37 +127,68 @@ class ServiceIconService {
       color: Color(0xFF6001D2),
     ),
 
-    // Google Services
+    // Google Services (Combined)
     KnownServiceIcon(
       name: 'Google',
-      keywords: ['google.com', 'www.google.com', 'google search'],
-      icon: Icons.search,
+      keywords: [
+        'google.com',
+        'www.google.com',
+        'google search',
+        'google',
+        'gmail',
+        'google mail',
+        'gmail.com',
+        'mail.google.com',
+        'google drive',
+        'drive',
+        'gdrive',
+        'drive.google.com',
+        'google workspace',
+        'gsuite',
+        'google docs',
+        'google sheets',
+        'accounts.google.com',
+        'myaccount.google.com',
+        'youtube.com',
+        'maps.google.com',
+        'photos.google.com',
+        'calendar.google.com',
+        'meet.google.com',
+        'classroom.google.com',
+      ],
+      icon: Icons.g_mobiledata,
       color: Color(0xFF4285F4),
     ),
 
     // Cloud Storage
-    KnownServiceIcon(
-      name: 'Google Drive',
-      keywords: ['google drive', 'drive', 'gdrive', 'drive.google.com'],
-      icon: Icons.cloud,
-      color: Color(0xFF4285F4),
-    ),
     KnownServiceIcon(
       name: 'Dropbox',
       keywords: ['dropbox', 'dropbox.com'],
       icon: Icons.cloud_upload,
       color: Color(0xFF0061FF),
     ),
+    // Apple Services (Combined)
     KnownServiceIcon(
-      name: 'OneDrive',
-      keywords: ['onedrive', 'one drive', 'onedrive.live.com'],
-      icon: Icons.cloud_circle,
-      color: Color(0xFF0078D4),
-    ),
-    KnownServiceIcon(
-      name: 'iCloud',
-      keywords: ['icloud', 'apple cloud', 'icloud.com'],
-      icon: Icons.cloud_outlined,
+      name: 'Apple',
+      keywords: [
+        'icloud',
+        'apple cloud',
+        'icloud.com',
+        'apple music',
+        'itunes',
+        'music.apple.com',
+        'apple',
+        'apple.com',
+        'appleid.apple.com',
+        'app store',
+        'apps.apple.com',
+        'apple tv',
+        'tv.apple.com',
+        'apple pay',
+        'wallet.apple.com',
+        'developer.apple.com',
+      ],
+      icon: Icons.apple,
       color: Color(0xFF007AFF),
     ),
 
@@ -147,18 +205,7 @@ class ServiceIconService {
       icon: Icons.music_note,
       color: Color(0xFF1DB954),
     ),
-    KnownServiceIcon(
-      name: 'Apple Music',
-      keywords: ['apple music', 'itunes'],
-      icon: Icons.library_music,
-      color: Color(0xFFFA243C),
-    ),
-    KnownServiceIcon(
-      name: 'Amazon Prime',
-      keywords: ['amazon prime', 'prime video', 'prime'],
-      icon: Icons.local_movies,
-      color: Color(0xFF00A8E1),
-    ),
+
     KnownServiceIcon(
       name: 'Disney+',
       keywords: ['disney', 'disney+', 'disney plus'],
@@ -179,12 +226,7 @@ class ServiceIconService {
       icon: Icons.sports_esports,
       color: Color(0xFF003791),
     ),
-    KnownServiceIcon(
-      name: 'Xbox',
-      keywords: ['xbox', 'microsoft gaming'],
-      icon: Icons.videogame_asset,
-      color: Color(0xFF107C10),
-    ),
+
     KnownServiceIcon(
       name: 'Nintendo',
       keywords: ['nintendo', 'switch'],
@@ -214,18 +256,6 @@ class ServiceIconService {
 
     // Work & Productivity
     KnownServiceIcon(
-      name: 'Microsoft Office',
-      keywords: ['microsoft', 'office', 'word', 'excel', 'powerpoint'],
-      icon: Icons.work,
-      color: Color(0xFF0078D4),
-    ),
-    KnownServiceIcon(
-      name: 'Google Workspace',
-      keywords: ['google workspace', 'gsuite', 'google docs', 'google sheets'],
-      icon: Icons.business,
-      color: Color(0xFF4285F4),
-    ),
-    KnownServiceIcon(
       name: 'Slack',
       keywords: ['slack'],
       icon: Icons.chat_bubble,
@@ -245,9 +275,30 @@ class ServiceIconService {
     ),
 
     // Shopping
+    // Amazon Services (Combined)
     KnownServiceIcon(
       name: 'Amazon',
-      keywords: ['amazon', 'aws'],
+      keywords: [
+        'amazon',
+        'amazon.com',
+        'smile.amazon.com',
+        'aws',
+        'console.aws.amazon.com',
+        'signin.aws.amazon.com',
+        'amazon prime',
+        'prime video',
+        'prime',
+        'primevideo.com',
+        'kindle',
+        'kindle.amazon.com',
+        'read.amazon.com',
+        'audible',
+        'audible.com',
+        'amazon music',
+        'music.amazon.com',
+        'amazon drive',
+        'amazon photos',
+      ],
       icon: Icons.shopping_cart,
       color: Color(0xFFFF9900),
     ),
