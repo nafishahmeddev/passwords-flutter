@@ -115,7 +115,10 @@ class MainApp extends StatelessWidget {
           ),
           // Enhanced component themes for dark
         );
-        return MaterialApp(
+        // Capture pointer events globally to reset auto-lock activity timer
+        return Listener(
+          onPointerDown: (_) => settingsProvider.recordUserActivity(),
+          child: MaterialApp(
           title: 'Passwords',
           themeMode: settingsProvider.themeMode,
           theme: ThemeData(
@@ -263,7 +266,7 @@ class MainApp extends StatelessWidget {
               }
             },
           ),
-        );
+        ));
       },
     );
   }

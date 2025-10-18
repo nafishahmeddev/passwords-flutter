@@ -63,8 +63,8 @@ class SettingsProvider extends ChangeNotifier {
 
   SettingsProvider() {
     _lastActivityTime = DateTime.now();
-    _loadSettings();
-    _setupAutoLock();
+    // Load settings first, then setup auto-lock based on loaded values
+    _loadSettings().then((_) => _setupAutoLock());
   }
 
   Future<void> _loadSettings() async {
@@ -118,6 +118,8 @@ class SettingsProvider extends ChangeNotifier {
     }
 
     notifyListeners();
+    // Ensure auto-lock timer is configured after loading settings
+    _setupAutoLock();
   }
 
   // Theme settings methods
@@ -152,6 +154,8 @@ class SettingsProvider extends ChangeNotifier {
       key: _autoLockEnabledKey,
       value: value.toString(),
     );
+    // Update timer when this value changes
+    _setupAutoLock();
     notifyListeners();
   }
 
@@ -163,6 +167,8 @@ class SettingsProvider extends ChangeNotifier {
       key: _autoLockDurationKey,
       value: minutes.toString(),
     );
+    // Reconfigure the auto-lock timer to respect the new duration
+    _setupAutoLock();
     notifyListeners();
   }
 
