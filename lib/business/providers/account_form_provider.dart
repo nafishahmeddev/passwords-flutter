@@ -37,6 +37,7 @@ class AccountFormProvider extends ChangeNotifier {
   List<AccountField> _fields = [];
   bool _hasUnsavedChanges = false;
   String? _errorMessage;
+  bool _isInitialLoad = true;
 
   // Validation state
   Map<String, String> _validationErrors = {};
@@ -81,6 +82,7 @@ class AccountFormProvider extends ChangeNotifier {
         _account = newAccount;
         _fields = fields;
         _hasUnsavedChanges = false;
+        _isInitialLoad = false; // Clear initial load flag
         _state = AccountFormState.loaded;
         notifyListeners();
       } else {
@@ -95,6 +97,7 @@ class AccountFormProvider extends ChangeNotifier {
         _account = account;
         _fields = fields;
         _hasUnsavedChanges = false;
+        _isInitialLoad = false; // Clear initial load flag for edit mode
         _state = AccountFormState.loaded;
         notifyListeners();
       }
@@ -130,6 +133,7 @@ class AccountFormProvider extends ChangeNotifier {
   // Update account in memory only (doesn't persist to database)
   void updateAccount(Account updatedAccount) {
     if (_state == AccountFormState.loaded) {
+      _isInitialLoad = false; // User has started editing, enable validation
       _account = updatedAccount;
       _hasUnsavedChanges = true;
       _validateAccount();
@@ -182,6 +186,11 @@ class AccountFormProvider extends ChangeNotifier {
 
   // Silent version that doesn't call notifyListeners
   void _validateAccountSilent() {
+    // Skip validation during initial load to avoid showing errors before user interaction
+    if (_isInitialLoad) {
+      return;
+    }
+
     _validationErrors.clear();
 
     if (_account?.name.trim().isEmpty ?? true) {
