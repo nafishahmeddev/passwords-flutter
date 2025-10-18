@@ -687,9 +687,7 @@ class _AccountListScreenCardState extends State<AccountListScreenCard> {
 
           // Default state
           return RefreshIndicator(
-            onRefresh: () async {
-              await provider.loadAccounts();
-            },
+            onRefresh: _handleRefresh,
             color: Theme.of(context).colorScheme.primary,
             backgroundColor: Theme.of(context).colorScheme.surface,
             child: SingleChildScrollView(
