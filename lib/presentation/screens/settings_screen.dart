@@ -544,7 +544,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         Expanded(
           child: Center(
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
