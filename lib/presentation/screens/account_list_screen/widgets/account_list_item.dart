@@ -56,59 +56,6 @@ class AccountListItem extends StatelessWidget {
     return allColors[hash.abs() % allColors.length];
   }
 
-  /// Shows a confirmation dialog before deleting an account
-  Future<void> _showDeleteConfirmationDialog(BuildContext context) async {
-    // Get theme elements for consistent styling
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    final bool? confirmed = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false, // User must take an action
-      builder: (BuildContext context) {
-        return AlertDialog(
-          icon: Icon(
-            Icons.delete_outline_rounded,
-            color: colorScheme.error,
-            size: 32,
-          ),
-          title: Text('Delete Account', style: textTheme.headlineSmall),
-          content: Text(
-            'Are you sure you want to delete "${account.name}"? This action cannot be undone.',
-            style: textTheme.bodyMedium,
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              style: FilledButton.styleFrom(
-                backgroundColor: colorScheme.error,
-                foregroundColor: colorScheme.onError,
-              ),
-              child: const Text('Delete'),
-            ),
-          ],
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-        );
-      },
-    );
-
-    // Only delete if user confirmed
-    if (confirmed == true) {
-      if (context.mounted) {
-        Provider.of<AccountProvider>(
-          context,
-          listen: false,
-        ).deleteAccount(account.id);
-      }
-    }
-  }
-
   /// Builds the account icon avatar with dynamic color
   Widget _buildAccountAvatar(BuildContext context, Color color) {
     // Use the new AccountLogo widget for consistent logo display

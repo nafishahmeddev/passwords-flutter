@@ -26,7 +26,6 @@ class AccountLogo extends StatefulWidget {
 class _AccountLogoState extends State<AccountLogo> {
   Uint8List? _faviconData;
   bool _isLoadingFavicon = false;
-  bool _faviconLoadFailed = false;
 
   @override
   void initState() {
@@ -53,12 +52,9 @@ class _AccountLogoState extends State<AccountLogo> {
     if (mounted) {
       setState(() {
         _faviconData = null;
-        _isLoadingFavicon = false;
-        _faviconLoadFailed = false;
+        _isLoadingFavicon = true;
       });
-    }
-
-    // If account has a custom logo, use it
+    } // If account has a custom logo, use it
     if (widget.account?.logo != null && widget.account?.logoType != null) {
       switch (widget.account!.logoType!) {
         case LogoType.file:
@@ -99,7 +95,6 @@ class _AccountLogoState extends State<AccountLogo> {
     if (mounted) {
       setState(() {
         _isLoadingFavicon = true;
-        _faviconLoadFailed = false;
       });
     }
 
@@ -109,14 +104,12 @@ class _AccountLogoState extends State<AccountLogo> {
         setState(() {
           _faviconData = faviconData;
           _isLoadingFavicon = false;
-          _faviconLoadFailed = faviconData == null;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           _isLoadingFavicon = false;
-          _faviconLoadFailed = true;
         });
       }
     }
