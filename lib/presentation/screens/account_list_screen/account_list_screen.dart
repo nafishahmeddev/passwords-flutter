@@ -115,17 +115,24 @@ class _AccountListScreenCardState extends State<AccountListScreenCard> {
           onPressed: _toggleSearch,
           tooltip: _isSearchActive ? 'Cancel search' : 'Search accounts',
         ),
-
-        // Lock app button
-        IconButton(
-          icon: const Icon(Icons.lock_outline_rounded),
-          tooltip: 'Lock App',
-          onPressed: () {
-            final settingsProvider = Provider.of<SettingsProvider>(
-              context,
-              listen: false,
-            );
-            settingsProvider.lockApp();
+        Consumer(
+          builder: (context, SettingsProvider settingsProvider, child) {
+            if (settingsProvider.isAuthEnabled) {
+              // Lock app button
+              return IconButton(
+                icon: const Icon(Icons.lock_outline_rounded),
+                tooltip: 'Lock App',
+                onPressed: () {
+                  final settingsProvider = Provider.of<SettingsProvider>(
+                    context,
+                    listen: false,
+                  );
+                  settingsProvider.lockApp();
+                },
+              );
+            } else {
+              return Container();
+            }
           },
         ),
       ],
