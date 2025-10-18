@@ -127,6 +127,9 @@ class AccountDetailProvider extends ChangeNotifier {
       await repository.deleteAccount(id);
       _state = AccountDetailState.loaded;
       notifyListeners();
+
+      // Publish event to notify other providers
+      AccountEventBus().publish(AccountDeleted(id));
     } catch (e) {
       _state = AccountDetailState.error;
       _errorMessage = 'Failed to delete account';
@@ -142,6 +145,11 @@ class AccountDetailProvider extends ChangeNotifier {
 
       await repository.updateAccount(account);
       await loadFields(); // This will reload both account and fields
+
+      // Publish event to notify other providers with the refreshed account data
+      if (_account != null) {
+        AccountEventBus().publish(AccountUpdated(_account!));
+      }
     } catch (e) {
       _state = AccountDetailState.error;
       _errorMessage = 'Failed to update account';

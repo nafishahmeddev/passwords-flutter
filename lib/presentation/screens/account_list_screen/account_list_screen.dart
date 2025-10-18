@@ -5,6 +5,7 @@ import '../../../business/providers/settings_provider.dart';
 import 'widgets/account_list_item.dart';
 import '../account_details_screen/account_detail_screen.dart';
 import '../account_form_screen/account_form_screen.dart';
+import '../../widgets/account_logo.dart';
 
 class AccountListScreenCard extends StatefulWidget {
   const AccountListScreenCard({Key? key}) : super(key: key);
@@ -299,19 +300,7 @@ class _AccountListScreenCardState extends State<AccountListScreenCard> {
           // Account header with icon and details
           Row(
             children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: colorScheme.primary,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.account_circle_outlined,
-                  color: Colors.white,
-                  size: 24,
-                ),
-              ),
+              AccountLogo(account: account, size: 48),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(

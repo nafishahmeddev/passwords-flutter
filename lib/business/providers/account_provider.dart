@@ -73,6 +73,7 @@ class AccountProvider extends ChangeNotifier {
       notifyListeners();
 
       await repository.updateAccount(account);
+      AccountEventBus().publish(AccountUpdated(account));
       await loadAccounts(); // refresh
     } catch (e) {
       _state = AccountState.error;
@@ -104,6 +105,12 @@ class AccountProvider extends ChangeNotifier {
       notifyListeners();
 
       await repository.toggleFavorite(id);
+
+      // Get the updated account to publish event
+      final accounts = await repository.getAccounts();
+      final updatedAccount = accounts.firstWhere((acc) => acc.id == id);
+      AccountEventBus().publish(AccountUpdated(updatedAccount));
+
       await loadAccounts(); // refresh
     } catch (e) {
       _state = AccountState.error;

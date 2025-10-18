@@ -5,6 +5,7 @@ import '../../../data/models/account.dart';
 import '../../../data/repositories/account_repository.dart';
 import '../../../business/providers/account_detail_provider.dart';
 import '../account_form_screen/account_form_screen.dart';
+import '../../widgets/account_logo.dart';
 
 class AccountDetailScreen extends StatelessWidget {
   final Account account;
@@ -110,7 +111,11 @@ class _AccountDetailScreenContentState
             ),
             actions: [
               IconButton(
-                icon: Icon(Icons.favorite_border_rounded),
+                icon: Icon(
+                  account.isFavorite
+                      ? Icons.favorite_rounded
+                      : Icons.favorite_border_rounded,
+                ),
                 tooltip: account.isFavorite
                     ? 'Remove from favorites'
                     : 'Add to favorites',
@@ -195,22 +200,8 @@ class _AccountDetailScreenContentState
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // Account avatar - simple layout
-                        Container(
-                          width: 60,
-                          height: 60,
-                          decoration: BoxDecoration(
-                            color: colorScheme.primary,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Center(
-                            child: Icon(
-                              Icons.account_circle_rounded,
-                              size: 36,
-                              color: colorScheme.onPrimary,
-                            ),
-                          ),
-                        ),
+                        // Account logo with favicon support
+                        AccountLogo(account: account, size: 60),
 
                         SizedBox(width: 16),
 
