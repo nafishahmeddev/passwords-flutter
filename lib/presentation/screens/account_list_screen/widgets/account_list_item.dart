@@ -5,7 +5,6 @@ import '../../../../business/providers/account_provider.dart';
 import '../../../widgets/account_logo.dart';
 import '../../account_details_screen/account_detail_screen.dart';
 
-
 class AccountListItem extends StatelessWidget {
   final dynamic account;
   final bool useAlternativeBackground;
@@ -215,6 +214,4 @@ class AccountListItem extends StatelessWidget {
       ),
     );
   }
-
-
 }

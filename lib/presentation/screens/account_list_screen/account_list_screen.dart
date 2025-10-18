@@ -467,7 +467,20 @@ class _AccountListScreenCardState extends State<AccountListScreenCard> {
             final filteredAccounts = _filterAccounts(provider.accounts);
 
             if (filteredAccounts.isEmpty) {
-              return _buildEmptyState(_searchQuery.isNotEmpty);
+              return RefreshIndicator(
+                onRefresh: () async {
+                  await provider.loadAccounts();
+                },
+                color: Theme.of(context).colorScheme.primary,
+                backgroundColor: Theme.of(context).colorScheme.surface,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Container(
+                    height: MediaQuery.of(context).size.height - 200,
+                    child: _buildEmptyState(_searchQuery.isNotEmpty),
+                  ),
+                ),
+              );
             }
 
             // If we're not already showing only favorites, split into sections
@@ -478,178 +491,215 @@ class _AccountListScreenCardState extends State<AccountListScreenCard> {
                 .where((account) => !account.isFavorite)
                 .toList();
 
-            return Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 8.0,
-              ),
-              child: ListView(
-                padding: const EdgeInsets.only(bottom: 80),
-                children: [
-                  // Favorites section
-                  if (favoriteAccounts.isNotEmpty) ...[
-                    Padding(
-                      padding: const EdgeInsets.only(
-                        left: 4.0,
-                        top: 8.0,
-                        bottom: 12.0,
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.star_rounded,
-                            size: 18,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Favorites',
-                            style: Theme.of(context).textTheme.titleMedium
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                          ),
-                          const Spacer(),
-                          Text(
-                            '${favoriteAccounts.length}',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    ...favoriteAccounts.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final account = entry.value;
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 3),
-                        child: _buildAccountListItem(
-                          account,
-                          index,
-                          favoriteAccounts.length,
+            return RefreshIndicator(
+              onRefresh: () async {
+                await provider.loadAccounts();
+              },
+              color: Theme.of(context).colorScheme.primary,
+              backgroundColor: Theme.of(context).colorScheme.surface,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
+                child: ListView(
+                  padding: const EdgeInsets.only(bottom: 80),
+                  children: [
+                    // Favorites section
+                    if (favoriteAccounts.isNotEmpty) ...[
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          left: 4.0,
+                          top: 8.0,
+                          bottom: 12.0,
                         ),
-                      );
-                    }),
-                  ],
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.star_rounded,
+                              size: 18,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Favorites',
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
+                                  ),
+                            ),
+                            const Spacer(),
+                            Text(
+                              '${favoriteAccounts.length}',
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      ...favoriteAccounts.asMap().entries.map((entry) {
+                        final index = entry.key;
+                        final account = entry.value;
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 3),
+                          child: _buildAccountListItem(
+                            account,
+                            index,
+                            favoriteAccounts.length,
+                          ),
+                        );
+                      }),
+                    ],
 
-                  // Others section
-                  if (otherAccounts.isNotEmpty) ...[
-                    Padding(
-                      padding: const EdgeInsets.only(
-                        left: 4.0,
-                        top: 16.0,
-                        bottom: 12.0,
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.account_circle_outlined,
-                            size: 18,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurfaceVariant,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Others',
-                            style: Theme.of(context).textTheme.titleMedium
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
-                          ),
-                          const Spacer(),
-                          Text(
-                            '${otherAccounts.length}',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    ...otherAccounts.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final account = entry.value;
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 3),
-                        child: _buildAccountListItem(
-                          account,
-                          index,
-                          otherAccounts.length,
+                    // Others section
+                    if (otherAccounts.isNotEmpty) ...[
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          left: 4.0,
+                          top: 16.0,
+                          bottom: 12.0,
                         ),
-                      );
-                    }),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.account_circle_outlined,
+                              size: 18,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Others',
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                            const Spacer(),
+                            Text(
+                              '${otherAccounts.length}',
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      ...otherAccounts.asMap().entries.map((entry) {
+                        final index = entry.key;
+                        final account = entry.value;
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 3),
+                          child: _buildAccountListItem(
+                            account,
+                            index,
+                            otherAccounts.length,
+                          ),
+                        );
+                      }),
+                    ],
                   ],
-                ],
+                ),
               ),
             );
           } else if (provider.hasError) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.errorContainer.withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(40),
-                      ),
-                      child: Icon(
-                        Icons.error_outline_rounded,
-                        size: 40,
-                        color: Theme.of(context).colorScheme.error,
+            return RefreshIndicator(
+              onRefresh: () async {
+                await provider.loadAccounts();
+              },
+              color: Theme.of(context).colorScheme.primary,
+              backgroundColor: Theme.of(context).colorScheme.surface,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Container(
+                  height: MediaQuery.of(context).size.height - 200,
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(32),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.errorContainer.withOpacity(0.3),
+                              borderRadius: BorderRadius.circular(40),
+                            ),
+                            child: Icon(
+                              Icons.error_outline_rounded,
+                              size: 40,
+                              color: Theme.of(context).colorScheme.error,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            'Something went wrong',
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            provider.errorMessage ??
+                                'An error occurred while loading accounts',
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 24),
+                          FilledButton.icon(
+                            onPressed: () => provider.loadAccounts(),
+                            icon: const Icon(Icons.refresh_rounded),
+                            label: const Text('Try Again'),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    Text(
-                      'Something went wrong',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      provider.errorMessage ??
-                          'An error occurred while loading accounts',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 24),
-                    FilledButton.icon(
-                      onPressed: () => provider.loadAccounts(),
-                      icon: const Icon(Icons.refresh_rounded),
-                      label: const Text('Try Again'),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             );
           }
 
           // Default state
-          return Center(
-            child: Text(
-              'Press + to add account',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+          return RefreshIndicator(
+            onRefresh: () async {
+              await provider.loadAccounts();
+            },
+            color: Theme.of(context).colorScheme.primary,
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Container(
+                height: MediaQuery.of(context).size.height - 200,
+                child: Center(
+                  child: Text(
+                    'Press + to add account',
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
               ),
             ),
           );
