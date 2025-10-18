@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../business/providers/account_provider.dart';
 import '../../../business/providers/settings_provider.dart';
@@ -46,6 +47,15 @@ class _AccountListScreenCardState extends State<AccountListScreenCard> {
         FocusScope.of(context).requestFocus();
       }
     });
+  }
+
+  Future<void> _handleRefresh() async {
+    // Provide haptic feedback
+    HapticFeedback.mediumImpact();
+
+    // Refresh accounts
+    final provider = Provider.of<AccountProvider>(context, listen: false);
+    await provider.loadAccounts();
   }
 
   /// Filter accounts based on search query
@@ -468,9 +478,7 @@ class _AccountListScreenCardState extends State<AccountListScreenCard> {
 
             if (filteredAccounts.isEmpty) {
               return RefreshIndicator(
-                onRefresh: () async {
-                  await provider.loadAccounts();
-                },
+                onRefresh: _handleRefresh,
                 color: Theme.of(context).colorScheme.primary,
                 backgroundColor: Theme.of(context).colorScheme.surface,
                 child: SingleChildScrollView(
@@ -492,9 +500,7 @@ class _AccountListScreenCardState extends State<AccountListScreenCard> {
                 .toList();
 
             return RefreshIndicator(
-              onRefresh: () async {
-                await provider.loadAccounts();
-              },
+              onRefresh: _handleRefresh,
               color: Theme.of(context).colorScheme.primary,
               backgroundColor: Theme.of(context).colorScheme.surface,
               child: Container(
@@ -618,9 +624,7 @@ class _AccountListScreenCardState extends State<AccountListScreenCard> {
             );
           } else if (provider.hasError) {
             return RefreshIndicator(
-              onRefresh: () async {
-                await provider.loadAccounts();
-              },
+              onRefresh: _handleRefresh,
               color: Theme.of(context).colorScheme.primary,
               backgroundColor: Theme.of(context).colorScheme.surface,
               child: SingleChildScrollView(
