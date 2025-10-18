@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import '../../../../data/models/account_field.dart';
+import '../../../../business/providers/account_form_provider.dart';
 import '../../qr_scanner_screen/qr_scanner_screen.dart';
 
 class OtpField extends StatefulWidget {
@@ -317,26 +319,62 @@ class _OtpFieldState extends State<OtpField> {
                 ),
               ),
               SizedBox(height: 8),
-              Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: TextFormField(
-                  controller: _secretController,
-                  decoration: InputDecoration(
-                    hintText: 'Enter secret key',
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
-                    ),
-                  ),
-                  style: Theme.of(context).textTheme.bodyLarge,
-                  onChanged: (_) => _onFieldChanged(),
-                ),
+              Consumer<AccountFormProvider>(
+                builder: (context, provider, child) {
+                  final hasError =
+                      provider.getFieldValidationError(
+                        widget.field.id,
+                        'secret',
+                      ) !=
+                      null;
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerHighest
+                              .withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(8),
+                          border: hasError
+                              ? Border.all(
+                                  color: Theme.of(context).colorScheme.error,
+                                  width: 1,
+                                )
+                              : null,
+                        ),
+                        child: TextFormField(
+                          controller: _secretController,
+                          decoration: InputDecoration(
+                            hintText: 'Enter secret key',
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 12,
+                            ),
+                          ),
+                          style: Theme.of(context).textTheme.bodyLarge,
+                          onChanged: (_) => _onFieldChanged(),
+                        ),
+                      ),
+                      if (hasError) ...[
+                        SizedBox(height: 4),
+                        Text(
+                          provider.getFieldValidationError(
+                            widget.field.id,
+                            'secret',
+                          )!,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.error,
+                                fontSize: 12,
+                              ),
+                        ),
+                      ],
+                    ],
+                  );
+                },
               ),
               SizedBox(height: 16),
 

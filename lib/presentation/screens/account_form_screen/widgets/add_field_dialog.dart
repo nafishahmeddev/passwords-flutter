@@ -109,6 +109,26 @@ class AddFieldDialogState extends State<AddFieldDialog> {
                   ),
                   textCapitalization: TextCapitalization.words,
                   style: Theme.of(context).textTheme.bodyLarge,
+                  maxLength: 50,
+                  buildCounter:
+                      (
+                        context, {
+                        required currentLength,
+                        required isFocused,
+                        maxLength,
+                      }) {
+                        return Text(
+                          '$currentLength/$maxLength',
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: currentLength > 45
+                                    ? Theme.of(context).colorScheme.error
+                                    : Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                              ),
+                        );
+                      },
                 ),
               ),
               SizedBox(height: 20),
@@ -276,10 +296,42 @@ class AddFieldDialogState extends State<AddFieldDialog> {
   }
 
   Future<void> _addField() async {
-    if (_labelController.text.trim().isEmpty) {
+    final trimmedLabel = _labelController.text.trim();
+
+    if (trimmedLabel.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Please enter a field label'),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          margin: EdgeInsets.all(16),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+      return;
+    }
+
+    if (trimmedLabel.length < 2) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Field label must be at least 2 characters'),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          margin: EdgeInsets.all(16),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+      return;
+    }
+
+    if (trimmedLabel.length > 50) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Field label must be less than 50 characters'),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
@@ -308,7 +360,7 @@ class AddFieldDialogState extends State<AddFieldDialog> {
 
       final newField = AccountField(
         accountId: accountId,
-        label: _labelController.text.trim(),
+        label: trimmedLabel,
         type: AccountFieldType.fromString(_selectedType),
         order: maxOrder + 1,
       );

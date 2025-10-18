@@ -102,37 +102,70 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<AccountFormProvider>(context, listen: false);
-
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.isCreateMode ? 'Create Account' : 'Edit Account'),
         elevation: 0,
         scrolledUnderElevation: 1,
         actions: [
-          TextButton(
-            onPressed: () async {
-              try {
-                await provider.saveChanges();
-                Navigator.pop(
-                  context,
-                  true,
-                ); // Return true to indicate changes were saved
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Failed to save changes: $e'),
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    margin: EdgeInsets.all(16),
-                    backgroundColor: Theme.of(context).colorScheme.error,
-                  ),
-                );
-              }
+          Consumer<AccountFormProvider>(
+            builder: (context, provider, child) {
+              // Validate current form state
+              final validation = provider.validateForm();
+              final hasErrors = !validation.isValid;
+
+              return Tooltip(
+                message: hasErrors
+                    ? 'Please fix validation errors before saving'
+                    : 'Save changes',
+                child: TextButton(
+                  onPressed: (provider.isSaving || hasErrors)
+                      ? null
+                      : () async {
+                          try {
+                            await provider.saveChanges();
+                            if (provider.state == AccountFormState.loaded) {
+                              Navigator.pop(
+                                context,
+                                true,
+                              ); // Return true to indicate changes were saved
+                            }
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Failed to save changes: $e'),
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                margin: EdgeInsets.all(16),
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.error,
+                              ),
+                            );
+                          }
+                        },
+                  child: provider.isSaving
+                      ? SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(
+                          'Save',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: hasErrors
+                                ? Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface.withOpacity(0.38)
+                                : null,
+                          ),
+                        ),
+                ),
+              );
             },
-            child: Text('Save', style: TextStyle(fontWeight: FontWeight.w600)),
           ),
         ],
       ),
@@ -166,6 +199,65 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Show validation errors if any
+              Consumer<AccountFormProvider>(
+                builder: (context, validationProvider, child) {
+                  if (validationProvider.hasError &&
+                      validationProvider.errorMessage != null) {
+                    return Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Card(
+                        elevation: 0,
+                        color: Theme.of(context).colorScheme.errorContainer,
+                        child: Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.error_outline,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onErrorContainer,
+                                    size: 20,
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Validation Errors',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleSmall
+                                        ?.copyWith(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onErrorContainer,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                validationProvider.errorMessage!,
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onErrorContainer,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+                  return SizedBox.shrink();
+                },
+              ),
+
               // Account name section
               Padding(
                 padding: EdgeInsets.all(16),
@@ -222,21 +314,64 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
                                               ),
                                         ),
                                         SizedBox(height: 4),
-                                        TextField(
-                                          controller: _nameController,
-                                          decoration: InputDecoration(
-                                            hintText: 'Enter account name',
-                                            border: InputBorder.none,
-                                            contentPadding: EdgeInsets.zero,
-                                            isDense: true,
-                                          ),
-                                          style: Theme.of(
-                                            context,
-                                          ).textTheme.bodyLarge,
-                                          onChanged: (value) {
-                                            _debounceUpdateAccount(
-                                              value,
-                                              provider,
+                                        Consumer<AccountFormProvider>(
+                                          builder: (context, provider, child) {
+                                            final hasError =
+                                                provider
+                                                    .getAccountValidationError(
+                                                      'name',
+                                                    ) !=
+                                                null;
+                                            return Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                TextField(
+                                                  controller: _nameController,
+                                                  decoration: InputDecoration(
+                                                    hintText:
+                                                        'Enter account name',
+                                                    border: InputBorder.none,
+                                                    contentPadding:
+                                                        EdgeInsets.zero,
+                                                    isDense: true,
+                                                  ),
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .bodyLarge
+                                                      ?.copyWith(
+                                                        color: hasError
+                                                            ? Theme.of(context)
+                                                                  .colorScheme
+                                                                  .error
+                                                            : null,
+                                                      ),
+                                                  onChanged: (value) {
+                                                    _debounceUpdateAccount(
+                                                      value,
+                                                      provider,
+                                                    );
+                                                  },
+                                                ),
+                                                if (hasError) ...[
+                                                  SizedBox(height: 4),
+                                                  Text(
+                                                    provider
+                                                        .getAccountValidationError(
+                                                          'name',
+                                                        )!,
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .bodySmall
+                                                        ?.copyWith(
+                                                          color: Theme.of(
+                                                            context,
+                                                          ).colorScheme.error,
+                                                          fontSize: 12,
+                                                        ),
+                                                  ),
+                                                ],
+                                              ],
                                             );
                                           },
                                         ),
@@ -382,33 +517,6 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
               ),
             ],
           ),
-        ),
-      );
-    } else if (provider.isSaving) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('Saving changes...'),
-          ],
-        ),
-      );
-    } else if (provider.hasError) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.error, size: 64, color: Colors.red),
-            SizedBox(height: 16),
-            Text(provider.errorMessage ?? 'An error occurred'),
-            SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => provider.loadFields(),
-              child: Text('Retry'),
-            ),
-          ],
         ),
       );
     }
