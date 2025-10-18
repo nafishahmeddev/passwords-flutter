@@ -5,8 +5,10 @@ import '../../../business/providers/account_form_provider.dart';
 import '../../../data/models/account.dart';
 import '../../../data/models/account_field.dart';
 import '../../../data/repositories/account_repository.dart';
+import '../../widgets/account_logo.dart';
 import 'widgets/add_field_dialog.dart';
 import 'widgets/grouped_fields_form.dart';
+import 'widgets/logo_picker_dialog.dart';
 
 class AccountFormScreen extends StatelessWidget {
   final AccountRepository repository;
@@ -98,6 +100,32 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
       );
       provider.updateAccount(updatedAccount);
     });
+  }
+
+  String? _getWebsiteUrl(AccountFormProvider provider) {
+    // Look for website field in current fields
+    for (final field in provider.fields) {
+      if (field.type == AccountFieldType.website) {
+        final url = field.getMetadata('value');
+        if (url.isNotEmpty) {
+          return url;
+        }
+      }
+    }
+    return null;
+  }
+
+  void _showLogoPickerDialog(BuildContext context, AccountFormProvider provider) {
+    showDialog(
+      context: context,
+      builder: (context) => LogoPickerDialog(
+        account: provider.account,
+        websiteUrl: _getWebsiteUrl(provider),
+        onLogoSelected: (logoType, logoData) {
+          provider.updateAccountLogo(logoType, logoData);
+        },
+      ),
+    );
   }
 
   @override
@@ -279,22 +307,15 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
                             children: [
                               Row(
                                 children: [
-                                  Container(
-                                    width: 40,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.primary.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: Icon(
-                                      Icons.account_circle_outlined,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.primary,
-                                      size: 20,
-                                    ),
+                                  Consumer<AccountFormProvider>(
+                                    builder: (context, provider, child) {
+                                      return AccountLogoSelector(
+                                        account: provider.account,
+                                        websiteUrl: _getWebsiteUrl(provider),
+                                        size: 40,
+                                        onTap: () => _showLogoPickerDialog(context, provider),
+                                      );
+                                    },
                                   ),
                                   SizedBox(width: 12),
                                   Expanded(

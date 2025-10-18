@@ -137,6 +137,18 @@ class AccountFormProvider extends ChangeNotifier {
     }
   }
 
+  // Update account logo
+  void updateAccountLogo(LogoType? logoType, String? logoData) {
+    if (_state == AccountFormState.loaded && _account != null) {
+      _account = _account!.copyWith(
+        logoType: logoType,
+        logo: logoData,
+      );
+      _hasUnsavedChanges = true;
+      notifyListeners();
+    }
+  }
+
   // Remove a field from the form
   void removeField(String fieldId) {
     if (_state == AccountFormState.loaded) {

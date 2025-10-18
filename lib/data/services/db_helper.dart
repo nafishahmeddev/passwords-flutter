@@ -18,7 +18,7 @@ class DBHelper {
     String path = join(await getDatabasesPath(), 'passwords.db');
     _db = await openDatabase(
       path,
-      version: 4,
+      version: 1,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE Account(
@@ -46,7 +46,9 @@ class DBHelper {
           )
         ''');
       },
-      onUpgrade: (db, oldVersion, newVersion) async {},
+      onUpgrade: (db, oldVersion, newVersion) async {
+        
+      },
     );
     return _db!;
   }

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../business/providers/account_provider.dart';
+
+import '../../../widgets/account_logo.dart';
 import '../../account_details_screen/account_detail_screen.dart';
-import '../../account_form_screen/account_form_screen.dart';
+
 
 class AccountListItem extends StatelessWidget {
   final dynamic account;
@@ -110,17 +112,13 @@ class AccountListItem extends StatelessWidget {
 
   /// Builds the account icon avatar with dynamic color
   Widget _buildAccountAvatar(BuildContext context, Color color) {
-    // Simplified avatar with clean styling, no shadows or gradients
-    return Container(
-      width: 48,
-      height: 48,
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Center(
-        child: Icon(_getAccountIcon(), color: Colors.white, size: 24),
-      ),
+    // Use the new AccountLogo widget for consistent logo display
+    // Note: In list view, we only use account name for service recognition
+    // Website URL detection requires loading fields, which is done in detail/form screens
+    return AccountLogo(
+      account: account,
+      websiteUrl: null, // No website URL available in list view
+      size: 48,
     );
   }
 
@@ -218,64 +216,5 @@ class AccountListItem extends StatelessWidget {
     );
   }
 
-  IconData _getAccountIcon() {
-    // Determine which icon to show based on account type or name
-    final String nameLower = account.name.toLowerCase();
 
-    // Map of keywords to icons for cleaner organization
-    final Map<IconData, List<String>> iconMappings = {
-      Icons.email_outlined: ['email', 'gmail', 'outlook', 'mail'],
-      Icons.share_outlined: [
-        'social',
-        'facebook',
-        'twitter',
-        'instagram',
-        'linkedin',
-      ],
-      Icons.account_balance_outlined: [
-        'bank',
-        'paypal',
-        'payment',
-        'credit',
-        'card',
-        'finance',
-      ],
-      Icons.shopping_bag_outlined: [
-        'shop',
-        'amazon',
-        'store',
-        'buy',
-        'purchase',
-      ],
-      Icons.work_outline: ['work', 'office', 'company', 'business', 'job'],
-      Icons.sports_esports_outlined: [
-        'game',
-        'steam',
-        'xbox',
-        'playstation',
-        'nintendo',
-      ],
-      Icons.movie_outlined: [
-        'netflix',
-        'youtube',
-        'spotify',
-        'hulu',
-        'disney',
-        'prime',
-        'video',
-      ],
-      Icons.vpn_key_outlined: ['password', 'key', 'security', 'access'],
-      Icons.language: ['web', 'site', 'www', 'http', '.com', '.org', '.net'],
-    };
-
-    // Find the first matching icon
-    for (final entry in iconMappings.entries) {
-      if (entry.value.any((keyword) => nameLower.contains(keyword))) {
-        return entry.key;
-      }
-    }
-
-    // Default icon if no match found
-    return Icons.account_circle_outlined;
-  }
 }

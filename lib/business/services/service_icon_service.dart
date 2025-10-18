@@ -1,0 +1,299 @@
+import 'package:flutter/material.dart';
+
+class KnownServiceIcon {
+  final String name;
+  final List<String> keywords;
+  final IconData icon;
+  final Color? color;
+
+  const KnownServiceIcon({
+    required this.name,
+    required this.keywords,
+    required this.icon,
+    this.color,
+  });
+}
+
+class ServiceIconService {
+  static const List<KnownServiceIcon> _knownServices = [
+    // Social Media
+    KnownServiceIcon(
+      name: 'Facebook',
+      keywords: ['facebook', 'fb', 'meta'],
+      icon: Icons.facebook,
+      color: Color(0xFF1877F2),
+    ),
+    KnownServiceIcon(
+      name: 'Twitter/X',
+      keywords: ['twitter', 'x.com', 'x', 'tweet'],
+      icon: Icons.alternate_email,
+      color: Color(0xFF1DA1F2),
+    ),
+    KnownServiceIcon(
+      name: 'Instagram',
+      keywords: ['instagram', 'insta', 'ig'],
+      icon: Icons.camera_alt,
+      color: Color(0xFFE4405F),
+    ),
+    KnownServiceIcon(
+      name: 'LinkedIn',
+      keywords: ['linkedin', 'linked'],
+      icon: Icons.business_center,
+      color: Color(0xFF0A66C2),
+    ),
+    KnownServiceIcon(
+      name: 'YouTube',
+      keywords: ['youtube', 'yt'],
+      icon: Icons.play_circle_filled,
+      color: Color(0xFFFF0000),
+    ),
+    KnownServiceIcon(
+      name: 'TikTok',
+      keywords: ['tiktok', 'tik tok'],
+      icon: Icons.music_video,
+      color: Color(0xFF000000),
+    ),
+    KnownServiceIcon(
+      name: 'WhatsApp',
+      keywords: ['whatsapp', 'whats app', 'wa'],
+      icon: Icons.chat,
+      color: Color(0xFF25D366),
+    ),
+    KnownServiceIcon(
+      name: 'Telegram',
+      keywords: ['telegram', 'tg'],
+      icon: Icons.send,
+      color: Color(0xFF0088CC),
+    ),
+    KnownServiceIcon(
+      name: 'Discord',
+      keywords: ['discord'],
+      icon: Icons.forum,
+      color: Color(0xFF5865F2),
+    ),
+
+    // Email Services
+    KnownServiceIcon(
+      name: 'Gmail',
+      keywords: ['gmail', 'google mail'],
+      icon: Icons.email,
+      color: Color(0xFFEA4335),
+    ),
+    KnownServiceIcon(
+      name: 'Outlook',
+      keywords: ['outlook', 'hotmail', 'live', 'msn'],
+      icon: Icons.mail_outline,
+      color: Color(0xFF0078D4),
+    ),
+    KnownServiceIcon(
+      name: 'Yahoo Mail',
+      keywords: ['yahoo', 'ymail'],
+      icon: Icons.alternate_email,
+      color: Color(0xFF6001D2),
+    ),
+
+    // Cloud Storage
+    KnownServiceIcon(
+      name: 'Google Drive',
+      keywords: ['google drive', 'drive', 'gdrive'],
+      icon: Icons.cloud,
+      color: Color(0xFF4285F4),
+    ),
+    KnownServiceIcon(
+      name: 'Dropbox',
+      keywords: ['dropbox'],
+      icon: Icons.cloud_upload,
+      color: Color(0xFF0061FF),
+    ),
+    KnownServiceIcon(
+      name: 'OneDrive',
+      keywords: ['onedrive', 'one drive'],
+      icon: Icons.cloud_circle,
+      color: Color(0xFF0078D4),
+    ),
+    KnownServiceIcon(
+      name: 'iCloud',
+      keywords: ['icloud', 'apple cloud'],
+      icon: Icons.cloud_outlined,
+      color: Color(0xFF007AFF),
+    ),
+
+    // Streaming Services
+    KnownServiceIcon(
+      name: 'Netflix',
+      keywords: ['netflix'],
+      icon: Icons.tv,
+      color: Color(0xFFE50914),
+    ),
+    KnownServiceIcon(
+      name: 'Spotify',
+      keywords: ['spotify'],
+      icon: Icons.music_note,
+      color: Color(0xFF1DB954),
+    ),
+    KnownServiceIcon(
+      name: 'Apple Music',
+      keywords: ['apple music', 'itunes'],
+      icon: Icons.library_music,
+      color: Color(0xFFFA243C),
+    ),
+    KnownServiceIcon(
+      name: 'Amazon Prime',
+      keywords: ['amazon prime', 'prime video', 'prime'],
+      icon: Icons.local_movies,
+      color: Color(0xFF00A8E1),
+    ),
+    KnownServiceIcon(
+      name: 'Disney+',
+      keywords: ['disney', 'disney+', 'disney plus'],
+      icon: Icons.castle,
+      color: Color(0xFF113CCF),
+    ),
+
+    // Gaming
+    KnownServiceIcon(
+      name: 'Steam',
+      keywords: ['steam', 'valve'],
+      icon: Icons.games,
+      color: Color(0xFF171A21),
+    ),
+    KnownServiceIcon(
+      name: 'PlayStation',
+      keywords: ['playstation', 'psn', 'ps4', 'ps5', 'sony'],
+      icon: Icons.sports_esports,
+      color: Color(0xFF003791),
+    ),
+    KnownServiceIcon(
+      name: 'Xbox',
+      keywords: ['xbox', 'microsoft gaming'],
+      icon: Icons.videogame_asset,
+      color: Color(0xFF107C10),
+    ),
+    KnownServiceIcon(
+      name: 'Nintendo',
+      keywords: ['nintendo', 'switch'],
+      icon: Icons.gamepad,
+      color: Color(0xFFE60012),
+    ),
+
+    // Financial
+    KnownServiceIcon(
+      name: 'PayPal',
+      keywords: ['paypal'],
+      icon: Icons.payment,
+      color: Color(0xFF00457C),
+    ),
+    KnownServiceIcon(
+      name: 'Bank',
+      keywords: ['bank', 'banking', 'chase', 'wells fargo', 'bofa', 'citibank'],
+      icon: Icons.account_balance,
+      color: Color(0xFF2E7D32),
+    ),
+    KnownServiceIcon(
+      name: 'Credit Card',
+      keywords: ['visa', 'mastercard', 'amex', 'discover', 'credit'],
+      icon: Icons.credit_card,
+      color: Color(0xFF1976D2),
+    ),
+
+    // Work & Productivity
+    KnownServiceIcon(
+      name: 'Microsoft Office',
+      keywords: ['microsoft', 'office', 'word', 'excel', 'powerpoint'],
+      icon: Icons.work,
+      color: Color(0xFF0078D4),
+    ),
+    KnownServiceIcon(
+      name: 'Google Workspace',
+      keywords: ['google workspace', 'gsuite', 'google docs', 'google sheets'],
+      icon: Icons.business,
+      color: Color(0xFF4285F4),
+    ),
+    KnownServiceIcon(
+      name: 'Slack',
+      keywords: ['slack'],
+      icon: Icons.chat_bubble,
+      color: Color(0xFF4A154B),
+    ),
+    KnownServiceIcon(
+      name: 'Zoom',
+      keywords: ['zoom'],
+      icon: Icons.video_call,
+      color: Color(0xFF2D8CFF),
+    ),
+    KnownServiceIcon(
+      name: 'GitHub',
+      keywords: ['github', 'git'],
+      icon: Icons.code,
+      color: Color(0xFF181717),
+    ),
+
+    // Shopping
+    KnownServiceIcon(
+      name: 'Amazon',
+      keywords: ['amazon', 'aws'],
+      icon: Icons.shopping_cart,
+      color: Color(0xFFFF9900),
+    ),
+    KnownServiceIcon(
+      name: 'eBay',
+      keywords: ['ebay'],
+      icon: Icons.store,
+      color: Color(0xFFE53238),
+    ),
+    KnownServiceIcon(
+      name: 'Shopping',
+      keywords: ['shop', 'store', 'retail', 'buy'],
+      icon: Icons.shopping_bag,
+      color: Color(0xFF9C27B0),
+    ),
+
+    // Default/Fallback
+    KnownServiceIcon(
+      name: 'Website',
+      keywords: ['website', 'web', 'site', 'www'],
+      icon: Icons.language,
+      color: Color(0xFF757575),
+    ),
+    KnownServiceIcon(
+      name: 'App',
+      keywords: ['app', 'application', 'mobile'],
+      icon: Icons.apps,
+      color: Color(0xFF757575),
+    ),
+  ];
+
+  /// Find a known service icon based on account name or website URL
+  static KnownServiceIcon? findServiceIcon(String? accountName, [String? websiteUrl]) {
+    if (accountName == null && websiteUrl == null) return null;
+
+    final searchText = '${accountName ?? ''} ${websiteUrl ?? ''}'.toLowerCase();
+
+    // Find exact or partial matches
+    for (final service in _knownServices) {
+      for (final keyword in service.keywords) {
+        if (searchText.contains(keyword.toLowerCase())) {
+          return service;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /// Get all available service icons for selection
+  static List<KnownServiceIcon> getAllServices() {
+    return List.unmodifiable(_knownServices);
+  }
+
+  /// Find services matching a search query
+  static List<KnownServiceIcon> searchServices(String query) {
+    if (query.isEmpty) return getAllServices();
+
+    final queryLower = query.toLowerCase();
+    return _knownServices.where((service) {
+      return service.name.toLowerCase().contains(queryLower) ||
+          service.keywords.any((keyword) => keyword.toLowerCase().contains(queryLower));
+    }).toList();
+  }
+}
