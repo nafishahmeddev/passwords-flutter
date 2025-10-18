@@ -119,154 +119,155 @@ class MainApp extends StatelessWidget {
         return Listener(
           onPointerDown: (_) => settingsProvider.recordUserActivity(),
           child: MaterialApp(
-          title: 'Passwords',
-          themeMode: settingsProvider.themeMode,
-          theme: ThemeData(
-            useMaterial3: true,
-            colorScheme: lightColorScheme,
-            brightness: Brightness.light,
-            // Enhanced typography
-            textTheme: textTheme,
-            // Enhanced component themes
-            cardTheme: CardThemeData(
-              elevation: 0,
-              color: lightColorScheme.surfaceContainerLowest,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(16)),
-              ),
-            ),
-            appBarTheme: AppBarTheme(
-              elevation: 0,
-              backgroundColor: lightColorScheme.surface,
-              foregroundColor: lightColorScheme.onSurface,
-              surfaceTintColor: Colors.transparent,
-              titleTextStyle: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: lightColorScheme.onSurface,
-                fontFamily: textTheme.headlineMedium?.fontFamily,
-              ),
-            ),
-            filledButtonTheme: FilledButtonThemeData(
-              style: FilledButton.styleFrom(
+            title: 'Passwords',
+            themeMode: settingsProvider.themeMode,
+            theme: ThemeData(
+              useMaterial3: true,
+              colorScheme: lightColorScheme,
+              brightness: Brightness.light,
+              // Enhanced typography
+              textTheme: textTheme,
+              // Enhanced component themes
+              cardTheme: CardThemeData(
                 elevation: 0,
+                color: lightColorScheme.surfaceContainerLowest,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.all(Radius.circular(16)),
+                ),
+              ),
+              appBarTheme: AppBarTheme(
+                elevation: 0,
+                backgroundColor: lightColorScheme.surface,
+                foregroundColor: lightColorScheme.onSurface,
+                surfaceTintColor: Colors.transparent,
+                titleTextStyle: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: lightColorScheme.onSurface,
+                  fontFamily: textTheme.headlineMedium?.fontFamily,
+                ),
+              ),
+              filledButtonTheme: FilledButtonThemeData(
+                style: FilledButton.styleFrom(
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
             ),
-          ),
-          darkTheme: ThemeData(
-            useMaterial3: true,
-            colorScheme: darkColorScheme,
-            brightness: Brightness.dark,
-            // Same typography for dark theme
-            textTheme: textTheme,
-            // Enhanced component themes for dark
-            cardTheme: CardThemeData(
-              elevation: 0,
-              color: darkColorScheme.surfaceContainer,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(16)),
-              ),
-            ),
-            appBarTheme: AppBarTheme(
-              elevation: 0,
-              backgroundColor: darkColorScheme.surface,
-              foregroundColor: darkColorScheme.onSurface,
-              surfaceTintColor: Colors.transparent,
-              titleTextStyle: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: darkColorScheme.onSurface,
-                fontFamily: textTheme.headlineMedium?.fontFamily,
-              ),
-            ),
-            filledButtonTheme: FilledButtonThemeData(
-              style: FilledButton.styleFrom(
+            darkTheme: ThemeData(
+              useMaterial3: true,
+              colorScheme: darkColorScheme,
+              brightness: Brightness.dark,
+              // Same typography for dark theme
+              textTheme: textTheme,
+              // Enhanced component themes for dark
+              cardTheme: CardThemeData(
                 elevation: 0,
+                color: darkColorScheme.surfaceContainer,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.all(Radius.circular(16)),
+                ),
+              ),
+              appBarTheme: AppBarTheme(
+                elevation: 0,
+                backgroundColor: darkColorScheme.surface,
+                foregroundColor: darkColorScheme.onSurface,
+                surfaceTintColor: Colors.transparent,
+                titleTextStyle: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: darkColorScheme.onSurface,
+                  fontFamily: textTheme.headlineMedium?.fontFamily,
+                ),
+              ),
+              filledButtonTheme: FilledButtonThemeData(
+                style: FilledButton.styleFrom(
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
             ),
-          ),
-          home: Consumer<SettingsProvider>(
-            builder: (context, settingsProvider, child) {
-              // Based on auth status, show either lock screen or home screen
-              switch (settingsProvider.authStatus) {
-                case AuthStatus.authenticated:
-                  return HomeScreen();
-                case AuthStatus.unauthenticated:
-                  return LockScreen();
-                case AuthStatus.initial:
-                  // While checking auth status, show a splash screen
-                  return Scaffold(
-                    body: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            width: 80,
-                            height: 80,
-                            decoration: BoxDecoration(
-                              color: lightColorScheme.primaryContainer,
-                              borderRadius: BorderRadius.circular(20),
+            home: Consumer<SettingsProvider>(
+              builder: (context, settingsProvider, child) {
+                // Based on auth status, show either lock screen or home screen
+                switch (settingsProvider.authStatus) {
+                  case AuthStatus.authenticated:
+                    return HomeScreen();
+                  case AuthStatus.unauthenticated:
+                    return LockScreen();
+                  case AuthStatus.initial:
+                    // While checking auth status, show a splash screen
+                    return Scaffold(
+                      body: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                color: lightColorScheme.primaryContainer,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Icon(
+                                Icons.lock_outline_rounded,
+                                size: 40,
+                                color: lightColorScheme.onPrimaryContainer,
+                              ),
                             ),
-                            child: Icon(
-                              Icons.lock_outline_rounded,
-                              size: 40,
-                              color: lightColorScheme.onPrimaryContainer,
-                            ),
-                          ),
-                          SizedBox(height: 24),
-                          Text('Passwords', style: textTheme.headlineLarge),
-                          SizedBox(height: 16),
-                          CircularProgressIndicator(),
-                        ],
+                            SizedBox(height: 24),
+                            Text('Passwords', style: textTheme.headlineLarge),
+                            SizedBox(height: 16),
+                            CircularProgressIndicator(),
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                case AuthStatus.error:
-                  // Show error message
-                  return Scaffold(
-                    body: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.error_outline,
-                            size: 64,
-                            color: lightColorScheme.error,
-                          ),
-                          SizedBox(height: 16),
-                          Text(
-                            'Authentication Error',
-                            style: textTheme.titleLarge,
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            settingsProvider.errorMessage ?? 'Unknown error',
-                            textAlign: TextAlign.center,
-                            style: textTheme.bodyMedium?.copyWith(
-                              color: lightColorScheme.onSurfaceVariant,
+                    );
+                  case AuthStatus.error:
+                    // Show error message
+                    return Scaffold(
+                      body: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.error_outline,
+                              size: 64,
+                              color: lightColorScheme.error,
                             ),
-                          ),
-                          SizedBox(height: 24),
-                          ElevatedButton(
-                            onPressed: () {
-                              settingsProvider.checkAuthStatus();
-                            },
-                            child: Text('Retry'),
-                          ),
-                        ],
+                            SizedBox(height: 16),
+                            Text(
+                              'Authentication Error',
+                              style: textTheme.titleLarge,
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              settingsProvider.errorMessage ?? 'Unknown error',
+                              textAlign: TextAlign.center,
+                              style: textTheme.bodyMedium?.copyWith(
+                                color: lightColorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            SizedBox(height: 24),
+                            ElevatedButton(
+                              onPressed: () {
+                                settingsProvider.checkAuthStatus();
+                              },
+                              child: Text('Retry'),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-              }
-            },
+                    );
+                }
+              },
+            ),
           ),
-        ));
+        );
       },
     );
   }
