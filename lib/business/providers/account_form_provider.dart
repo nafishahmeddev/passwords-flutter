@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import '../../data/models/account.dart';
 import '../../data/models/account_field.dart';
 import '../../data/repositories/account_repository.dart';
+import '../services/favicon_service.dart';
+import '../services/service_icon_service.dart';
 import 'account_event.dart';
 import 'account_event_bus.dart';
 
@@ -39,6 +41,10 @@ class AccountFormProvider extends ChangeNotifier {
   String? _errorMessage;
   bool _isInitialLoad = true;
 
+  // Favicon loading state
+  bool _isLoadingFavicon = false;
+  Map<String, Uint8List?> _cachedFavicons = {}; // URL -> favicon data
+
   // Validation state
   Map<String, String> _validationErrors = {};
   Map<String, Map<String, String>> _fieldValidationErrors = {};
@@ -63,6 +69,8 @@ class AccountFormProvider extends ChangeNotifier {
   bool get isLoading => _state == AccountFormState.loading;
   bool get isSaving => _state == AccountFormState.saving;
   bool get hasError => _state == AccountFormState.error;
+  bool get isLoadingFavicon => _isLoadingFavicon;
+  Map<String, Uint8List?> get cachedFavicons => _cachedFavicons;
   Map<String, String> get validationErrors => _validationErrors;
   Map<String, Map<String, String>> get fieldValidationErrors =>
       _fieldValidationErrors;
@@ -116,6 +124,18 @@ class AccountFormProvider extends ChangeNotifier {
       }).toList();
       _hasUnsavedChanges = true;
       validateField(updatedField);
+      
+      // Auto-fetch favicon for website fields
+      if (updatedField.type == AccountFieldType.website) {
+        _autoFetchFaviconIfNeeded(updatedField);
+      }
+      
+      // Auto-assign logo when name or website fields change
+      if (updatedField.type == AccountFieldType.website || 
+          updatedField.getMetadata('field_name') == 'name') {
+        _autoAssignLogoIfNeeded();
+      }
+      
       notifyListeners();
     }
   }
@@ -126,6 +146,12 @@ class AccountFormProvider extends ChangeNotifier {
       _fields = List<AccountField>.from(_fields)..add(newField);
       _hasUnsavedChanges = true;
       validateField(newField);
+      
+      // Auto-fetch favicon for website fields
+      if (newField.type == AccountFieldType.website) {
+        _autoFetchFaviconIfNeeded(newField);
+      }
+      
       notifyListeners();
     }
   }
@@ -137,6 +163,10 @@ class AccountFormProvider extends ChangeNotifier {
       _account = updatedAccount;
       _hasUnsavedChanges = true;
       _validateAccount();
+      
+      // Auto-assign logo when account name changes
+      _autoAssignLogoIfNeeded();
+      
       notifyListeners();
     }
   }
@@ -527,5 +557,90 @@ class AccountFormProvider extends ChangeNotifier {
   // Discard changes and reload from database
   Future<void> discardChanges() async {
     await loadFields();
+  }
+
+  // Auto-fetch favicon for website fields if service is not known
+  Future<void> _autoFetchFaviconIfNeeded(AccountField websiteField) async {
+    final url = websiteField.getMetadata('value');
+    if (url.isEmpty || !FaviconService.isValidUrl(url)) return;
+
+    // Check if service is already known
+    final knownService = ServiceIconService.findServiceIcon(_account?.name, url);
+    if (knownService != null) {
+      // Service is known, no need to fetch favicon
+      return;
+    }
+
+    // Check if we already have this favicon cached
+    if (_cachedFavicons.containsKey(url)) return;
+
+    // Check if we're already loading
+    if (_isLoadingFavicon) return;
+
+    try {
+      _isLoadingFavicon = true;
+      notifyListeners();
+
+      final faviconData = await FaviconService.fetchFavicon(url);
+      _cachedFavicons[url] = faviconData;
+
+      // Auto-assign logo if this is a new account
+      _autoAssignLogoIfNeeded();
+    } catch (e) {
+      print('Failed to auto-fetch favicon for $url: $e');
+      _cachedFavicons[url] = null; // Cache the failure
+    } finally {
+      _isLoadingFavicon = false;
+      notifyListeners();
+    }
+  }
+
+  // Auto-assign logo based on priority: service detection > favicon > fallback
+  void _autoAssignLogoIfNeeded() {
+    // Only auto-assign for new accounts (create mode)
+    if (!isCreateMode || _account?.logo != null) return;
+    
+    // Priority 1: Check for service detection
+    final websiteUrls = getWebsiteUrls();
+    final firstWebsiteUrl = websiteUrls.isNotEmpty ? websiteUrls.first : null;
+    final detectedService = ServiceIconService.findServiceIcon(_account?.name, firstWebsiteUrl);
+    
+    if (detectedService != null) {
+      updateAccountLogo(LogoType.icon, detectedService.name);
+      return;
+    }
+    
+    // Priority 2: Use first available cached favicon
+    final firstCachedFavicon = websiteUrls
+        .where((url) => _cachedFavicons.containsKey(url) && _cachedFavicons[url] != null)
+        .firstOrNull;
+    
+    if (firstCachedFavicon != null) {
+      updateAccountLogo(LogoType.url, firstCachedFavicon);
+      return;
+    }
+    
+    // Priority 3: Fallback - let AccountLogo widget handle this
+    // No explicit action needed, widget will show fallback
+  }
+
+  // Get all website URLs from fields
+  List<String> getWebsiteUrls() {
+    return _fields
+        .where((field) => field.type == AccountFieldType.website)
+        .map((field) => field.getMetadata('value'))
+        .where((url) => url.isNotEmpty && FaviconService.isValidUrl(url))
+        .toList();
+  }
+
+  // Check if save should be disabled (while loading favicon)
+  bool get canSave {
+    if (_isLoadingFavicon || _state != AccountFormState.loaded) {
+      return false;
+    }
+    
+    // For create mode, allow saving when form is valid (even without changes)
+    // For edit mode, require unsaved changes
+    return isCreateMode || _hasUnsavedChanges;
   }
 }

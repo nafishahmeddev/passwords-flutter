@@ -19,55 +19,55 @@ class ServiceIconService {
     // Social Media
     KnownServiceIcon(
       name: 'Facebook',
-      keywords: ['facebook', 'fb', 'meta'],
+      keywords: ['facebook', 'fb', 'meta', 'facebook.com'],
       icon: Icons.facebook,
       color: Color(0xFF1877F2),
     ),
     KnownServiceIcon(
       name: 'Twitter/X',
-      keywords: ['twitter', 'x.com', 'x', 'tweet'],
+      keywords: ['twitter', 'x.com', 'x', 'tweet', 'twitter.com'],
       icon: Icons.alternate_email,
       color: Color(0xFF1DA1F2),
     ),
     KnownServiceIcon(
       name: 'Instagram',
-      keywords: ['instagram', 'insta', 'ig'],
+      keywords: ['instagram', 'insta', 'ig', 'instagram.com'],
       icon: Icons.camera_alt,
       color: Color(0xFFE4405F),
     ),
     KnownServiceIcon(
       name: 'LinkedIn',
-      keywords: ['linkedin', 'linked'],
+      keywords: ['linkedin', 'linked', 'linkedin.com'],
       icon: Icons.business_center,
       color: Color(0xFF0A66C2),
     ),
     KnownServiceIcon(
       name: 'YouTube',
-      keywords: ['youtube', 'yt'],
+      keywords: ['youtube', 'yt', 'youtube.com'],
       icon: Icons.play_circle_filled,
       color: Color(0xFFFF0000),
     ),
     KnownServiceIcon(
       name: 'TikTok',
-      keywords: ['tiktok', 'tik tok'],
+      keywords: ['tiktok', 'tik tok', 'tiktok.com'],
       icon: Icons.music_video,
       color: Color(0xFF000000),
     ),
     KnownServiceIcon(
       name: 'WhatsApp',
-      keywords: ['whatsapp', 'whats app', 'wa'],
+      keywords: ['whatsapp', 'whats app', 'wa', 'whatsapp.com'],
       icon: Icons.chat,
       color: Color(0xFF25D366),
     ),
     KnownServiceIcon(
       name: 'Telegram',
-      keywords: ['telegram', 'tg'],
+      keywords: ['telegram', 'tg', 'telegram.org', 't.me'],
       icon: Icons.send,
       color: Color(0xFF0088CC),
     ),
     KnownServiceIcon(
       name: 'Discord',
-      keywords: ['discord'],
+      keywords: ['discord', 'discord.com', 'discord.gg'],
       icon: Icons.forum,
       color: Color(0xFF5865F2),
     ),
@@ -75,19 +75,19 @@ class ServiceIconService {
     // Email Services
     KnownServiceIcon(
       name: 'Gmail',
-      keywords: ['gmail', 'google mail'],
+      keywords: ['gmail', 'google mail', 'gmail.com', 'mail.google.com'],
       icon: Icons.email,
       color: Color(0xFFEA4335),
     ),
     KnownServiceIcon(
       name: 'Outlook',
-      keywords: ['outlook', 'hotmail', 'live', 'msn'],
+      keywords: ['outlook', 'hotmail', 'live', 'msn', 'outlook.com', 'hotmail.com', 'live.com'],
       icon: Icons.mail_outline,
       color: Color(0xFF0078D4),
     ),
     KnownServiceIcon(
       name: 'Yahoo Mail',
-      keywords: ['yahoo', 'ymail'],
+      keywords: ['yahoo', 'ymail', 'yahoo.com', 'ymail.com'],
       icon: Icons.alternate_email,
       color: Color(0xFF6001D2),
     ),
@@ -95,25 +95,25 @@ class ServiceIconService {
     // Cloud Storage
     KnownServiceIcon(
       name: 'Google Drive',
-      keywords: ['google drive', 'drive', 'gdrive'],
+      keywords: ['google drive', 'drive', 'gdrive', 'drive.google.com'],
       icon: Icons.cloud,
       color: Color(0xFF4285F4),
     ),
     KnownServiceIcon(
       name: 'Dropbox',
-      keywords: ['dropbox'],
+      keywords: ['dropbox', 'dropbox.com'],
       icon: Icons.cloud_upload,
       color: Color(0xFF0061FF),
     ),
     KnownServiceIcon(
       name: 'OneDrive',
-      keywords: ['onedrive', 'one drive'],
+      keywords: ['onedrive', 'one drive', 'onedrive.live.com'],
       icon: Icons.cloud_circle,
       color: Color(0xFF0078D4),
     ),
     KnownServiceIcon(
       name: 'iCloud',
-      keywords: ['icloud', 'apple cloud'],
+      keywords: ['icloud', 'apple cloud', 'icloud.com'],
       icon: Icons.cloud_outlined,
       color: Color(0xFF007AFF),
     ),
@@ -121,13 +121,13 @@ class ServiceIconService {
     // Streaming Services
     KnownServiceIcon(
       name: 'Netflix',
-      keywords: ['netflix'],
+      keywords: ['netflix', 'netflix.com'],
       icon: Icons.tv,
       color: Color(0xFFE50914),
     ),
     KnownServiceIcon(
       name: 'Spotify',
-      keywords: ['spotify'],
+      keywords: ['spotify', 'spotify.com'],
       icon: Icons.music_note,
       color: Color(0xFF1DB954),
     ),
@@ -223,7 +223,7 @@ class ServiceIconService {
     ),
     KnownServiceIcon(
       name: 'GitHub',
-      keywords: ['github', 'git'],
+      keywords: ['github', 'git', 'github.com'],
       icon: Icons.code,
       color: Color(0xFF181717),
     ),
@@ -267,9 +267,32 @@ class ServiceIconService {
   static KnownServiceIcon? findServiceIcon(String? accountName, [String? websiteUrl]) {
     if (accountName == null && websiteUrl == null) return null;
 
-    final searchText = '${accountName ?? ''} ${websiteUrl ?? ''}'.toLowerCase();
+    // Extract domain from URL for better matching
+    String? domain;
+    if (websiteUrl != null) {
+      try {
+        final uri = Uri.parse(websiteUrl.toLowerCase());
+        domain = uri.host.replaceFirst('www.', '');
+      } catch (e) {
+        // Invalid URL, ignore domain matching
+      }
+    }
 
-    // Find exact or partial matches
+    final searchText = '${accountName ?? ''} ${websiteUrl ?? ''} ${domain ?? ''}'.toLowerCase();
+
+    // First, try exact domain matching for better accuracy
+    if (domain != null) {
+      for (final service in _knownServices) {
+        for (final keyword in service.keywords) {
+          // Check if domain contains the keyword (e.g., facebook.com matches 'facebook')
+          if (domain.contains(keyword.toLowerCase()) || keyword.toLowerCase().contains(domain)) {
+            return service;
+          }
+        }
+      }
+    }
+
+    // Fallback to general text matching
     for (final service in _knownServices) {
       for (final keyword in service.keywords) {
         if (searchText.contains(keyword.toLowerCase())) {
@@ -284,6 +307,17 @@ class ServiceIconService {
   /// Get all available service icons for selection
   static List<KnownServiceIcon> getAllServices() {
     return List.unmodifiable(_knownServices);
+  }
+
+  /// Find a service by its exact name
+  static KnownServiceIcon? findServiceByName(String serviceName) {
+    try {
+      return _knownServices.firstWhere(
+        (service) => service.name.toLowerCase() == serviceName.toLowerCase(),
+      );
+    } catch (e) {
+      return null;
+    }
   }
 
   /// Find services matching a search query
