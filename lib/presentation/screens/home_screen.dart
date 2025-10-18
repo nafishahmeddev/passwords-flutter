@@ -77,9 +77,12 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: _currentIndex == 0
           ? FloatingActionButton(
-              onPressed: () {
+              onPressed: () async {
                 // Show the "Add Account" options
-                _showAddAccountOptions(context);
+                final action = await _showAddAccountOptions(context);
+                if (action != null && mounted) {
+                  await _handleAddAccountAction(action);
+                }
               },
               child: Icon(Icons.add),
               tooltip: 'Add Account',
@@ -88,8 +91,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _showAddAccountOptions(BuildContext context) {
-    showModalBottomSheet(
+  Future<String?> _showAddAccountOptions(BuildContext context) {
+    return showModalBottomSheet<String>(
       context: context,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -124,59 +127,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   title: Text('Create New Account'),
                   subtitle: Text('Start with a blank account'),
-                  onTap: () async {
-                    Navigator.pop(context);
-
-                    // Import necessary classes
-                    final provider = Provider.of<AccountProvider>(
-                      context,
-                      listen: false,
-                    );
-
-                    // Get template fields for the selected type
-                    List<AccountField> templateFields = getTemplateFields(
-                      "Login",
-                      'temp',
-                    );
-
-                    // Navigate to create new account with template fields
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => AccountFormScreen(
-                          repository: provider.repository,
-                          isCreateMode: true,
-                          templateFields: templateFields,
-                        ),
-                      ),
-                    );
-
-                    // If account was successfully created, navigate to its detail screen
-                    if (result == true) {
-                      // Reload accounts to get the newly created account
-                      await provider.loadAccounts();
-
-                      // Find the newly created account
-                      if (provider.state == AccountState.loaded &&
-                          provider.accounts.isNotEmpty) {
-                        final newestAccount = provider.accounts.reduce(
-                          (a, b) => a.createdAt > b.createdAt ? a : b,
-                        );
-
-                        // Navigate to the detail screen of the new account
-                        if (mounted) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => AccountDetailScreen(
-                                account: newestAccount,
-                                repository: provider.repository,
-                              ),
-                            ),
-                          );
-                        }
-                      }
-                    }
+                  onTap: () {
+                    Navigator.pop(context, 'create_account');
                   },
                 ),
                 ListTile(
@@ -195,48 +147,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   title: Text('Scan QR Code'),
                   subtitle: Text('Import account from QR code'),
-                  onTap: () async {
-                    Navigator.pop(context);
-
-                    // Navigate to QR scanner
-                    final scannedData = await Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => QrScannerScreen()),
-                    );
-
-                    if (scannedData != null &&
-                        scannedData is String &&
-                        scannedData.isNotEmpty) {
-                      // Process the QR code data and create an account based on it
-                      // Here we could parse QR code data for specific formats like OTP
-                      // For now, just show a dialog with the scanned data
-                      showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: Text('QR Code Scanned'),
-                          content: Text(
-                            'Successfully scanned QR code data. Would you like to create an account with this data?',
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              child: Text('Cancel'),
-                            ),
-                            FilledButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                                // Process and create account with QR data
-                                // This would typically involve parsing the QR data and
-                                // navigating to the AccountFormScreen with pre-populated fields
-                              },
-                              child: Text('Create Account'),
-                            ),
-                          ],
-                        ),
-                      );
-                    }
+                  onTap: () {
+                    Navigator.pop(context, 'scan_qr');
                   },
                 ),
               ],
@@ -245,5 +157,95 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       },
     );
+  }
+
+  Future<void> _handleAddAccountAction(String action) async {
+    if (action == 'create_account') {
+      // Import necessary classes
+      final provider = Provider.of<AccountProvider>(context, listen: false);
+
+      // Get template fields for the selected type
+      List<AccountField> templateFields = getTemplateFields("Login", 'temp');
+
+      // Navigate to create new account with template fields
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => AccountFormScreen(
+            repository: provider.repository,
+            isCreateMode: true,
+            templateFields: templateFields,
+          ),
+        ),
+      );
+
+      // If account was successfully created, navigate to its detail screen
+      if (result == true && mounted) {
+        // Reload accounts to get the newly created account
+        await provider.loadAccounts();
+
+        // Find the newly created account
+        if (provider.state == AccountState.loaded &&
+            provider.accounts.isNotEmpty) {
+          final newestAccount = provider.accounts.reduce(
+            (a, b) => a.createdAt > b.createdAt ? a : b,
+          );
+
+          // Navigate to the detail screen of the new account
+          if (mounted) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => AccountDetailScreen(
+                  account: newestAccount,
+                  repository: provider.repository,
+                ),
+              ),
+            );
+          }
+        }
+      }
+    } else if (action == 'scan_qr') {
+      // Navigate to QR scanner
+      final scannedData = await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => QrScannerScreen()),
+      );
+
+      if (scannedData != null &&
+          scannedData is String &&
+          scannedData.isNotEmpty &&
+          mounted) {
+        // Process the QR code data and create an account based on it
+        // Here we could parse QR code data for specific formats like OTP
+        // For now, just show a dialog with the scanned data
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('QR Code Scanned'),
+            content: Text(
+              'Successfully scanned QR code data. Would you like to create an account with this data?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  // Process and create account with QR data
+                  // This would typically involve parsing the QR data and
+                  // navigating to the AccountFormScreen with pre-populated fields
+                },
+                child: Text('Create Account'),
+              ),
+            ],
+          ),
+        );
+      }
+    }
   }
 }
