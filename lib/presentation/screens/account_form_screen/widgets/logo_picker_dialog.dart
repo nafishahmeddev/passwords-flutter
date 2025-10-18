@@ -49,8 +49,6 @@ class _LogoPickerDialogState extends State<LogoPickerDialog> {
 
   void _triggerFaviconFetching() {
     if (widget.formProvider != null) {
-      final websiteUrls = widget.formProvider!.getWebsiteUrls();
-      print('DEBUG: Triggering favicon fetching for URLs: $websiteUrls');
       // Favicon fetching is automatically triggered by the provider when fields are updated
       // or when auto-assignment runs, so we don't need to manually trigger it here
     }
@@ -102,11 +100,20 @@ class _LogoPickerDialogState extends State<LogoPickerDialog> {
 
   void _useServiceIcon(KnownServiceIcon service) {
     widget.onLogoSelected(LogoType.icon, service.name);
+    if (widget.formProvider != null && widget.formProvider!.account != null) {
+      widget.formProvider!.updateAccountLogo(LogoType.icon, service.name);
+    }
     Navigator.pop(context);
   }
 
   void _removeCurrentLogo() {
-    widget.onLogoSelected(null, null);
+    widget.onLogoSelected(
+      null,
+      null,
+    ); // This will set logoType and logo to null
+    if (widget.formProvider != null && widget.formProvider!.account != null) {
+      widget.formProvider!.updateAccountLogo(null, null);
+    }
     Navigator.pop(context);
   }
 
@@ -403,20 +410,14 @@ class _LogoPickerDialogState extends State<LogoPickerDialog> {
     final cachedFavicons = formProvider.cachedFavicons;
     final isLoadingFavicon = formProvider.isLoadingFavicon;
 
-    // Debug info
-    print('DEBUG: Website URLs: $websiteUrls');
-    print('DEBUG: Cached favicons keys: ${cachedFavicons.keys.toList()}');
-    print('DEBUG: Is loading favicon: $isLoadingFavicon');
+    // No debug prints here - UI will reflect provider state via isLoadingFavicon
 
     // Filter URLs that have cached favicons (successful fetches)
     final availableFavicons = websiteUrls
-        .where(
-          (url) =>
-              cachedFavicons.containsKey(url) && cachedFavicons[url] != null,
-        )
+        .where((url) => (cachedFavicons[url] ?? []).isNotEmpty)
         .toList();
 
-    print('DEBUG: Available favicons: ${availableFavicons.length}');
+    // availableFavicons length used to decide whether to render the section
 
     // Show loading state if favicon is being fetched
     if (isLoadingFavicon && availableFavicons.isEmpty) {
@@ -483,62 +484,56 @@ class _LogoPickerDialogState extends State<LogoPickerDialog> {
         SizedBox(height: 12),
         Card(
           child: Column(
-            children: availableFavicons.asMap().entries.map((entry) {
-              final index = entry.key;
-              final url = entry.value;
+            children: availableFavicons.expand((url) {
               final domain = FaviconService.extractDomain(url) ?? url;
-
-              return Column(
-                children: [
-                  if (index > 0) Divider(height: 1),
-                  ListTile(
-                    leading: Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
+              final candidates = cachedFavicons[url] ?? [];
+              return candidates.asMap().entries.map((cEntry) {
+                final idx = cEntry.key;
+                final bytes = cEntry.value;
+                return Column(
+                  children: [
+                    ListTile(
+                      leading: ClipRRect(
                         borderRadius: BorderRadius.circular(24),
-                        color: Theme.of(context).colorScheme.primaryContainer,
+                        child: Image.memory(
+                          bytes,
+                          width: 48,
+                          height: 48,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Icon(
+                              Icons.language,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onPrimaryContainer,
+                            );
+                          },
+                        ),
                       ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(24),
-                        child: cachedFavicons[url] != null
-                            ? Image.memory(
-                                cachedFavicons[url]!,
-                                width: 48,
-                                height: 48,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Icon(
-                                    Icons.language,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onPrimaryContainer,
-                                  );
-                                },
-                              )
-                            : Icon(
-                                Icons.language,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onPrimaryContainer,
-                              ),
+                      title: Text(
+                        domain,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w600),
                       ),
+                      subtitle: Text('Tap to select favicon'),
+                      trailing: Icon(Icons.arrow_forward_ios, size: 16),
+                      onTap: () async {
+                        if (widget.formProvider != null) {
+                          final filePath = await widget.formProvider!
+                              .saveFaviconCandidateToFile(url, idx);
+                          if (filePath != null) {
+                            widget.onLogoSelected(LogoType.file, filePath);
+                            Navigator.pop(context);
+                            return;
+                          }
+                        }
+                        _showError('Failed to select favicon');
+                      },
                     ),
-                    title: Text(
-                      domain,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    subtitle: Text('Fetched from website'),
-                    trailing: Icon(Icons.arrow_forward_ios, size: 16),
-                    onTap: () {
-                      widget.onLogoSelected(LogoType.url, url);
-                      Navigator.pop(context);
-                    },
-                  ),
-                ],
-              );
+                    Divider(height: 1),
+                  ],
+                );
+              });
             }).toList(),
           ),
         ),

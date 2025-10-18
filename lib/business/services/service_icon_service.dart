@@ -342,7 +342,12 @@ class ServiceIconService {
     if (websiteUrl != null) {
       try {
         final uri = Uri.parse(websiteUrl.toLowerCase());
-        domain = uri.host.replaceFirst('www.', '');
+        if (uri.host.isNotEmpty) {
+          // Normalize by removing a leading 'www.' (if present)
+          domain = uri.host.startsWith('www.')
+              ? uri.host.substring(4)
+              : uri.host;
+        }
       } catch (e) {
         // Invalid URL, ignore domain matching
       }
@@ -358,20 +363,22 @@ class ServiceIconService {
         for (final keyword in service.keywords) {
           final keywordLower = keyword.toLowerCase();
 
+          // Normalize keyword host if it looks like a domain
+          final normalizedKeyword = keywordLower.startsWith('www.')
+              ? keywordLower.substring(4)
+              : keywordLower;
+
           // Prioritize exact domain matches
-          if (domain == keywordLower) {
+          if (domain == normalizedKeyword) {
             return service;
           }
 
-          // Check for exact domain matches with common variations
-          if (domain == 'www.$keywordLower' || 'www.$domain' == keywordLower) {
-            return service;
-          }
-
-          // For domain-based keywords (those containing dots), only match if they're subdomains
-          if (keywordLower.contains('.')) {
-            if (domain.endsWith('.$keywordLower') ||
-                keywordLower.endsWith('.$domain')) {
+          // If keyword looks like a domain (contains '.'), match exact or subdomain
+          if (normalizedKeyword.contains('.')) {
+            // domain = example.com; keyword = google.com -> no match
+            // domain = mail.google.com; keyword = google.com -> subdomain match
+            if (domain == normalizedKeyword ||
+                domain.endsWith('.$normalizedKeyword')) {
               return service;
             }
           }
@@ -386,17 +393,14 @@ class ServiceIconService {
           // Skip domain-based keywords in this pass
           if (keywordLower.contains('.')) continue;
 
-          // Only match if the keyword is a clear part of the domain
-          // e.g., "facebook" matches "facebook.com" but "gmail" doesn't match "google.com"
-          if (domain.contains(keywordLower) && keywordLower.length >= 4) {
-            // Additional check: ensure it's not a substring match that would be misleading
-            final domainParts = domain.split('.');
-            final mainDomain = domainParts.isNotEmpty ? domainParts[0] : domain;
+          // Only match if the main domain name matches or starts with the keyword
+          final domainParts = domain.split('.');
+          final mainDomain = domainParts.isNotEmpty ? domainParts[0] : domain;
 
-            if (mainDomain == keywordLower ||
-                mainDomain.startsWith(keywordLower)) {
-              return service;
-            }
+          if ((mainDomain == keywordLower ||
+                  mainDomain.startsWith(keywordLower)) &&
+              keywordLower.length >= 3) {
+            return service;
           }
         }
       }

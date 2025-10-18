@@ -1,4 +1,8 @@
 import 'package:flutter/foundation.dart';
+import 'dart:convert';
+import 'dart:io';
+import 'package:crypto/crypto.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../data/models/account.dart';
 import '../../data/models/account_field.dart';
 import '../../data/repositories/account_repository.dart';
@@ -31,23 +35,17 @@ class AccountFormProvider extends ChangeNotifier {
   final bool isCreateMode;
   final List<AccountField>? templateFields; // Template fields for create mode
 
-  List<AccountField> _originalFields =
-      []; // Track original fields for deletion detection
-
+  List<AccountField> _originalFields = [];
   AccountFormState _state = AccountFormState.initial;
   Account? _account;
   List<AccountField> _fields = [];
   bool _hasUnsavedChanges = false;
   String? _errorMessage;
   bool _isInitialLoad = true;
-
-  // Favicon loading state
-  bool _isLoadingFavicon = false;
-  Map<String, Uint8List?> _cachedFavicons = {}; // URL -> favicon data
-
-  // Validation state
-  Map<String, String> _validationErrors = {};
-  Map<String, Map<String, String>> _fieldValidationErrors = {};
+  final Map<String, bool> _loadingFavicons = {};
+  final Map<String, List<Uint8List>> _cachedFavicons = {};
+  final Map<String, String> _validationErrors = {};
+  final Map<String, Map<String, String>> _fieldValidationErrors = {};
 
   AccountFormProvider({
     required this.repository,
@@ -69,191 +67,165 @@ class AccountFormProvider extends ChangeNotifier {
   bool get isLoading => _state == AccountFormState.loading;
   bool get isSaving => _state == AccountFormState.saving;
   bool get hasError => _state == AccountFormState.error;
-  bool get isLoadingFavicon => _isLoadingFavicon;
-  Map<String, Uint8List?> get cachedFavicons => _cachedFavicons;
+  // True if any favicon is currently being fetched
+  bool get isLoadingFavicon => _loadingFavicons.values.any((v) => v);
+  Map<String, List<Uint8List>> get cachedFavicons => _cachedFavicons;
+
+  /// Returns favicon candidates for a given website URL
+  List<Uint8List> getFaviconsForUrl(String url) => _cachedFavicons[url] ?? [];
+
+  /// Save a favicon candidate to a file and return the file path
+  Future<String?> saveFaviconCandidateToFile(String url, int index) async {
+    final candidates = _cachedFavicons[url];
+    if (candidates == null || index < 0 || index >= candidates.length)
+      return null;
+    try {
+      final bytes = candidates[index];
+      final dir = await getApplicationDocumentsDirectory();
+      final hash = sha256
+          .convert(
+            utf8.encode('$url-$index-${DateTime.now().millisecondsSinceEpoch}'),
+          )
+          .toString();
+      final filePath = '${dir.path}/selected_favicon_$hash.png';
+      final file = File(filePath);
+      await file.writeAsBytes(bytes, flush: true);
+      return filePath;
+    } catch (e) {
+      return null;
+    }
+  }
+
   Map<String, String> get validationErrors => _validationErrors;
   Map<String, Map<String, String>> get fieldValidationErrors =>
       _fieldValidationErrors;
 
   // Load account and fields from database into form state
   Future<void> loadFields() async {
+    _state = AccountFormState.loading;
+    _errorMessage = null;
+    notifyListeners();
     try {
-      _state = AccountFormState.loading;
-      _errorMessage = null;
-      notifyListeners();
-
       if (isCreateMode) {
-        // Create mode: start with empty account and template fields (if provided)
         final now = DateTime.now().millisecondsSinceEpoch;
-        final newAccount = Account(name: '', createdAt: now, updatedAt: now);
-        final fields = templateFields ?? [];
-        _account = newAccount;
-        _fields = fields;
-        _hasUnsavedChanges = false;
-        _isInitialLoad = false; // Clear initial load flag
-        _state = AccountFormState.loaded;
-        notifyListeners();
+        _account = Account(name: '', createdAt: now, updatedAt: now);
+        _fields = templateFields ?? [];
       } else {
-        // Edit mode: load existing account and fields
-        final account = await repository.getAccounts().then(
+        _account = await repository.getAccounts().then(
           (accounts) => accounts.firstWhere((acc) => acc.id == accountId),
         );
-        final fields = await repository.getFields(accountId!);
-        _originalFields = List.from(
-          fields,
-        ); // Store original fields for deletion detection
-        _account = account;
-        _fields = fields;
-        _hasUnsavedChanges = false;
-        _isInitialLoad = false; // Clear initial load flag for edit mode
-        _state = AccountFormState.loaded;
-        notifyListeners();
+        _fields = await repository.getFields(accountId!);
+        _originalFields = List.from(_fields);
       }
+      _hasUnsavedChanges = false;
+      _isInitialLoad = false;
+      _state = AccountFormState.loaded;
     } catch (e) {
       _state = AccountFormState.error;
       _errorMessage = 'Failed to load account and fields';
-      notifyListeners();
+    }
+    notifyListeners();
+
+    // After fields are loaded, attempt to fetch favicons for existing website fields
+    if (_state == AccountFormState.loaded) {
+      _fetchFaviconsForExistingFields();
     }
   }
 
   // Update a field in memory only (doesn't persist to database)
   void updateField(AccountField updatedField) {
-    if (_state == AccountFormState.loaded) {
-      _fields = _fields.map((field) {
-        return field.id == updatedField.id ? updatedField : field;
-      }).toList();
-      _hasUnsavedChanges = true;
-      validateField(updatedField);
-
-      // Auto-fetch favicon for website fields
-      if (updatedField.type == AccountFieldType.website) {
-        _autoFetchFaviconIfNeeded(updatedField);
-      }
-
-      // Auto-assign logo when name or website fields change
-      if (updatedField.type == AccountFieldType.website ||
-          updatedField.getMetadata('field_name') == 'name') {
-        _autoAssignLogoIfNeeded();
-      }
-
-      notifyListeners();
+    if (_state != AccountFormState.loaded) return;
+    _fields = _fields
+        .map((field) => field.id == updatedField.id ? updatedField : field)
+        .toList();
+    _hasUnsavedChanges = true;
+    _validateField(updatedField);
+    if (updatedField.type == AccountFieldType.website) {
+      _autoFetchFaviconIfNeeded(updatedField);
+      _autoAssignLogoIfNeeded();
     }
+    notifyListeners();
   }
 
   // Add a new field to the form
   void addField(AccountField newField) {
-    if (_state == AccountFormState.loaded) {
-      _fields = List<AccountField>.from(_fields)..add(newField);
-      _hasUnsavedChanges = true;
-      validateField(newField);
-
-      // Auto-fetch favicon for website fields
-      if (newField.type == AccountFieldType.website) {
-        _autoFetchFaviconIfNeeded(newField);
-      }
-
-      notifyListeners();
+    if (_state != AccountFormState.loaded) return;
+    _fields = List<AccountField>.from(_fields)..add(newField);
+    _hasUnsavedChanges = true;
+    _validateField(newField);
+    if (newField.type == AccountFieldType.website) {
+      _autoFetchFaviconIfNeeded(newField);
+      _autoAssignLogoIfNeeded();
     }
+    notifyListeners();
   }
 
   // Update account in memory only (doesn't persist to database)
   void updateAccount(Account updatedAccount) {
-    if (_state == AccountFormState.loaded) {
-      _isInitialLoad = false; // User has started editing, enable validation
-      _account = updatedAccount;
-      _hasUnsavedChanges = true;
-      _validateAccount();
-
-      // Auto-assign logo when account name changes
-      _autoAssignLogoIfNeeded();
-
-      notifyListeners();
-    }
+    if (_state != AccountFormState.loaded) return;
+    _isInitialLoad = false;
+    _account = updatedAccount;
+    _hasUnsavedChanges = true;
+    _validateAccount();
+    _autoAssignLogoIfNeeded();
+    notifyListeners();
   }
 
   // Update account logo
   void updateAccountLogo(LogoType? logoType, String? logoData) {
-    if (_state == AccountFormState.loaded && _account != null) {
-      _account = _account!.copyWith(logoType: logoType, logo: logoData);
-      _hasUnsavedChanges = true;
-      notifyListeners();
+    if (_state != AccountFormState.loaded || _account == null) return;
+    _account = _account!.copyWith(logoType: logoType, logo: logoData);
+    _hasUnsavedChanges = true;
+    notifyListeners();
+    // If logo is removed, do NOT auto-assign a service icon
+    if (logoType == null && logoData == null) {
+      // Prevent auto-assign logic from running
+      // Clear any cached favicon selection for this account
+      if (_account != null) {
+        // Remove any favicon file previously selected for this account
+        // Optionally, clear favicon cache for all website URLs for this account
+        for (final url in getWebsiteUrls()) {
+          _cachedFavicons.remove(url);
+        }
+      }
+      return;
     }
   }
 
   // Remove a field from the form
   void removeField(String fieldId) {
-    if (_state == AccountFormState.loaded) {
-      _fields = _fields.where((field) => field.id != fieldId).toList();
-      _fieldValidationErrors.remove(fieldId);
-      _hasUnsavedChanges = true;
-      notifyListeners();
-    }
+    if (_state != AccountFormState.loaded) return;
+    _fields = _fields.where((field) => field.id != fieldId).toList();
+    _fieldValidationErrors.remove(fieldId);
+    _hasUnsavedChanges = true;
+    notifyListeners();
   }
 
   // Validation methods
   void _validateAccount() {
     _validationErrors.clear();
-    print('🔍 Validating account: ${_account?.name ?? 'null'}'); // DEBUG
-
+    if (_isInitialLoad) return;
     if (_account?.name.trim().isEmpty ?? true) {
       _validationErrors['name'] = 'Account name is required';
-      print('❌ Account validation error: Account name is required'); // DEBUG
     } else if (_account!.name.trim().length < 2) {
       _validationErrors['name'] = 'Account name must be at least 2 characters';
-      print(
-        '❌ Account validation error: Account name must be at least 2 characters',
-      ); // DEBUG
     } else if (_account!.name.trim().length > 100) {
       _validationErrors['name'] =
           'Account name must be less than 100 characters';
-      print(
-        '❌ Account validation error: Account name must be less than 100 characters',
-      ); // DEBUG
-    } else {
-      print('✅ Account validation passed'); // DEBUG
     }
   }
 
   // Silent version that doesn't call notifyListeners
-  void _validateAccountSilent() {
-    // Skip validation during initial load to avoid showing errors before user interaction
-    if (_isInitialLoad) {
-      return;
-    }
 
-    _validationErrors.clear();
-
-    if (_account?.name.trim().isEmpty ?? true) {
-      _validationErrors['name'] = 'Account name is required';
-    } else if (_account!.name.trim().length < 2) {
-      _validationErrors['name'] = 'Account name must be at least 2 characters';
-    } else if (_account!.name.trim().length > 100) {
-      _validationErrors['name'] =
-          'Account name must be less than 100 characters';
-    }
-  }
-
-  void validateField(AccountField field) {
+  void _validateField(AccountField field) {
     final errors = <String, String>{};
-    print('🔍 Validating field: ${field.label} (${field.type})'); // DEBUG
-
-    // Validate label
     if (field.label.trim().isEmpty) {
       errors['label'] = 'Field label is required';
-      print('❌ Field validation error: Field label is required'); // DEBUG
     } else if (field.label.trim().length < 2) {
       errors['label'] = 'Field label must be at least 2 characters';
-      print(
-        '❌ Field validation error: Field label must be at least 2 characters',
-      ); // DEBUG
     } else if (field.label.trim().length > 50) {
       errors['label'] = 'Field label must be less than 50 characters';
-      print(
-        '❌ Field validation error: Field label must be less than 50 characters',
-      ); // DEBUG
     }
-
-    // Validate field-specific data
     switch (field.type) {
       case AccountFieldType.credential:
         _validateCredentialField(field, errors);
@@ -271,57 +243,14 @@ class AccountFormProvider extends ChangeNotifier {
         _validateOtpField(field, errors);
         break;
     }
-
-    if (errors.isEmpty) {
-      _fieldValidationErrors.remove(field.id);
-      print('✅ Field validation passed for ${field.label}'); // DEBUG
-    } else {
-      _fieldValidationErrors[field.id] = errors;
-      print('❌ Field validation errors for ${field.label}: $errors'); // DEBUG
-    }
-
-    notifyListeners();
-  }
-
-  // Silent version that doesn't call notifyListeners
-  void _validateFieldSilent(AccountField field) {
-    final errors = <String, String>{};
-
-    // Validate label
-    if (field.label.trim().isEmpty) {
-      errors['label'] = 'Field label is required';
-    } else if (field.label.trim().length < 2) {
-      errors['label'] = 'Field label must be at least 2 characters';
-    } else if (field.label.trim().length > 50) {
-      errors['label'] = 'Field label must be less than 50 characters';
-    }
-
-    // Validate field-specific data
-    switch (field.type) {
-      case AccountFieldType.credential:
-        _validateCredentialField(field, errors);
-        break;
-      case AccountFieldType.password:
-        _validatePasswordField(field, errors);
-        break;
-      case AccountFieldType.website:
-        _validateWebsiteField(field, errors);
-        break;
-      case AccountFieldType.text:
-        _validateTextField(field, errors);
-        break;
-      case AccountFieldType.otp:
-        _validateOtpField(field, errors);
-        break;
-    }
-
     if (errors.isEmpty) {
       _fieldValidationErrors.remove(field.id);
     } else {
       _fieldValidationErrors[field.id] = errors;
     }
-    // Note: No notifyListeners() call here
   }
+
+  // Removed silent version, merged into _validateField
 
   void _validateCredentialField(
     AccountField field,
@@ -329,35 +258,17 @@ class AccountFormProvider extends ChangeNotifier {
   ) {
     final username = field.getMetadata('username');
     final password = field.getMetadata('password');
-    print(
-      '🔍 Validating credential field - username: "$username", password: "$password"',
-    ); // DEBUG
-
-    // Validate username
     if (username.isEmpty) {
       errors['username'] = 'Username is required';
-      print('❌ Credential error: Username is required'); // DEBUG
     } else if (username.length < 2) {
       errors['username'] = 'Username must be at least 2 characters';
-      print(
-        '❌ Credential error: Username must be at least 2 characters',
-      ); // DEBUG
     } else if (username.length > 100) {
       errors['username'] = 'Username must be less than 100 characters';
-      print(
-        '❌ Credential error: Username must be less than 100 characters',
-      ); // DEBUG
     }
-
-    // Validate password
     if (password.isEmpty) {
       errors['password'] = 'Password is required';
-      print('❌ Credential error: Password is required'); // DEBUG
     } else if (password.length > 500) {
       errors['password'] = 'Password must be less than 500 characters';
-      print(
-        '❌ Credential error: Password must be less than 500 characters',
-      ); // DEBUG
     }
   }
 
@@ -438,24 +349,18 @@ class AccountFormProvider extends ChangeNotifier {
 
   ValidationResult validateForm() {
     final errors = <String>[];
-
-    // Validate account (silent version)
-    _validateAccountSilent();
+    _validateAccount();
     if (_validationErrors.isNotEmpty) {
       errors.addAll(_validationErrors.values);
     }
-
-    // Validate all fields (silent version)
     for (final field in _fields) {
-      _validateFieldSilent(field);
+      _validateField(field);
     }
-
     if (_fieldValidationErrors.isNotEmpty) {
       for (final fieldErrors in _fieldValidationErrors.values) {
         errors.addAll(fieldErrors.values);
       }
     }
-
     return errors.isEmpty
         ? ValidationResult.valid()
         : ValidationResult.invalid(errors);
@@ -563,74 +468,61 @@ class AccountFormProvider extends ChangeNotifier {
   Future<void> _autoFetchFaviconIfNeeded(AccountField websiteField) async {
     final url = websiteField.getMetadata('value');
     if (url.isEmpty || !FaviconService.isValidUrl(url)) return;
-
-    // Check if service is already known
-    final knownService = ServiceIconService.findServiceIcon(
-      _account?.name,
-      url,
-    );
-    if (knownService != null) {
-      // Service is known, no need to fetch favicon
+    if (_cachedFavicons.containsKey(url) || _loadingFavicons[url] == true)
       return;
-    }
-
-    // Check if we already have this favicon cached
-    if (_cachedFavicons.containsKey(url)) return;
-
-    // Check if we're already loading
-    if (_isLoadingFavicon) return;
-
+    _loadingFavicons[url] = true;
+    notifyListeners();
     try {
-      _isLoadingFavicon = true;
-      notifyListeners();
-
-      final faviconData = await FaviconService.fetchFavicon(url);
-      _cachedFavicons[url] = faviconData;
-
-      // Auto-assign logo if this is a new account
+      final favs = await FaviconService.fetchFavicons(url);
+      if (favs.isNotEmpty) {
+        _cachedFavicons[url] = favs;
+      } else {
+        _cachedFavicons[url] = [];
+      }
       _autoAssignLogoIfNeeded();
     } catch (e) {
-      print('Failed to auto-fetch favicon for $url: $e');
-      _cachedFavicons[url] = null; // Cache the failure
+      _cachedFavicons[url] = [];
     } finally {
-      _isLoadingFavicon = false;
+      _loadingFavicons[url] = false;
       notifyListeners();
+    }
+  }
+
+  // Trigger favicon fetching for all website fields asynchronously
+  void _fetchFaviconsForExistingFields() {
+    for (final websiteField in _fields.where(
+      (f) => f.type == AccountFieldType.website,
+    )) {
+      // Don't await - start fetches concurrently and let them update state
+      _autoFetchFaviconIfNeeded(websiteField);
     }
   }
 
   // Auto-assign logo based on priority: service detection > favicon > fallback
   void _autoAssignLogoIfNeeded() {
-    // Only auto-assign for new accounts (create mode)
     if (!isCreateMode || _account?.logo != null) return;
-
-    // Priority 1: Check for service detection
-    final websiteUrls = getWebsiteUrls();
-    final firstWebsiteUrl = websiteUrls.isNotEmpty ? websiteUrls.first : null;
-    final detectedService = ServiceIconService.findServiceIcon(
-      _account?.name,
-      firstWebsiteUrl,
-    );
-
-    if (detectedService != null) {
-      updateAccountLogo(LogoType.icon, detectedService.name);
-      return;
+    // Only auto-assign if logoType and logo are both null AND not just removed
+    if (_account?.logoType == null && _account?.logo == null) {
+      final websiteUrls = getWebsiteUrls();
+      final firstWebsiteUrl = websiteUrls.isNotEmpty ? websiteUrls.first : null;
+      final detectedService = ServiceIconService.findServiceIcon(
+        _account?.name,
+        firstWebsiteUrl,
+      );
+      if (detectedService != null) {
+        updateAccountLogo(LogoType.icon, detectedService.name);
+        return;
+      }
+      final faviconUrl = websiteUrls.firstWhere(
+        (url) => (_cachedFavicons[url] ?? []).isNotEmpty,
+        orElse: () => '',
+      );
+      if (faviconUrl.isNotEmpty) {
+        updateAccountLogo(LogoType.url, faviconUrl);
+        return;
+      }
+      // Fallback: let AccountLogo widget handle
     }
-
-    // Priority 2: Use first available cached favicon
-    final firstCachedFavicon = websiteUrls
-        .where(
-          (url) =>
-              _cachedFavicons.containsKey(url) && _cachedFavicons[url] != null,
-        )
-        .firstOrNull;
-
-    if (firstCachedFavicon != null) {
-      updateAccountLogo(LogoType.url, firstCachedFavicon);
-      return;
-    }
-
-    // Priority 3: Fallback - let AccountLogo widget handle this
-    // No explicit action needed, widget will show fallback
   }
 
   // Get all website URLs from fields
@@ -644,10 +536,10 @@ class AccountFormProvider extends ChangeNotifier {
 
   // Check if save should be disabled (while loading favicon)
   bool get canSave {
-    if (_isLoadingFavicon || _state != AccountFormState.loaded) {
+    // Disable save if any favicon is loading or not loaded
+    if (isLoadingFavicon || _state != AccountFormState.loaded) {
       return false;
     }
-
     // For create mode, allow saving when form is valid (even without changes)
     // For edit mode, require unsaved changes
     return isCreateMode || _hasUnsavedChanges;

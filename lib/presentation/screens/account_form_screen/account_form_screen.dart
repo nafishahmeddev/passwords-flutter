@@ -126,10 +126,8 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
         websiteUrl: _getWebsiteUrl(provider),
         formProvider: provider, // Pass the provider to access cached favicons
         onLogoSelected: (logoType, logoData) {
-          // Defer the provider update to avoid setState during build
-          Future.microtask(() {
-            provider.updateAccountLogo(logoType, logoData);
-          });
+          // Update provider synchronously so changes are saved when user taps Save
+          provider.updateAccountLogo(logoType, logoData);
         },
       ),
     );

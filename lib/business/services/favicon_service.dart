@@ -156,12 +156,13 @@ class FaviconService {
   }
 
   /// Fetch favicon from a website URL with caching support
-  static Future<Uint8List?> fetchFavicon(String websiteUrl) async {
+  /// Fetch favicons for a website URL. Returns list of candidate images or empty list.
+  static Future<List<Uint8List>> fetchFavicons(String websiteUrl) async {
     try {
       final uri = Uri.tryParse(websiteUrl);
       if (uri == null ||
           (!uri.hasScheme || (uri.scheme != 'http' && uri.scheme != 'https'))) {
-        return null;
+        return [];
       }
 
       final domain = uri.host;
@@ -170,12 +171,13 @@ class FaviconService {
       final cachedFavicon = await _getCachedFavicon(domain);
       if (cachedFavicon != null) {
         debugPrint('Found cached favicon for $domain');
-        return cachedFavicon;
+        return [cachedFavicon];
       }
 
       debugPrint('Fetching favicon from network for $domain');
       final faviconUrls = _generateFaviconUrls(uri);
 
+      final results = <Uint8List>[];
       for (final faviconUrl in faviconUrls) {
         try {
           final response = await http
@@ -204,9 +206,9 @@ class FaviconService {
             final contentType = response.headers['content-type'];
 
             if (_isValidImage(faviconData, contentType)) {
-              // Cache the favicon for future use
+              // Cache the first valid candidate for future use
               await _cacheFavicon(domain, faviconData);
-              return faviconData;
+              results.add(faviconData);
             }
           }
         } catch (e) {
@@ -214,11 +216,33 @@ class FaviconService {
           continue;
         }
       }
+      // As a final attempt, try Google's favicon service which is usually available
+      try {
+        final googleUrl =
+            'https://www.google.com/s2/favicons?domain=${uri.host}&sz=64';
+        final response = await http.get(Uri.parse(googleUrl)).timeout(_timeout);
+        if (response.statusCode == 200 &&
+            _isValidImage(
+              response.bodyBytes,
+              response.headers['content-type'],
+            )) {
+          results.add(response.bodyBytes);
+        }
+      } catch (e) {
+        debugPrint('Error fetching google favicon: $e');
+      }
+      return results;
     } catch (e) {
       debugPrint('Error fetching favicon for $websiteUrl: $e');
     }
 
-    return null;
+    return [];
+  }
+
+  /// Backwards-compatible single favicon fetch - returns first candidate or null
+  static Future<Uint8List?> fetchFavicon(String websiteUrl) async {
+    final favs = await fetchFavicons(websiteUrl);
+    return favs.isNotEmpty ? favs.first : null;
   }
 
   /// Generate potential favicon URLs for a given website

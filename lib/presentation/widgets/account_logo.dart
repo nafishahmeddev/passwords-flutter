@@ -131,34 +131,7 @@ class AccountLogo extends StatelessWidget {
     if (!showFallback) {
       return SizedBox(width: size, height: size);
     }
-
-    // Try to find a known service icon based on account name
-    final knownService = ServiceIconService.findServiceIcon(
-      account?.name,
-      null, // Don't use websiteUrl for fallback detection
-    );
-
-    if (knownService != null) {
-      return Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(size / 2),
-          color:
-              knownService.color?.withOpacity(0.1) ??
-              Theme.of(context).colorScheme.primaryContainer,
-        ),
-        child: Icon(
-          knownService.icon,
-          size: size * 0.5,
-          color:
-              knownService.color ??
-              Theme.of(context).colorScheme.onPrimaryContainer,
-        ),
-      );
-    }
-
-    // Default fallback icon
+    // Always show default fallback icon after logo removal
     return Container(
       width: size,
       height: size,
@@ -196,7 +169,12 @@ class AccountLogoSelector extends StatelessWidget {
       onTap: onTap,
       child: Stack(
         children: [
-          AccountLogo(account: account, websiteUrl: websiteUrl, size: size),
+          AccountLogo(
+            account: account,
+            websiteUrl: websiteUrl,
+            size: size,
+            showFallback: true,
+          ),
           Positioned(
             right: 0,
             bottom: 0,
