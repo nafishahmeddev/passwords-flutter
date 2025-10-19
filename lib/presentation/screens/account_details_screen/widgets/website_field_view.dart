@@ -65,7 +65,7 @@ class _WebsiteFieldViewState extends State<WebsiteFieldView> {
     final url = field.getMetadata("value");
 
     return Padding(
-      padding: EdgeInsets.all(12),
+      padding: EdgeInsets.only(bottom: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         spacing: 3,

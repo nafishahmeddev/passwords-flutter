@@ -209,7 +209,7 @@ class _OtpFieldViewState extends State<OtpFieldView> {
     final issuerText = _issuerText;
 
     return Padding(
-      padding: EdgeInsets.all(12),
+      padding: EdgeInsets.only(bottom: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         spacing: 3,
