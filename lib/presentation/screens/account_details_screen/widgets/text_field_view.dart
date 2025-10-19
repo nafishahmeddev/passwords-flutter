@@ -43,35 +43,62 @@ class _TextFieldViewState extends State<TextFieldView> {
       padding: EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 3,
         children: [
           // Field label with icon
-          Row(
-            children: [
-              Icon(Icons.notes_rounded, size: 18, color: colorScheme.secondary),
-              SizedBox(width: 12),
-              Text(
-                field.label,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w500,
-                  fontSize: 16,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 12),
-
-          // Text content
-          if (value.isNotEmpty)
-            _buildTextRow(value)
-          else
-            Text(
-              'No text set',
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-                fontSize: 15,
-                fontStyle: FontStyle.italic,
+          Card(
+            margin: EdgeInsets.zero,
+            color: colorScheme.surfaceContainerHigh,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadiusGeometry.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+                bottomLeft: Radius.circular(4),
+                bottomRight: Radius.circular(4),
               ),
             ),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
+                  Text(
+                    field.label,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          Card(
+            margin: EdgeInsets.zero,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadiusGeometry.only(
+                topLeft: Radius.circular(4),
+                topRight: Radius.circular(4),
+                bottomLeft: Radius.circular(16),
+                bottomRight: Radius.circular(16),
+              ),
+            ),
+            child: Column(
+              children: [
+                // Text content
+                if (value.isNotEmpty)
+                  _buildTextRow(value)
+                else
+                  Text(
+                    'No text set',
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      fontSize: 15,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -83,10 +110,6 @@ class _TextFieldViewState extends State<TextFieldView> {
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withAlpha(78),
-        borderRadius: BorderRadius.circular(12),
-      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [

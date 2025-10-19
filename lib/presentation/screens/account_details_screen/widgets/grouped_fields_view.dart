@@ -63,36 +63,15 @@ class ModernGroupSection extends StatelessWidget {
           _buildSectionHeader(context, group.title, group.icon),
 
           // Card container matching settings and list screens style
-          Card(
-            elevation: 0,
-            margin: EdgeInsets.zero,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            clipBehavior: Clip.antiAlias,
-            child: Column(
-              children: [
-                // Fields with consistent styling
-                ...group.fields.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final field = entry.value;
-                  final isLast = index == group.fields.length - 1;
-
-                  return Column(
-                    children: [
-                      _buildFieldWidget(field, index),
-                      if (!isLast)
-                        Divider(
-                          height: 1,
-                          thickness: 0.5,
-                          indent: 16,
-                          endIndent: 16,
-                        ),
-                    ],
-                  );
-                }),
-              ],
-            ),
+          Column(
+            children: [
+              // Fields with consistent styling
+              ...group.fields.asMap().entries.map((entry) {
+                final index = entry.key;
+                final field = entry.value;
+                return _buildFieldWidget(field, index);
+              }),
+            ],
           ),
 
           // Bottom spacing unless it's the last group

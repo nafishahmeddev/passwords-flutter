@@ -68,29 +68,62 @@ class _WebsiteFieldViewState extends State<WebsiteFieldView> {
       padding: EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 3,
         children: [
-          // Field label - simple clean design with larger font
-          Text(
-            field.label,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w500,
-              fontSize: 16,
-            ),
-          ),
-          SizedBox(height: 12),
-
-          // URL content
-          if (url.isNotEmpty)
-            _buildUrlRow(url)
-          else
-            Text(
-              'No URL set',
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-                fontStyle: FontStyle.italic,
-                fontSize: 15,
+          // Field label with icon
+          Card(
+            margin: EdgeInsets.zero,
+            color: colorScheme.surfaceContainerHigh,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadiusGeometry.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+                bottomLeft: Radius.circular(4),
+                bottomRight: Radius.circular(4),
               ),
             ),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
+                  Text(
+                    field.label,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          Card(
+            margin: EdgeInsets.zero,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadiusGeometry.only(
+                topLeft: Radius.circular(4),
+                topRight: Radius.circular(4),
+                bottomLeft: Radius.circular(16),
+                bottomRight: Radius.circular(16),
+              ),
+            ),
+            child: Column(
+              children: [
+                // URL content
+                if (url.isNotEmpty)
+                  _buildUrlRow(url)
+                else
+                  Text(
+                    'No URL set',
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      fontStyle: FontStyle.italic,
+                      fontSize: 15,
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -102,10 +135,6 @@ class _WebsiteFieldViewState extends State<WebsiteFieldView> {
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withAlpha(78),
-        borderRadius: BorderRadius.circular(12),
-      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [

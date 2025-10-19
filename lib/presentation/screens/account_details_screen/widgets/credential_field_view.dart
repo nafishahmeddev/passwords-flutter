@@ -47,51 +47,77 @@ class _CredentialFieldViewState extends State<CredentialFieldView> {
     final password = field.getMetadata("password");
 
     return Padding(
-      padding: EdgeInsets.all(12),
+      padding: EdgeInsets.only(bottom: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 3,
         children: [
           // Field label with icon
-          Row(
-            children: [
-              Icon(Icons.key_rounded, size: 18, color: colorScheme.secondary),
-              SizedBox(width: 12),
-              Text(
-                field.label,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w500,
-                  fontSize: 16,
-                ),
+          Card(
+            margin: EdgeInsets.zero,
+            color: colorScheme.surfaceContainerHigh,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadiusGeometry.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+                bottomLeft: Radius.circular(4),
+                bottomRight: Radius.circular(4),
               ),
-            ],
+            ),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
+                  Text(
+                    field.label,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-          SizedBox(height: 12),
 
-          // Username field if available
-          if (username.isNotEmpty) ...[
-            _buildSimpleField(
-              context,
-              value: username,
-              onCopy: () => _copyToClipboard(username, 'Username'),
-              iconData: Icons.person_outline,
-            ),
-            SizedBox(height: 12),
-          ],
-
-          // Password field if available
-          if (password.isNotEmpty)
-            _buildPasswordField(context, password: password),
-
-          // Empty state
-          if (username.isEmpty && password.isEmpty)
-            Text(
-              'No credentials set',
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-                fontStyle: FontStyle.italic,
-                fontSize: 15,
+          Card(
+            margin: EdgeInsets.zero,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadiusGeometry.only(
+                topLeft: Radius.circular(4),
+                topRight: Radius.circular(4),
+                bottomLeft: Radius.circular(16),
+                bottomRight: Radius.circular(16),
               ),
             ),
+            child: Column(
+              children: [
+                // Username field if available
+                if (username.isNotEmpty) ...[
+                  _buildSimpleField(
+                    context,
+                    value: username,
+                    onCopy: () => _copyToClipboard(username, 'Username'),
+                    iconData: Icons.person_outline,
+                  ),
+                ],
+
+                // Password field if available
+                if (password.isNotEmpty)
+                  _buildPasswordField(context, password: password),
+
+                // Empty state
+                if (username.isEmpty && password.isEmpty)
+                  Text(
+                    'No credentials set',
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      fontStyle: FontStyle.italic,
+                      fontSize: 15,
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -108,10 +134,6 @@ class _CredentialFieldViewState extends State<CredentialFieldView> {
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withAlpha(78),
-        borderRadius: BorderRadius.circular(12),
-      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -153,10 +175,6 @@ class _CredentialFieldViewState extends State<CredentialFieldView> {
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withAlpha(78),
-        borderRadius: BorderRadius.circular(12),
-      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
