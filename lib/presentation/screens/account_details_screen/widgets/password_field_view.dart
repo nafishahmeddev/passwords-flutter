@@ -67,7 +67,7 @@ class _PasswordFieldViewState extends State<PasswordFieldView> {
               ),
             ),
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
                 children: [
                   Text(

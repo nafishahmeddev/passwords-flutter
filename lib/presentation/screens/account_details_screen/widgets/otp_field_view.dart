@@ -227,22 +227,13 @@ class _OtpFieldViewState extends State<OtpFieldView> {
               ),
             ),
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.security_rounded,
-                    size: 18,
-                    color: type == 'totp'
-                        ? Colors.green.shade700
-                        : Colors.blue.shade700,
-                  ),
-                  SizedBox(width: 12),
                   Text(
                     widget.field.label,
-                    style: theme.textTheme.titleMedium?.copyWith(
+                    style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w500,
-                      fontSize: 16,
                     ),
                   ),
 
@@ -251,9 +242,8 @@ class _OtpFieldViewState extends State<OtpFieldView> {
                       padding: const EdgeInsets.only(left: 8.0),
                       child: Text(
                         "• $issuerText",
-                        style: theme.textTheme.bodyLarge?.copyWith(
+                        style: theme.textTheme.titleSmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
-                          fontSize: 15,
                         ),
                       ),
                     ),
@@ -297,7 +287,7 @@ class _OtpFieldViewState extends State<OtpFieldView> {
                             builder: (context, value, child) {
                               return CircularProgressIndicator(
                                 value: value,
-                                strokeWidth: 5,
+                                strokeWidth: 4,
                                 strokeCap: StrokeCap.round,
                                 backgroundColor:
                                     colorScheme.surfaceContainerHigh,
