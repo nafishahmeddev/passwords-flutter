@@ -46,9 +46,7 @@ class DBHelper {
           )
         ''');
       },
-      onUpgrade: (db, oldVersion, newVersion) async {
-        
-      },
+      onUpgrade: (db, oldVersion, newVersion) async {},
     );
     return _db!;
   }

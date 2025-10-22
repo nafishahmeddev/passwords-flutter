@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import '../../data/repositories/account_repository.dart';
 import '../services/backup_service.dart';
 import '../services/google_drive_backup_service.dart';
-import '../services/file_backup_service.dart';
 
 enum BackupStatus { idle, backingUp, restoring, error }
 
@@ -17,10 +16,7 @@ class BackupProvider extends ChangeNotifier {
   double _progress = 0.0;
   StreamSubscription<double>? _progressSubscription;
 
-  final List<BackupService> _availableServices = [
-    GoogleDriveBackupService(),
-    FileBackupService(),
-  ];
+  final List<BackupService> _availableServices = [GoogleDriveBackupService()];
 
   BackupProvider(this._accountRepository);
 
@@ -33,7 +29,9 @@ class BackupProvider extends ChangeNotifier {
       _availableServices.where((service) => service.isAvailable).toList();
 
   Future<void> createBackup(BackupService service) async {
-    debugPrint('[BackupProvider] createBackup called for ${service.serviceName}');
+    debugPrint(
+      '[BackupProvider] createBackup called for ${service.serviceName}',
+    );
     _status = BackupStatus.backingUp;
     _errorMessage = null;
     _progress = 0.0;
@@ -49,14 +47,21 @@ class BackupProvider extends ChangeNotifier {
         await _progressSubscription?.cancel();
         final progressStream = service.progressStream;
         if (progressStream != null) {
-          debugPrint('[BackupProvider] subscribing to progress stream for ${service.serviceName}');
-          _progressSubscription = progressStream.listen((p) {
-            _progress = p.clamp(0.0, 1.0);
-            debugPrint('[BackupProvider] progress=$p for ${service.serviceName}');
-            notifyListeners();
-          }, onError: (e) {
-            debugPrint('[BackupProvider] progress stream error: $e');
-          });
+          debugPrint(
+            '[BackupProvider] subscribing to progress stream for ${service.serviceName}',
+          );
+          _progressSubscription = progressStream.listen(
+            (p) {
+              _progress = p.clamp(0.0, 1.0);
+              debugPrint(
+                '[BackupProvider] progress=$p for ${service.serviceName}',
+              );
+              notifyListeners();
+            },
+            onError: (e) {
+              debugPrint('[BackupProvider] progress stream error: $e');
+            },
+          );
         }
       } catch (_) {}
 
@@ -75,7 +80,9 @@ class BackupProvider extends ChangeNotifier {
       _errorMessage = 'Backup failed: $e';
     }
 
-    debugPrint('[BackupProvider] createBackup finished: status=$_status error=$_errorMessage');
+    debugPrint(
+      '[BackupProvider] createBackup finished: status=$_status error=$_errorMessage',
+    );
 
     // cleanup progress listener
     try {
@@ -87,7 +94,9 @@ class BackupProvider extends ChangeNotifier {
   }
 
   Future<void> restoreBackup(BackupService service) async {
-    debugPrint('[BackupProvider] restoreBackup called for ${service.serviceName}');
+    debugPrint(
+      '[BackupProvider] restoreBackup called for ${service.serviceName}',
+    );
     _status = BackupStatus.restoring;
     _errorMessage = null;
     _progress = 0.0;
@@ -121,7 +130,9 @@ class BackupProvider extends ChangeNotifier {
       _errorMessage = 'Restore failed: $e';
     }
 
-    debugPrint('[BackupProvider] restoreBackup finished: status=$_status error=$_errorMessage');
+    debugPrint(
+      '[BackupProvider] restoreBackup finished: status=$_status error=$_errorMessage',
+    );
 
     notifyListeners();
   }

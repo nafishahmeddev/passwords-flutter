@@ -16,6 +16,8 @@ class SettingsProvider extends ChangeNotifier {
   static const String _useDynamicColorKey = 'use_dynamic_color';
   static const String _autoLockEnabledKey = 'auto_lock_enabled';
   static const String _autoLockDurationKey = 'auto_lock_duration';
+  static const String _autoBackupEnabledKey = 'auto_backup_enabled';
+  static const String _autoBackupFrequencyKey = 'auto_backup_frequency_minutes';
   static const String _pinKey = 'app_pin';
   static const String _useBiometricKey = 'use_biometric';
   static const String _useAuthKey = 'use_auth';
@@ -27,6 +29,10 @@ class SettingsProvider extends ChangeNotifier {
   // Auto lock settings
   bool _autoLockEnabled = false;
   int _autoLockDuration = 1; // Minutes
+
+  // Auto backup settings
+  bool _autoBackupEnabled = false;
+  int _autoBackupFrequency = 24 * 60; // in minutes, default once per day
 
   // Authentication settings
   bool _isAuthEnabled = false;
@@ -42,6 +48,8 @@ class SettingsProvider extends ChangeNotifier {
   bool get useDynamicColor => _useDynamicColor;
   bool get autoLockEnabled => _autoLockEnabled;
   int get autoLockDuration => _autoLockDuration;
+  bool get autoBackupEnabled => _autoBackupEnabled;
+  int get autoBackupFrequency => _autoBackupFrequency;
 
   // Auth getters
   AuthStatus get authStatus => _authStatus;
@@ -103,6 +111,22 @@ class SettingsProvider extends ChangeNotifier {
       _autoLockDuration = int.tryParse(autoLockDurationStr) ?? 1;
     }
 
+    // Load auto backup settings
+    final autoBackupEnabledStr = await _secureStorage.read(
+      key: _autoBackupEnabledKey,
+    );
+    if (autoBackupEnabledStr != null) {
+      _autoBackupEnabled = autoBackupEnabledStr == 'true';
+    }
+
+    final autoBackupFreqStr = await _secureStorage.read(
+      key: _autoBackupFrequencyKey,
+    );
+    if (autoBackupFreqStr != null) {
+      _autoBackupFrequency =
+          int.tryParse(autoBackupFreqStr) ?? _autoBackupFrequency;
+    }
+
     // Load authentication settings
     try {
       _isAuthEnabled = await _isAuthEnabledFromStorage();
@@ -155,6 +179,26 @@ class SettingsProvider extends ChangeNotifier {
     );
     // Update timer when this value changes
     _setupAutoLock();
+    notifyListeners();
+  }
+
+  Future<void> setAutoBackupEnabled(bool value) async {
+    if (_autoBackupEnabled == value) return;
+    _autoBackupEnabled = value;
+    await _secureStorage.write(
+      key: _autoBackupEnabledKey,
+      value: value.toString(),
+    );
+    notifyListeners();
+  }
+
+  Future<void> setAutoBackupFrequency(int minutes) async {
+    if (_autoBackupFrequency == minutes) return;
+    _autoBackupFrequency = minutes;
+    await _secureStorage.write(
+      key: _autoBackupFrequencyKey,
+      value: minutes.toString(),
+    );
     notifyListeners();
   }
 

@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
@@ -12,6 +12,7 @@ import 'package:sqflite/sqflite.dart';
 import 'backup_service.dart';
 import '../../data/services/db_helper.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class GoogleDriveBackupService implements BackupService {
   static const String _backupFolderName = 'Passwords Backup';
@@ -22,6 +23,7 @@ class GoogleDriveBackupService implements BackupService {
   drive.DriveApi? _driveApi;
   String? _backupFolderId;
   GoogleSignInAccount? _currentUser;
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
   // progress controller for backup uploads
   final StreamController<double> _progressController =
       StreamController<double>.broadcast();
@@ -39,6 +41,12 @@ class GoogleDriveBackupService implements BackupService {
       );
       debugPrint('[GoogleDrive] GoogleSignIn.initialize completed');
       _googleSignIn.authenticationEvents.listen(_handleAuthenticationEvent);
+      // Attempt to restore saved token and init Drive client silently
+      try {
+        await _tryRestoreSavedToken();
+      } catch (e) {
+        debugPrint('[GoogleDrive] No saved credentials restored: $e');
+      }
     } catch (e) {
       debugPrint('[GoogleDrive] Failed to initialize Google Sign-In: $e');
     }
@@ -72,7 +80,7 @@ class GoogleDriveBackupService implements BackupService {
 
   @override
   Future<bool> isSignedIn() async {
-    return _currentUser != null;
+    return _currentUser != null || _driveApi != null;
   }
 
   @override
@@ -108,6 +116,28 @@ class GoogleDriveBackupService implements BackupService {
 
       debugPrint('Authorization obtained: $authorization');
       if (authorization != null) {
+        final token = authorization!.accessToken;
+        // Persist token to secure storage for auto-backup flows.
+        try {
+          await _secureStorage.write(
+            key: 'google_drive_access_token',
+            value: token,
+          );
+          // store the signed-in account email for informational purposes
+          if (_currentUser?.email != null) {
+            await _secureStorage.write(
+              key: 'google_drive_account_email',
+              value: _currentUser!.email,
+            );
+          }
+          await _secureStorage.write(
+            key: 'google_drive_token_saved_at',
+            value: DateTime.now().toIso8601String(),
+          );
+        } catch (e) {
+          debugPrint('[GoogleDrive] Failed to persist auth token: $e');
+        }
+
         await _setupDriveApi(authorization);
         return true;
       }
@@ -223,6 +253,13 @@ class GoogleDriveBackupService implements BackupService {
       _driveApi = null;
       _backupFolderId = null;
       _currentUser = null;
+      try {
+        await _secureStorage.delete(key: 'google_drive_access_token');
+        await _secureStorage.delete(key: 'google_drive_account_email');
+        await _secureStorage.delete(key: 'google_drive_token_saved_at');
+      } catch (e) {
+        debugPrint('[GoogleDrive] Failed to clear saved credentials: $e');
+      }
       debugPrint('[GoogleDrive] signOut() completed');
     } catch (e) {
       debugPrint('[GoogleDrive] signOut() failed: $e');
@@ -237,19 +274,21 @@ class GoogleDriveBackupService implements BackupService {
       return BackupResult.failure('Not signed in to Google Drive');
     }
 
+    bool _dbClosedByBackup = false;
     try {
       // Ensure DB is closed before reading the sqlite file
       await DBHelper.close();
-
+      _dbClosedByBackup = true;
       final timestamp = DateTime.now();
-  // Assume DB filename as in DBHelper
+      // Assume DB filename as in DBHelper
       final dbPath = join(await getDatabasesPath(), 'passwords.db');
       final dbFile = File(dbPath);
       if (!await dbFile.exists()) {
         return BackupResult.failure('Local database file not found');
       }
 
-      final fileName = '$_backupFilePrefix${timestamp.millisecondsSinceEpoch}.db';
+      final fileName =
+          '$_backupFilePrefix${timestamp.millisecondsSinceEpoch}.db';
 
       final driveFile = drive.File()
         ..name = fileName
@@ -259,21 +298,26 @@ class GoogleDriveBackupService implements BackupService {
       int uploaded = 0;
 
       final controller = StreamController<List<int>>();
-      final sub = dbFile.openRead().listen((chunk) {
-        uploaded += chunk.length;
-        try {
-          final progress = (uploaded / total).clamp(0.0, 1.0);
-          // send progress via stream if available
-          // ignore if controller closed
-          debugPrint('[GoogleDrive] emitting progress $progress');
-          _progressController.add(progress);
-        } catch (_) {}
-        controller.add(chunk);
-      }, onDone: () {
-        controller.close();
-      }, onError: (e) {
-        controller.addError(e);
-      }, cancelOnError: true);
+      final sub = dbFile.openRead().listen(
+        (chunk) {
+          uploaded += chunk.length;
+          try {
+            final progress = (uploaded / total).clamp(0.0, 1.0);
+            // send progress via stream if available
+            // ignore if controller closed
+            debugPrint('[GoogleDrive] emitting progress $progress');
+            _progressController.add(progress);
+          } catch (_) {}
+          controller.add(chunk);
+        },
+        onDone: () {
+          controller.close();
+        },
+        onError: (e) {
+          controller.addError(e);
+        },
+        cancelOnError: true,
+      );
 
       final media = drive.Media(controller.stream, total);
 
@@ -299,11 +343,15 @@ class GoogleDriveBackupService implements BackupService {
         final fileList = await _driveApi!.files.list(q: query);
         if (fileList.files != null) {
           for (final f in fileList.files!) {
-            if (f.id != uploadedFile.id && f.name != null && f.name!.startsWith(_backupFilePrefix)) {
+            if (f.id != uploadedFile.id &&
+                f.name != null &&
+                f.name!.startsWith(_backupFilePrefix)) {
               try {
                 await _driveApi!.files.delete(f.id!);
               } catch (e) {
-                debugPrint('[GoogleDrive] Failed to delete old backup ${f.id}: $e');
+                debugPrint(
+                  '[GoogleDrive] Failed to delete old backup ${f.id}: $e',
+                );
               }
             }
           }
@@ -319,6 +367,16 @@ class GoogleDriveBackupService implements BackupService {
     } catch (e) {
       debugPrint('Backup creation failed: $e');
       return BackupResult.failure('Failed to create backup: $e');
+    } finally {
+      if (_dbClosedByBackup) {
+        try {
+          // Re-open the database so the rest of the app can continue using it.
+          await DBHelper.init();
+          debugPrint('[GoogleDrive] Re-opened local DB after backup');
+        } catch (e) {
+          debugPrint('[GoogleDrive] Failed to re-open DB after backup: $e');
+        }
+      }
     }
   }
 
@@ -339,10 +397,12 @@ class GoogleDriveBackupService implements BackupService {
         (a, b) => a.createdAt.isAfter(b.createdAt) ? a : b,
       );
 
-      final media = await _driveApi!.files.get(
-        latestBackup.id,
-        downloadOptions: drive.DownloadOptions.fullMedia,
-      ) as drive.Media;
+      final media =
+          await _driveApi!.files.get(
+                latestBackup.id,
+                downloadOptions: drive.DownloadOptions.fullMedia,
+              )
+              as drive.Media;
 
       final tempDir = await getTemporaryDirectory();
       final tempFile = File('${tempDir.path}/restore_temp.db');
@@ -352,30 +412,63 @@ class GoogleDriveBackupService implements BackupService {
       final total = (latestBackup.size > 0) ? latestBackup.size : null;
 
       final controller = StreamController<List<int>>();
-      final streamSub = media.stream.listen((chunk) {
-        received += chunk.length;
-        try {
-          if (total != null) {
-            _progressController.add((received / total).clamp(0.0, 1.0));
-          }
-        } catch (_) {}
-        controller.add(chunk);
-      }, onDone: () {
-        controller.close();
-      }, onError: (e) {
-        controller.addError(e);
-      });
+      final streamSub = media.stream.listen(
+        (chunk) {
+          received += chunk.length;
+          try {
+            if (total != null) {
+              _progressController.add((received / total).clamp(0.0, 1.0));
+            }
+          } catch (_) {}
+          controller.add(chunk);
+        },
+        onDone: () {
+          controller.close();
+        },
+        onError: (e) {
+          controller.addError(e);
+        },
+      );
 
       await controller.stream.pipe(sink);
       await sink.close();
       await streamSub.cancel();
 
-      // Basic verification: check file size > 0 and can be read
+      // Basic verification: check file size > 0 and check SQLite header
       if (!await tempFile.exists() || await tempFile.length() == 0) {
         try {
           await tempFile.delete();
         } catch (_) {}
-        return RestoreResult.failure('Downloaded backup is invalid');
+        return RestoreResult.failure('Downloaded backup is invalid (empty)');
+      }
+
+      try {
+        final bytes = await tempFile.readAsBytes();
+        if (bytes.length < 16) {
+          try {
+            await tempFile.delete();
+          } catch (_) {}
+          return RestoreResult.failure(
+            'Downloaded backup is invalid (too small)',
+          );
+        }
+
+        final header = ascii.decode(bytes.sublist(0, 16));
+        if (header != 'SQLite format 3\u0000') {
+          try {
+            await tempFile.delete();
+          } catch (_) {}
+          return RestoreResult.failure(
+            'Downloaded backup is not a valid SQLite DB',
+          );
+        }
+      } catch (e) {
+        try {
+          await tempFile.delete();
+        } catch (_) {}
+        return RestoreResult.failure(
+          'Downloaded backup verification failed: $e',
+        );
       }
 
       // Close DB before replacing
@@ -387,13 +480,41 @@ class GoogleDriveBackupService implements BackupService {
       // backup current DB
       final backupOld = File('${dbPath}.bak');
       if (await dbFile.exists()) {
-        await dbFile.rename(backupOld.path);
+        try {
+          await dbFile.rename(backupOld.path);
+        } catch (e) {
+          debugPrint('[GoogleDrive] Failed to move old DB to .bak: $e');
+        }
       }
 
       // Move new DB into place
-      await tempFile.rename(dbPath);
+      try {
+        await tempFile.rename(dbPath);
+      } catch (e) {
+        debugPrint('[GoogleDrive] Failed to move restored DB into place: $e');
+        // Try to restore previous DB from bak
+        try {
+          if (await backupOld.exists()) {
+            await backupOld.rename(dbPath);
+          }
+        } catch (e2) {
+          debugPrint(
+            '[GoogleDrive] Failed to restore .bak after failed rename: $e2',
+          );
+        }
+        return RestoreResult.failure('Failed to place restored DB: $e');
+      }
 
-      // Restart app by calling platform channel to exit
+      // Re-open DB so app can continue; if this fails we leave .bak in place
+      try {
+        await DBHelper.init();
+        debugPrint('[GoogleDrive] Re-opened local DB after restore');
+      } catch (e) {
+        debugPrint('[GoogleDrive] Failed to re-open DB after restore: $e');
+        return RestoreResult.failure('Restored DB could not be opened: $e');
+      }
+
+      // Restart app by calling platform channel to exit (best-effort)
       try {
         SystemChannels.platform.invokeMethod('SystemNavigator.pop');
       } catch (e) {
@@ -437,6 +558,74 @@ class GoogleDriveBackupService implements BackupService {
     } catch (e) {
       debugPrint('Failed to get backups: $e');
       return [];
+    }
+  }
+
+  /// Returns the signed-in account email if available.
+  Future<String?> getAccountEmail() async {
+    if (_currentUser?.email != null) return _currentUser!.email;
+    try {
+      final stored = await _secureStorage.read(
+        key: 'google_drive_account_email',
+      );
+      return stored;
+    } catch (e) {
+      debugPrint('[GoogleDrive] getAccountEmail failed to read storage: $e');
+      return null;
+    }
+  }
+
+  /// Returns the size (in bytes) of the latest backup, or null if none.
+  Future<int?> getLatestBackupSize() async {
+    try {
+      final list = await getAvailableBackups();
+      if (list.isEmpty) return null;
+      // getAvailableBackups orders by createdTime desc, so first is latest
+      return list.first.size;
+    } catch (e) {
+      debugPrint('[GoogleDrive] getLatestBackupSize failed: $e');
+      return null;
+    }
+  }
+
+  Future<void> _tryRestoreSavedToken() async {
+    try {
+      final token = await _secureStorage.read(key: 'google_drive_access_token');
+      final savedAtStr = await _secureStorage.read(
+        key: 'google_drive_token_saved_at',
+      );
+      if (token == null) return;
+
+      DateTime savedAt;
+      try {
+        savedAt = savedAtStr != null
+            ? DateTime.parse(savedAtStr)
+            : DateTime.now();
+      } catch (_) {
+        savedAt = DateTime.now();
+      }
+
+      // Construct access credentials assuming 1 hour lifetime from savedAt.
+      final expiry = savedAt.toUtc().add(Duration(hours: 1));
+      final credentials = auth.AccessCredentials(
+        auth.AccessToken('Bearer', token, expiry),
+        null,
+        _scopes,
+      );
+
+      final client = auth.authenticatedClient(http.Client(), credentials);
+      _driveApi = drive.DriveApi(client);
+
+      try {
+        await _ensureBackupFolder();
+        debugPrint('[GoogleDrive] Restored Drive client from saved token');
+      } catch (e) {
+        debugPrint(
+          '[GoogleDrive] Restored Drive client but failed to ensure folder: $e',
+        );
+      }
+    } catch (e) {
+      debugPrint('[GoogleDrive] _tryRestoreSavedToken failed: $e');
     }
   }
 
