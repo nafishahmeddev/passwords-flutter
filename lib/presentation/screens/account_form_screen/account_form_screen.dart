@@ -138,8 +138,6 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.isCreateMode ? 'Create Account' : 'Edit Account'),
-        elevation: 0,
-        scrolledUnderElevation: 1,
         actions: [
           Consumer<AccountFormProvider>(
             builder: (context, provider, child) {

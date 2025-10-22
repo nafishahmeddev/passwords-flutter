@@ -142,7 +142,6 @@ class MainApp extends StatelessWidget {
                 surfaceTintColor: Colors.transparent,
                 titleTextStyle: TextStyle(
                   fontSize: 20,
-                  fontWeight: FontWeight.w600,
                   color: lightColorScheme.onSurface,
                   fontFamily: textTheme.headlineMedium?.fontFamily,
                 ),
@@ -177,7 +176,6 @@ class MainApp extends StatelessWidget {
                 surfaceTintColor: Colors.transparent,
                 titleTextStyle: TextStyle(
                   fontSize: 20,
-                  fontWeight: FontWeight.w600,
                   color: darkColorScheme.onSurface,
                   fontFamily: textTheme.headlineMedium?.fontFamily,
                 ),

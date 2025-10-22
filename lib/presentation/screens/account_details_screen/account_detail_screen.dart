@@ -113,18 +113,11 @@ class _AccountDetailScreenContentState
 
         return Scaffold(
           appBar: AppBar(
-            title: Text(
-              account.name,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            title: Text(account.name),
             actions: [
               IconButton(
                 icon: Icon(
-                  account.isFavorite
-                      ? Icons.favorite_rounded
-                      : Icons.favorite_border_rounded,
+                  account.isFavorite ? Icons.star : Icons.star_border_rounded,
                 ),
                 tooltip: account.isFavorite
                     ? 'Remove from favorites'
@@ -191,9 +184,6 @@ class _AccountDetailScreenContentState
             backgroundColor: Theme.of(context).colorScheme.surface,
             child: CustomScrollView(
               controller: _scrollController,
-              physics: const AlwaysScrollableScrollPhysics(
-                parent: BouncingScrollPhysics(),
-              ),
               slivers: [
                 // Simple non-animated header
                 SliverToBoxAdapter(
@@ -251,21 +241,6 @@ class _AccountDetailScreenContentState
                             ],
                           ),
                         ),
-
-                        // Favorite indicator
-                        if (account.isFavorite)
-                          Container(
-                            padding: EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: colorScheme.tertiaryContainer,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.star_rounded,
-                              size: 20,
-                              color: colorScheme.onTertiaryContainer,
-                            ),
-                          ),
                       ],
                     ),
                   ),

@@ -100,12 +100,7 @@ class AccountListScreenCardState extends State<AccountListScreenCard> {
               ),
               style: textTheme.titleMedium,
             )
-          : Text(
-              'Accounts',
-              style: textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+          : Text('Accounts'),
       elevation: 0,
       scrolledUnderElevation: 1,
       actions: [

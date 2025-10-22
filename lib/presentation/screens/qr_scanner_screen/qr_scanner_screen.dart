@@ -40,7 +40,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
   Widget build(BuildContext context) {
     if (!_hasPermission) {
       return Scaffold(
-        appBar: AppBar(title: Text('Scan QR Code'), elevation: 0),
+        appBar: AppBar(title: Text('Scan QR Code')),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
