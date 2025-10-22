@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../widgets/auth/pin_input.dart';
@@ -5,7 +7,7 @@ import '../../business/providers/settings_provider.dart';
 import '../../business/services/favicon_service.dart';
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({Key? key}) : super(key: key);
+  const SettingsScreen({super.key});
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -150,33 +152,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onTap: () => _showThemeModeDialog(context),
               ),
 
-              const Divider(height: 0),
-
               // Dynamic color setting
-              SwitchListTile(
-                title: Text('Dynamic Colors'),
-                subtitle: Text(
-                  'Use system color palette',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+              if (Platform.isAndroid) ...[
+                const Divider(height: 0),
+                SwitchListTile(
+                  title: Text('Dynamic Colors'),
+                  subtitle: Text(
+                    'Use system color palette',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
+                  secondary: Container(
+                    padding: EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.secondaryContainer,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.color_lens_outlined,
+                      color: Theme.of(context).colorScheme.onSecondaryContainer,
+                    ),
+                  ),
+                  value: settingsProvider.useDynamicColor,
+                  onChanged: (value) async {
+                    await settingsProvider.setUseDynamicColor(value);
+                  },
                 ),
-                secondary: Container(
-                  padding: EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.secondaryContainer,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.color_lens_outlined,
-                    color: Theme.of(context).colorScheme.onSecondaryContainer,
-                  ),
-                ),
-                value: settingsProvider.useDynamicColor,
-                onChanged: (value) async {
-                  await settingsProvider.setUseDynamicColor(value);
-                },
-              ),
+              ],
             ],
           ),
         ),
@@ -753,9 +756,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (context) => SimpleDialog(
         title: Text('Theme Mode'),
         children: [
-          RadioListTile<ThemeMode>(
-            title: Text('System'),
-            value: ThemeMode.system,
+          RadioGroup<ThemeMode>(
             groupValue: settingsProvider.themeMode,
             onChanged: (value) async {
               if (value != null) {
@@ -763,28 +764,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Navigator.pop(context);
               }
             },
-          ),
-          RadioListTile<ThemeMode>(
-            title: Text('Light'),
-            value: ThemeMode.light,
-            groupValue: settingsProvider.themeMode,
-            onChanged: (value) async {
-              if (value != null) {
-                await settingsProvider.setThemeMode(value);
-                Navigator.pop(context);
-              }
-            },
-          ),
-          RadioListTile<ThemeMode>(
-            title: Text('Dark'),
-            value: ThemeMode.dark,
-            groupValue: settingsProvider.themeMode,
-            onChanged: (value) async {
-              if (value != null) {
-                await settingsProvider.setThemeMode(value);
-                Navigator.pop(context);
-              }
-            },
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Radio<ThemeMode>(value: ThemeMode.system),
+                    SizedBox(width: 8),
+                    Text('System'),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Radio<ThemeMode>(value: ThemeMode.light),
+                    SizedBox(width: 8),
+                    Text('Light'),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Radio<ThemeMode>(value: ThemeMode.dark),
+                    SizedBox(width: 8),
+                    Text('Dark'),
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -809,17 +813,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (context) => SimpleDialog(
         title: Text('Auto Lock Duration'),
         children: [
-          for (final duration in [1, 5, 10, 30, 60])
-            RadioGroup<int>(
-              groupValue: settingsProvider.autoLockDuration,
-              onChanged: onChanged,
-              child: Row(
-                children: [
-                  Radio<int>(value: duration),
-                  Text('$duration minute${duration > 1 ? 's' : ''}'),
-                ],
-              ),
+          RadioGroup<int>(
+            groupValue: settingsProvider.autoLockDuration,
+            onChanged: onChanged,
+            child: Column(
+              children: [
+                for (final duration in [1, 5, 10, 30, 60])
+                  Row(
+                    children: [
+                      Radio<int>(value: duration),
+                      SizedBox(width: 8),
+                      Text('$duration minute${duration > 1 ? 's' : ''}'),
+                    ],
+                  ),
+              ],
             ),
+          ),
         ],
       ),
     );
