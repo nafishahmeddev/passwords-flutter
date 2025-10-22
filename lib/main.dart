@@ -6,6 +6,7 @@ import 'data/services/db_helper.dart';
 import 'data/repositories/account_repository.dart';
 import 'business/providers/account_provider.dart';
 import 'business/providers/settings_provider.dart';
+import 'business/providers/backup_provider.dart';
 import 'business/services/favicon_service.dart';
 import 'presentation/screens/home_screen.dart';
 import 'presentation/screens/lock_screen.dart';
@@ -30,6 +31,7 @@ void main() async {
           create: (_) =>
               AccountProvider(repository: repository)..loadAccounts(),
         ),
+        ChangeNotifierProvider(create: (_) => BackupProvider(repository)),
       ],
       child: MainApp(repository: repository),
     ),

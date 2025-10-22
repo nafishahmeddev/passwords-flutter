@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../business/providers/settings_provider.dart';
+import '../../business/providers/backup_provider.dart';
 import '../../business/services/favicon_service.dart';
 import 'pin_setup_screen.dart';
 
@@ -434,6 +435,99 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
 
+        // Backup section
+        _buildSectionHeader(context, 'Backup & Sync', Icons.backup_outlined),
+        Card(
+          margin: EdgeInsets.only(bottom: 24),
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            children: [
+              Consumer<BackupProvider>(
+                builder: (context, backupProvider, child) {
+                  final availableServices = backupProvider.availableServices;
+
+                  return Column(
+                    children: availableServices.map((service) {
+                      return Column(
+                        children: [
+                          if (availableServices.indexOf(service) > 0)
+                            const Divider(height: 0),
+                          FutureBuilder<bool>(
+                            future: backupProvider.isServiceSignedIn(service),
+                            builder: (context, snapshot) {
+                              final isSignedIn = snapshot.data ?? false;
+
+                              return ListTile(
+                                title: Text(service.serviceName),
+                                subtitle: Text(
+                                  isSignedIn ? 'Signed in' : 'Tap to sign in',
+                                  style: TextStyle(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                                leading: Container(
+                                  padding: EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primaryContainer,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Icon(
+                                    service.serviceIcon,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onPrimaryContainer,
+                                  ),
+                                ),
+                                trailing:
+                                    backupProvider.status ==
+                                        BackupStatus.backingUp
+                                    ? SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : IconButton(
+                                        icon: Icon(Icons.backup_outlined),
+                                        onPressed: isSignedIn
+                                            ? () => _createBackup(
+                                                context,
+                                                backupProvider,
+                                                service,
+                                              )
+                                            : () => _signInToService(
+                                                context,
+                                                backupProvider,
+                                                service,
+                                              ),
+                                      ),
+                                onTap: () => _showBackupOptions(
+                                  context,
+                                  backupProvider,
+                                  service,
+                                  isSignedIn,
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      );
+                    }).toList(),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+
         // About section
         _buildSectionHeader(context, 'About', Icons.info_outlined),
         Card(
@@ -714,5 +808,157 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _createBackup(
+    BuildContext context,
+    BackupProvider backupProvider,
+    dynamic service,
+  ) async {
+    try {
+      await backupProvider.createBackup(service);
+      if (backupProvider.errorMessage == null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Backup created successfully')));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Backup failed: ${backupProvider.errorMessage}'),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Backup failed: $e')));
+    }
+  }
+
+  Future<void> _signInToService(
+    BuildContext context,
+    BackupProvider backupProvider,
+    dynamic service,
+  ) async {
+    // Show a modal progress indicator while signing in to prevent
+    // accidental cancellation of the sign-in activity.
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => Center(child: CircularProgressIndicator()),
+    );
+
+    bool success = false;
+    try {
+      success = await backupProvider.signInToService(service);
+    } catch (e) {
+      debugPrint('Sign-in threw: $e');
+      success = false;
+    } finally {
+      // Dismiss progress dialog if still mounted
+      if (mounted) Navigator.pop(context);
+    }
+
+    if (success) {
+      debugPrint('Signed in to ${service.serviceName}');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Signed in to ${service.serviceName}')),
+        );
+      }
+    } else {
+      debugPrint('Failed to sign in to ${service.serviceName}');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Sign-in failed. Please try again.'),
+            action: SnackBarAction(
+              label: 'Retry',
+              onPressed: () =>
+                  _signInToService(context, backupProvider, service),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  void _showBackupOptions(
+    BuildContext context,
+    BackupProvider backupProvider,
+    dynamic service,
+    bool isSignedIn,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      builder: (sheetContext) => Container(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '${service.serviceName} Backup',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            SizedBox(height: 16),
+            if (isSignedIn) ...[
+              ListTile(
+                leading: Icon(Icons.backup_outlined),
+                title: Text('Create Backup'),
+                onTap: () {
+                  // Close the bottom sheet first using the sheet's context,
+                  // then run the action using the outer settings screen context
+                  Navigator.pop(sheetContext);
+                  _createBackup(context, backupProvider, service);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.restore_outlined),
+                title: Text('Restore Backup'),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _restoreBackup(context, backupProvider, service);
+                },
+              ),
+            ] else ...[
+              ListTile(
+                leading: Icon(Icons.login_outlined),
+                title: Text('Sign In'),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _signInToService(context, backupProvider, service);
+                },
+              ),
+            ],
+            SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _restoreBackup(
+    BuildContext context,
+    BackupProvider backupProvider,
+    dynamic service,
+  ) async {
+    try {
+      await backupProvider.restoreBackup(service);
+      if (backupProvider.errorMessage == null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Backup restored successfully')));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Restore failed: ${backupProvider.errorMessage}'),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Restore failed: $e')));
+    }
   }
 }

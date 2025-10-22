@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "838059960115",
+    "project_id": "passwords-flutter-1898d",
+    "storage_bucket": "passwords-flutter-1898d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:838059960115:android:7cb43e75537dfcc0b9c046",
+        "android_client_info": {
+          "package_name": "me.nafish.passwords"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "838059960115-ebm5sosajq9484e9nc6u8cl72j0q0ab2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "me.nafish.passwords",
+            "certificate_hash": "65fb24cfba4443233743f74b0cdfbe40ba792542"
+          }
+        },
+        {
+          "client_id": "838059960115-72q3865apahd75be3u5mnusbq9v81t6t.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBcBnVYg3vHe3zpvYcZXdePxEIetyUpmgo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "838059960115-72q3865apahd75be3u5mnusbq9v81t6t.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
