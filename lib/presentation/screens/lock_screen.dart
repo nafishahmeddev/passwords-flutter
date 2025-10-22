@@ -159,53 +159,67 @@ class _LockScreenState extends State<LockScreen> {
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
       body: SafeArea(
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // App icon and name
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Icon(
-                  Icons.lock_outline_rounded,
-                  size: 40,
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
-                ),
-              ),
-              SizedBox(height: 24),
-              Text(
-                'Passwords',
-                style: Theme.of(context).textTheme.headlineLarge,
-              ),
-              SizedBox(height: 8),
-              Text(
-                'Enter your PIN',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-              SizedBox(height: 32),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // App icon and name
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Icon(
+                          Icons.lock_outline_rounded,
+                          size: 40,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onPrimaryContainer,
+                        ),
+                      ),
+                      SizedBox(height: 24),
+                      Text(
+                        'Passwords',
+                        style: Theme.of(context).textTheme.headlineLarge,
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        'Enter your PIN',
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      SizedBox(height: 32),
 
-              // PIN input
-              PinInput(key: _pinInputKey, onCompleted: _handlePinSubmit),
+                      // PIN input
+                      PinInput(
+                        key: _pinInputKey,
+                        onCompleted: _handlePinSubmit,
+                      ),
 
-              // Biometric option
-              if (_isBiometricAvailable)
-                Padding(
-                  padding: const EdgeInsets.only(top: 32.0),
-                  child: TextButton.icon(
-                    onPressed: _tryBiometricAuth,
-                    icon: Icon(Icons.fingerprint),
-                    label: Text('Use biometric'),
+                      // Biometric option
+                      if (_isBiometricAvailable)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 32.0),
+                          child: TextButton.icon(
+                            onPressed: _tryBiometricAuth,
+                            icon: Icon(Icons.fingerprint),
+                            label: Text('Use biometric'),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
-            ],
-          ),
+              ),
+            );
+          },
         ),
       ),
     );

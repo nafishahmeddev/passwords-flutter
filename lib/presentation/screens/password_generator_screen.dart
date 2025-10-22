@@ -129,7 +129,7 @@ class _PasswordGeneratorScreenState extends State<PasswordGeneratorScreen> {
                       ),
                       SizedBox(height: 8),
                       Container(
-                        padding: EdgeInsets.all(16),
+                        padding: EdgeInsets.only(top: 8, bottom: 8, left: 16),
                         width: double.infinity,
                         decoration: BoxDecoration(
                           color: Theme.of(context).colorScheme.surfaceContainer,
@@ -142,15 +142,14 @@ class _PasswordGeneratorScreenState extends State<PasswordGeneratorScreen> {
                               child: Text(
                                 _generatedPassword,
                                 style: Theme.of(context).textTheme.titleLarge
-                                    ?.copyWith(
-                                      fontFamily: 'monospace',
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                    ?.copyWith(fontFamily: 'monospace'),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
                             IconButton(
                               icon: Icon(Icons.copy),
+                              iconSize: 20,
+                              padding: EdgeInsets.zero,
                               onPressed: _copyToClipboard,
                               tooltip: 'Copy to clipboard',
                             ),

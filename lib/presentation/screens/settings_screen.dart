@@ -2,9 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../widgets/auth/pin_input.dart';
 import '../../business/providers/settings_provider.dart';
 import '../../business/services/favicon_service.dart';
+import 'pin_setup_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -15,12 +15,7 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   // UI state for PIN setup
-  bool _isSettingPin = false;
-  String? _newPin;
   bool _isPinSetup = false;
-
-  // Used for PIN input control
-  final GlobalKey<PinInputState> _pinInputKey = GlobalKey<PinInputState>();
 
   @override
   void initState() {
@@ -35,77 +30,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
     final isPinSet = await settingsProvider.isPinSet();
 
-    setState(() {
-      _isPinSetup = isPinSet;
-    });
-  }
-
-  void _handlePinCompleted(String pin) {
-    if (_newPin == null) {
-      // First entry
+    if (mounted) {
       setState(() {
-        _newPin = pin;
+        _isPinSetup = isPinSet;
       });
-      // Reset the PIN input UI for confirmation
-      _pinInputKey.currentState?.resetPin();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Confirm your PIN'),
-          behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.all(16),
-        ),
-      );
-    } else {
-      // Confirm entry
-      if (_newPin == pin) {
-        _savePin(pin);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('PINs do not match. Try again.'),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: Theme.of(context).colorScheme.error,
-            margin: EdgeInsets.all(16),
-          ),
-        );
-        setState(() {
-          _newPin = null;
-        });
-        // Reset PIN input UI when there's an error
-        _pinInputKey.currentState?.resetPin();
-      }
     }
-  }
-
-  Future<void> _savePin(String pin) async {
-    final settingsProvider = Provider.of<SettingsProvider>(
-      context,
-      listen: false,
-    );
-    await settingsProvider.savePin(pin);
-    await settingsProvider.setAuthEnabled(true);
-
-    setState(() {
-      _isSettingPin = false;
-      _newPin = null;
-      _isPinSetup = true;
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('PIN setup successful'),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        margin: EdgeInsets.all(16),
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Settings'), elevation: 0),
-      body: _isSettingPin ? _buildPinSetupScreen() : _buildSettingsScreen(),
+      body: _buildSettingsScreen(),
     );
   }
 
@@ -263,11 +199,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     color: Theme.of(context).colorScheme.onSecondaryContainer,
                   ),
                 ),
-                onTap: () {
-                  setState(() {
-                    _isSettingPin = true;
-                    _newPin = null;
-                  });
+                onTap: () async {
+                  final result = await Navigator.push<bool>(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const PinSetupScreen(),
+                    ),
+                  );
+                  if (result == true && mounted) {
+                    // Refresh PIN status
+                    _loadSettings();
+                  }
                 },
               ),
 
@@ -535,66 +477,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
             textAlign: TextAlign.center,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPinSetupScreen() {
-    return Column(
-      children: [
-        Expanded(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.lock_outlined,
-                    size: 48,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    _newPin == null ? 'Create PIN' : 'Confirm PIN',
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    _newPin == null
-                        ? 'Enter a 4-digit PIN to secure your app'
-                        : 'Enter the same PIN again to confirm',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: 32),
-                  PinInput(key: _pinInputKey, onCompleted: _handlePinCompleted),
-                ],
-              ),
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              TextButton(
-                onPressed: () {
-                  setState(() {
-                    _isSettingPin = false;
-                    _newPin = null;
-                  });
-                },
-                child: Text('Cancel'),
-              ),
-              // Right side empty for balance
-              SizedBox(width: 64),
-            ],
           ),
         ),
       ],
