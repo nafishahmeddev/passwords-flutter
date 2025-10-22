@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -6,7 +7,11 @@ import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:googleapis_auth/googleapis_auth.dart' as auth;
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
 import 'backup_service.dart';
+import '../../data/services/db_helper.dart';
+import 'package:flutter/services.dart';
 
 class GoogleDriveBackupService implements BackupService {
   static const String _backupFolderName = 'Passwords Backup';
@@ -17,6 +22,9 @@ class GoogleDriveBackupService implements BackupService {
   drive.DriveApi? _driveApi;
   String? _backupFolderId;
   GoogleSignInAccount? _currentUser;
+  // progress controller for backup uploads
+  final StreamController<double> _progressController =
+      StreamController<double>.broadcast();
 
   GoogleDriveBackupService() {
     _initializeGoogleSignIn();
@@ -58,6 +66,9 @@ class GoogleDriveBackupService implements BackupService {
 
   @override
   bool get isAvailable => Platform.isAndroid;
+
+  @override
+  Stream<double>? get progressStream => _progressController.stream;
 
   @override
   Future<bool> isSignedIn() async {
@@ -126,6 +137,15 @@ class GoogleDriveBackupService implements BackupService {
     } catch (e) {
       debugPrint('Google Sign-In failed: $e');
       return false;
+    }
+  }
+
+  /// Dispose resources used by this service.
+  void dispose() {
+    try {
+      _progressController.close();
+    } catch (e) {
+      debugPrint('[GoogleDrive] Failed to close progress controller: $e');
     }
   }
 
@@ -218,33 +238,79 @@ class GoogleDriveBackupService implements BackupService {
     }
 
     try {
+      // Ensure DB is closed before reading the sqlite file
+      await DBHelper.close();
+
       final timestamp = DateTime.now();
-      final backupData = {
-        'version': '1.0',
-        'timestamp': timestamp.toIso8601String(),
-        'accounts': accountsData,
-      };
+  // Assume DB filename as in DBHelper
+      final dbPath = join(await getDatabasesPath(), 'passwords.db');
+      final dbFile = File(dbPath);
+      if (!await dbFile.exists()) {
+        return BackupResult.failure('Local database file not found');
+      }
 
-      final jsonData = jsonEncode(backupData);
-      final tempDir = await getTemporaryDirectory();
-      final backupFile = File('${tempDir.path}/backup_temp.json');
-      await backupFile.writeAsString(jsonData);
-
-      final fileName =
-          '$_backupFilePrefix${timestamp.millisecondsSinceEpoch}.json';
+      final fileName = '$_backupFilePrefix${timestamp.millisecondsSinceEpoch}.db';
 
       final driveFile = drive.File()
         ..name = fileName
         ..parents = [_backupFolderId!];
 
-      final media = drive.Media(backupFile.openRead(), backupFile.lengthSync());
+      final total = dbFile.lengthSync();
+      int uploaded = 0;
+
+      final controller = StreamController<List<int>>();
+      final sub = dbFile.openRead().listen((chunk) {
+        uploaded += chunk.length;
+        try {
+          final progress = (uploaded / total).clamp(0.0, 1.0);
+          // send progress via stream if available
+          // ignore if controller closed
+          debugPrint('[GoogleDrive] emitting progress $progress');
+          _progressController.add(progress);
+        } catch (_) {}
+        controller.add(chunk);
+      }, onDone: () {
+        controller.close();
+      }, onError: (e) {
+        controller.addError(e);
+      }, cancelOnError: true);
+
+      final media = drive.Media(controller.stream, total);
 
       final uploadedFile = await _driveApi!.files.create(
         driveFile,
         uploadMedia: media,
       );
 
-      await backupFile.delete();
+      // emit completion
+      try {
+        debugPrint('[GoogleDrive] emitting progress 1.0 (complete)');
+        _progressController.add(1.0);
+      } catch (_) {}
+
+      await sub.cancel();
+
+      // After successful upload, remove any other backups in the folder so
+      // only the most recent backup is kept. This protects against orphaned
+      // older backups consuming space.
+      try {
+        final query =
+            "'$_backupFolderId' in parents and name contains '$_backupFilePrefix' and trashed = false";
+        final fileList = await _driveApi!.files.list(q: query);
+        if (fileList.files != null) {
+          for (final f in fileList.files!) {
+            if (f.id != uploadedFile.id && f.name != null && f.name!.startsWith(_backupFilePrefix)) {
+              try {
+                await _driveApi!.files.delete(f.id!);
+              } catch (e) {
+                debugPrint('[GoogleDrive] Failed to delete old backup ${f.id}: $e');
+              }
+            }
+          }
+        }
+      } catch (e) {
+        debugPrint('[GoogleDrive] Error cleaning up old backups: $e');
+      }
 
       return BackupResult.success(
         backupPath: uploadedFile.id,
@@ -273,30 +339,69 @@ class GoogleDriveBackupService implements BackupService {
         (a, b) => a.createdAt.isAfter(b.createdAt) ? a : b,
       );
 
-      final file =
-          await _driveApi!.files.get(
-                latestBackup.id,
-                downloadOptions: drive.DownloadOptions.fullMedia,
-              )
-              as drive.Media;
+      final media = await _driveApi!.files.get(
+        latestBackup.id,
+        downloadOptions: drive.DownloadOptions.fullMedia,
+      ) as drive.Media;
 
       final tempDir = await getTemporaryDirectory();
-      final tempFile = File('${tempDir.path}/restore_temp.json');
+      final tempFile = File('${tempDir.path}/restore_temp.db');
       final sink = tempFile.openWrite();
 
-      await file.stream.pipe(sink);
+      int received = 0;
+      final total = (latestBackup.size > 0) ? latestBackup.size : null;
+
+      final controller = StreamController<List<int>>();
+      final streamSub = media.stream.listen((chunk) {
+        received += chunk.length;
+        try {
+          if (total != null) {
+            _progressController.add((received / total).clamp(0.0, 1.0));
+          }
+        } catch (_) {}
+        controller.add(chunk);
+      }, onDone: () {
+        controller.close();
+      }, onError: (e) {
+        controller.addError(e);
+      });
+
+      await controller.stream.pipe(sink);
       await sink.close();
+      await streamSub.cancel();
 
-      final jsonData = await tempFile.readAsString();
-      final backupData = jsonDecode(jsonData) as Map<String, dynamic>;
+      // Basic verification: check file size > 0 and can be read
+      if (!await tempFile.exists() || await tempFile.length() == 0) {
+        try {
+          await tempFile.delete();
+        } catch (_) {}
+        return RestoreResult.failure('Downloaded backup is invalid');
+      }
 
-      await tempFile.delete();
+      // Close DB before replacing
+      await DBHelper.close();
 
-      final accounts = (backupData['accounts'] as List)
-          .cast<Map<String, dynamic>>();
-      final timestamp = DateTime.parse(backupData['timestamp']);
+      final dbPath = join(await getDatabasesPath(), 'passwords.db');
+      final dbFile = File(dbPath);
 
-      return RestoreResult.success(accounts.length, timestamp: timestamp);
+      // backup current DB
+      final backupOld = File('${dbPath}.bak');
+      if (await dbFile.exists()) {
+        await dbFile.rename(backupOld.path);
+      }
+
+      // Move new DB into place
+      await tempFile.rename(dbPath);
+
+      // Restart app by calling platform channel to exit
+      try {
+        SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+      } catch (e) {
+        // If platform pop fails, just return success and let user restart
+        debugPrint('Failed to programmatically exit app: $e');
+      }
+
+      return RestoreResult.success(0, timestamp: latestBackup.createdAt);
     } catch (e) {
       debugPrint('Restore failed: $e');
       return RestoreResult.failure('Failed to restore backup: $e');

@@ -85,6 +85,9 @@ abstract class BackupService {
 
   /// Delete a specific backup
   Future<bool> deleteBackup(String backupId);
+
+  /// Optional progress stream (0.0..1.0) for long-running operations like upload/download
+  Stream<double>? get progressStream => null;
 }
 
 /// Information about a backup

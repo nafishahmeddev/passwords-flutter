@@ -18,6 +18,9 @@ class FileBackupService implements BackupService {
   bool get isAvailable => true; // Available on all platforms
 
   @override
+  Stream<double>? get progressStream => null;
+
+  @override
   Future<bool> isSignedIn() async {
     // File backup doesn't require sign-in
     return true;

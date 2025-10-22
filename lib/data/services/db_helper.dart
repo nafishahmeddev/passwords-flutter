@@ -52,4 +52,16 @@ class DBHelper {
     );
     return _db!;
   }
+
+  /// Close the database connection if open.
+  static Future<void> close() async {
+    try {
+      if (_db != null) {
+        await _db!.close();
+        _db = null;
+      }
+    } catch (_) {
+      // ignore errors on close
+    }
+  }
 }
