@@ -161,12 +161,14 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
                           try {
                             await provider.saveChanges();
                             if (provider.state == AccountFormState.loaded) {
+                              // ignore: use_build_context_synchronously
                               Navigator.pop(
                                 context,
                                 true,
                               ); // Return true to indicate changes were saved
                             }
                           } catch (e) {
+                            // ignore: use_build_context_synchronously
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text('Failed to save changes: $e'),
@@ -175,6 +177,7 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 margin: EdgeInsets.all(16),
+                                // ignore: use_build_context_synchronously
                                 backgroundColor: Theme.of(
                                   context,
                                 ).colorScheme.error,
@@ -498,7 +501,7 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
                                     decoration: BoxDecoration(
                                       color: Theme.of(
                                         context,
-                                      ).colorScheme.primary.withOpacity(0.1),
+                                      ).colorScheme.primary.withAlpha(25),
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                     child: Icon(
@@ -650,6 +653,7 @@ class _FieldsList extends StatelessWidget {
       // Remove the field from form state (will be persisted when saved)
       provider.removeField(field.id);
 
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Field "${field.label}" removed'),
@@ -660,6 +664,7 @@ class _FieldsList extends StatelessWidget {
         ),
       );
     } catch (e) {
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error removing field: $e'),

@@ -9,13 +9,13 @@ import '../account_form_screen/account_form_screen.dart';
 import '../../widgets/account_logo.dart';
 
 class AccountListScreenCard extends StatefulWidget {
-  const AccountListScreenCard({Key? key}) : super(key: key);
+  const AccountListScreenCard({super.key});
 
   @override
-  _AccountListScreenCardState createState() => _AccountListScreenCardState();
+  AccountListScreenCardState createState() => AccountListScreenCardState();
 }
 
-class _AccountListScreenCardState extends State<AccountListScreenCard> {
+class AccountListScreenCardState extends State<AccountListScreenCard> {
   late TextEditingController _searchController;
   bool _isSearchActive = false;
   String _searchQuery = '';
@@ -93,7 +93,7 @@ class _AccountListScreenCardState extends State<AccountListScreenCard> {
               decoration: InputDecoration(
                 hintText: "Search accounts...",
                 hintStyle: TextStyle(
-                  color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                  color: colorScheme.onSurfaceVariant.withAlpha(180),
                 ),
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.zero,
@@ -223,7 +223,7 @@ class _AccountListScreenCardState extends State<AccountListScreenCard> {
               child: Text(
                 'Tap the + button to add your first account',
                 style: textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                  color: colorScheme.onSurfaceVariant.withAlpha(180),
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -490,7 +490,7 @@ class _AccountListScreenCardState extends State<AccountListScreenCard> {
                 backgroundColor: Theme.of(context).colorScheme.surface,
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  child: Container(
+                  child: SizedBox(
                     height: MediaQuery.of(context).size.height - 200,
                     child: _buildEmptyState(_searchQuery.isNotEmpty),
                   ),
@@ -636,7 +636,7 @@ class _AccountListScreenCardState extends State<AccountListScreenCard> {
               backgroundColor: Theme.of(context).colorScheme.surface,
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                child: Container(
+                child: SizedBox(
                   height: MediaQuery.of(context).size.height - 200,
                   child: Center(
                     child: Padding(
@@ -650,7 +650,7 @@ class _AccountListScreenCardState extends State<AccountListScreenCard> {
                             decoration: BoxDecoration(
                               color: Theme.of(
                                 context,
-                              ).colorScheme.errorContainer.withOpacity(0.3),
+                              ).colorScheme.errorContainer.withAlpha(77),
                               borderRadius: BorderRadius.circular(40),
                             ),
                             child: Icon(
@@ -699,7 +699,7 @@ class _AccountListScreenCardState extends State<AccountListScreenCard> {
             backgroundColor: Theme.of(context).colorScheme.surface,
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
-              child: Container(
+              child: SizedBox(
                 height: MediaQuery.of(context).size.height - 200,
                 child: Center(
                   child: Text(

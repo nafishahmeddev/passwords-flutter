@@ -132,7 +132,7 @@ class _PasswordGeneratorScreenState extends State<PasswordGeneratorScreen> {
                         padding: EdgeInsets.all(16),
                         width: double.infinity,
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surfaceVariant,
+                          color: Theme.of(context).colorScheme.surfaceContainer,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Row(
@@ -389,7 +389,7 @@ class _PasswordGeneratorScreenState extends State<PasswordGeneratorScreen> {
         LinearProgressIndicator(
           value: strengthValue,
           color: strengthColor,
-          backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+          backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
         ),
       ],
     );

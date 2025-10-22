@@ -388,7 +388,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     if (snapshot.hasData) {
                       final sizeInMB = (snapshot.data! / (1024 * 1024))
                           .toStringAsFixed(2);
-                      return Text('Cache size: ${sizeInMB} MB');
+                      return Text('Cache size: $sizeInMB MB');
                     }
                     return Text('Calculating cache size...');
                   },

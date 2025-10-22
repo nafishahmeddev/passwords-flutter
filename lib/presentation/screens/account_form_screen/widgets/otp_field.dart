@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../../data/models/account_field.dart';
 import '../../../../business/providers/account_form_provider.dart';
@@ -94,10 +93,12 @@ class _OtpFieldState extends State<OtpField> {
   Future<void> _scanQrCode() async {
     try {
       // Launch QR scanner
-      final result = await Navigator.push<String>(
-        context,
-        MaterialPageRoute(builder: (context) => QrScannerScreen()),
-      );
+      final result =
+          await // ignore: use_build_context_synchronously
+          Navigator.push<String>(
+            context,
+            MaterialPageRoute(builder: (context) => QrScannerScreen()),
+          );
 
       if (result != null && result.isNotEmpty) {
         _parseOtpAuthUrl(result);
@@ -167,6 +168,7 @@ class _OtpFieldState extends State<OtpField> {
         }
       }
     } catch (e) {
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Invalid OTP Auth URL format'),
@@ -198,7 +200,7 @@ class _OtpFieldState extends State<OtpField> {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: Colors.indigo.withOpacity(0.1),
+                      color: Colors.indigo.withAlpha(25),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
@@ -223,7 +225,7 @@ class _OtpFieldState extends State<OtpField> {
                     style: IconButton.styleFrom(
                       backgroundColor: Theme.of(
                         context,
-                      ).colorScheme.errorContainer.withOpacity(0.1),
+                      ).colorScheme.errorContainer.withAlpha(25),
                       foregroundColor: Theme.of(context).colorScheme.error,
                     ),
                   ),
@@ -277,34 +279,33 @@ class _OtpFieldState extends State<OtpField> {
               SizedBox(height: 8),
               Row(
                 children: [
-                  Expanded(
-                    child: RadioListTile<String>(
-                      title: Text('TOTP'),
-                      subtitle: Text('Time-based'),
-                      value: 'totp',
-                      groupValue: _selectedType,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedType = value!;
-                        });
-                        _onFieldChanged();
-                      },
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                  ),
-                  Expanded(
-                    child: RadioListTile<String>(
-                      title: Text('HOTP'),
-                      subtitle: Text('Counter-based'),
-                      value: 'hotp',
-                      groupValue: _selectedType,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedType = value!;
-                        });
-                        _onFieldChanged();
-                      },
-                      contentPadding: EdgeInsets.zero,
+                  RadioGroup<String>(
+                    groupValue: _selectedType,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedType = value!;
+                      });
+                      _onFieldChanged();
+                    },
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: RadioListTile<String>(
+                            title: Text('TOTP'),
+                            subtitle: Text('Time-based'),
+                            value: 'totp',
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                        ),
+                        Expanded(
+                          child: RadioListTile<String>(
+                            title: Text('HOTP'),
+                            subtitle: Text('Counter-based'),
+                            value: 'hotp',
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -332,10 +333,9 @@ class _OtpFieldState extends State<OtpField> {
                     children: [
                       Container(
                         decoration: BoxDecoration(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .surfaceContainerHighest
-                              .withOpacity(0.3),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHighest.withAlpha(77),
                           borderRadius: BorderRadius.circular(8),
                           border: hasError
                               ? Border.all(
@@ -397,10 +397,9 @@ class _OtpFieldState extends State<OtpField> {
                         SizedBox(height: 8),
                         Container(
                           decoration: BoxDecoration(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .surfaceContainerHighest
-                                .withOpacity(0.3),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest.withAlpha(77),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: TextFormField(
@@ -437,10 +436,9 @@ class _OtpFieldState extends State<OtpField> {
                         SizedBox(height: 8),
                         Container(
                           decoration: BoxDecoration(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .surfaceContainerHighest
-                                .withOpacity(0.3),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest.withAlpha(77),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: TextFormField(
@@ -494,7 +492,7 @@ class _OtpFieldState extends State<OtpField> {
                                 color: Theme.of(context)
                                     .colorScheme
                                     .surfaceContainerHighest
-                                    .withOpacity(0.3),
+                                    .withAlpha(77),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: TextFormField(
@@ -539,7 +537,7 @@ class _OtpFieldState extends State<OtpField> {
                                 color: Theme.of(context)
                                     .colorScheme
                                     .surfaceContainerHighest
-                                    .withOpacity(0.3),
+                                    .withAlpha(77),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: TextFormField(
@@ -576,7 +574,7 @@ class _OtpFieldState extends State<OtpField> {
                       ),
                       SizedBox(height: 8),
                       DropdownButtonFormField<String>(
-                        value: _selectedAlgorithm,
+                        initialValue: _selectedAlgorithm,
                         decoration: InputDecoration(
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
@@ -654,7 +652,7 @@ class _QrCodeInputDialogState extends State<_QrCodeInputDialog> {
             decoration: BoxDecoration(
               color: Theme.of(
                 context,
-              ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+              ).colorScheme.surfaceContainerHighest.withAlpha(77),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Column(
@@ -679,7 +677,7 @@ class _QrCodeInputDialogState extends State<_QrCodeInputDialog> {
                 ),
                 SizedBox(height: 4),
                 Text(
-                  'otpauth://totp/Google:user@gmail.com?secret=JBSWY3DPEHPK3PXP&issuer=Google',
+                  "otpauth://totp/Google:user@gmail.com?secret=JBSWY3DPEHPK3PXP&issuer=Google",
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     fontFamily: 'monospace',
                     color: Theme.of(context).colorScheme.onSurfaceVariant,

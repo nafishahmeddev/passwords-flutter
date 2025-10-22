@@ -4,7 +4,7 @@ import '../../../business/providers/settings_provider.dart';
 import '../widgets/auth/pin_input.dart';
 
 class LockScreen extends StatefulWidget {
-  const LockScreen({Key? key}) : super(key: key);
+  const LockScreen({super.key});
 
   @override
   State<LockScreen> createState() => _LockScreenState();

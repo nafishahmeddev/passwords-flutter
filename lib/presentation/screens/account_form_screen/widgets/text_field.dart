@@ -72,7 +72,7 @@ class _PlainTextFieldState extends State<PlainTextField> {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: Colors.green.withOpacity(0.1),
+                      color: Colors.green.withAlpha(25),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
@@ -97,7 +97,7 @@ class _PlainTextFieldState extends State<PlainTextField> {
                     style: IconButton.styleFrom(
                       backgroundColor: Theme.of(
                         context,
-                      ).colorScheme.errorContainer.withOpacity(0.1),
+                      ).colorScheme.errorContainer.withAlpha(25),
                       foregroundColor: Theme.of(context).colorScheme.error,
                     ),
                   ),
@@ -126,10 +126,9 @@ class _PlainTextFieldState extends State<PlainTextField> {
                     children: [
                       Container(
                         decoration: BoxDecoration(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .surfaceContainerHighest
-                              .withOpacity(0.3),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHighest.withAlpha(77),
                           borderRadius: BorderRadius.circular(8),
                           border: hasError
                               ? Border.all(

@@ -30,7 +30,7 @@ class AccountListItem extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     // Use a list of predefined colors from the theme with consistent opacity
-    const double opacity = 0.9;
+    const int opacity = 230;
 
     // Primary colors from theme
     final List<Color> baseColors = [
@@ -50,7 +50,7 @@ class AccountListItem extends StatelessWidget {
     final List<Color> allColors = [
       ...baseColors,
       ...blendedColors,
-    ].map((color) => color.withOpacity(opacity)).toList();
+    ].map((color) => color.withAlpha(opacity)).toList();
 
     // Return a color based on the account name's hash
     return allColors[hash.abs() % allColors.length];
