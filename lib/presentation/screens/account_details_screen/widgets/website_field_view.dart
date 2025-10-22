@@ -77,7 +77,6 @@ class _WebsiteFieldViewState extends State<WebsiteFieldView> {
           // Field label with icon
           Card(
             margin: EdgeInsets.zero,
-            color: colorScheme.surfaceContainerHigh,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadiusGeometry.only(
                 topLeft: Radius.circular(16),
@@ -94,6 +93,7 @@ class _WebsiteFieldViewState extends State<WebsiteFieldView> {
                     field.label,
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w600,
+                      color: colorScheme.primary,
                     ),
                   ),
                 ],
@@ -122,7 +122,6 @@ class _WebsiteFieldViewState extends State<WebsiteFieldView> {
                     style: theme.textTheme.bodyLarge?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                       fontStyle: FontStyle.italic,
-                      fontSize: 15,
                     ),
                   ),
               ],
@@ -143,7 +142,7 @@ class _WebsiteFieldViewState extends State<WebsiteFieldView> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Leading icon
-          Icon(Icons.language, size: 16, color: colorScheme.primary),
+          Icon(Icons.language, size: 20, color: colorScheme.primary),
           SizedBox(width: 12),
 
           // URL value (with link styling)
@@ -153,7 +152,6 @@ class _WebsiteFieldViewState extends State<WebsiteFieldView> {
               style: theme.textTheme.bodyLarge?.copyWith(
                 color: theme.colorScheme.primary,
                 decoration: TextDecoration.underline,
-                fontSize: 15,
               ),
               overflow: TextOverflow.ellipsis,
             ),

@@ -217,7 +217,6 @@ class _OtpFieldViewState extends State<OtpFieldView> {
           // Field label with icon
           Card(
             margin: EdgeInsets.zero,
-            color: colorScheme.surfaceContainerHigh,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadiusGeometry.only(
                 topLeft: Radius.circular(16),
@@ -234,6 +233,7 @@ class _OtpFieldViewState extends State<OtpFieldView> {
                     widget.field.label,
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w500,
+                      color: colorScheme.primary,
                     ),
                   ),
 

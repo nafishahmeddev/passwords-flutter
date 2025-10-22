@@ -277,38 +277,34 @@ class _OtpFieldState extends State<OtpField> {
                 ),
               ),
               SizedBox(height: 8),
-              Row(
-                children: [
-                  RadioGroup<String>(
-                    groupValue: _selectedType,
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedType = value!;
-                      });
-                      _onFieldChanged();
-                    },
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: RadioListTile<String>(
-                            title: Text('TOTP'),
-                            subtitle: Text('Time-based'),
-                            value: 'totp',
-                            contentPadding: EdgeInsets.zero,
-                          ),
-                        ),
-                        Expanded(
-                          child: RadioListTile<String>(
-                            title: Text('HOTP'),
-                            subtitle: Text('Counter-based'),
-                            value: 'hotp',
-                            contentPadding: EdgeInsets.zero,
-                          ),
-                        ),
-                      ],
+              RadioGroup<String>(
+                groupValue: _selectedType,
+                onChanged: (value) {
+                  setState(() {
+                    _selectedType = value!;
+                  });
+                  _onFieldChanged();
+                },
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: RadioListTile<String>(
+                        title: Text('TOTP'),
+                        subtitle: Text('Time-based'),
+                        value: 'totp',
+                        contentPadding: EdgeInsets.zero,
+                      ),
                     ),
-                  ),
-                ],
+                    Expanded(
+                      child: RadioListTile<String>(
+                        title: Text('HOTP'),
+                        subtitle: Text('Counter-based'),
+                        value: 'hotp',
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                  ],
+                ),
               ),
               SizedBox(height: 16),
 

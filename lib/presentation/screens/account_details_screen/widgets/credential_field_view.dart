@@ -55,7 +55,6 @@ class _CredentialFieldViewState extends State<CredentialFieldView> {
           // Field label with icon
           Card(
             margin: EdgeInsets.zero,
-            color: colorScheme.surfaceContainerHigh,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadiusGeometry.only(
                 topLeft: Radius.circular(16),
@@ -72,6 +71,7 @@ class _CredentialFieldViewState extends State<CredentialFieldView> {
                     field.label,
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w600,
+                      color: colorScheme.primary,
                     ),
                   ),
                 ],
@@ -97,13 +97,17 @@ class _CredentialFieldViewState extends State<CredentialFieldView> {
                     context,
                     value: username,
                     onCopy: () => _copyToClipboard(username, 'Username'),
-                    iconData: Icons.person_outline,
                   ),
                 ],
 
                 // Password field if available
-                if (password.isNotEmpty)
+                if (password.isNotEmpty) ...[
+                  Divider(
+                    height: 1,
+                    color: colorScheme.onSurfaceVariant.withAlpha(25),
+                  ),
                   _buildPasswordField(context, password: password),
+                ],
 
                 // Empty state
                 if (username.isEmpty && password.isEmpty)
@@ -127,7 +131,6 @@ class _CredentialFieldViewState extends State<CredentialFieldView> {
     BuildContext context, {
     required String value,
     required VoidCallback onCopy,
-    required IconData iconData,
   }) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -138,14 +141,18 @@ class _CredentialFieldViewState extends State<CredentialFieldView> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Leading icon
-          Icon(iconData, size: 16, color: colorScheme.primary),
+          Icon(
+            Icons.account_circle_outlined,
+            size: 20,
+            color: colorScheme.primary,
+          ),
           SizedBox(width: 12),
 
           // Value text
           Expanded(
             child: Text(
               value,
-              style: theme.textTheme.bodyLarge?.copyWith(fontSize: 15),
+              style: theme.textTheme.bodyLarge,
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -159,10 +166,10 @@ class _CredentialFieldViewState extends State<CredentialFieldView> {
             icon: Icon(Icons.copy_rounded, size: 20),
             style: IconButton.styleFrom(
               foregroundColor: colorScheme.primary,
-
               minimumSize: Size(36, 36),
             ),
             tooltip: "Copy to clipboard",
+            visualDensity: VisualDensity(horizontal: -4.0, vertical: 0),
           ),
         ],
       ),
@@ -179,7 +186,7 @@ class _CredentialFieldViewState extends State<CredentialFieldView> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Leading icon
-          Icon(Icons.lock_outline, size: 16, color: colorScheme.primary),
+          Icon(Icons.lock_outline, size: 20, color: colorScheme.primary),
           SizedBox(width: 12),
 
           // Password text

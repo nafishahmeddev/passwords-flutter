@@ -57,7 +57,6 @@ class _PasswordFieldViewState extends State<PasswordFieldView> {
           // Field label with icon
           Card(
             margin: EdgeInsets.zero,
-            color: colorScheme.surfaceContainerHigh,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadiusGeometry.only(
                 topLeft: Radius.circular(16),
@@ -74,6 +73,7 @@ class _PasswordFieldViewState extends State<PasswordFieldView> {
                     field.label,
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w600,
+                      color: colorScheme.primary,
                     ),
                   ),
                 ],
@@ -102,7 +102,6 @@ class _PasswordFieldViewState extends State<PasswordFieldView> {
                     style: theme.textTheme.bodyLarge?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                       fontStyle: FontStyle.italic,
-                      fontSize: 15,
                     ),
                   ),
               ],
@@ -122,6 +121,9 @@ class _PasswordFieldViewState extends State<PasswordFieldView> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          // Leading icon
+          Icon(Icons.lock_outline, size: 20, color: colorScheme.primary),
+          SizedBox(width: 12),
           // Password text
           Expanded(
             child: Text(
@@ -129,7 +131,6 @@ class _PasswordFieldViewState extends State<PasswordFieldView> {
               style: theme.textTheme.bodyLarge?.copyWith(
                 fontFamily: _isPasswordVisible ? null : 'monospace',
                 letterSpacing: _isPasswordVisible ? null : 2.0,
-                fontSize: 15,
               ),
               overflow: TextOverflow.ellipsis,
             ),

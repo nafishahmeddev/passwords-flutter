@@ -48,7 +48,6 @@ class _TextFieldViewState extends State<TextFieldView> {
           // Field label with icon
           Card(
             margin: EdgeInsets.zero,
-            color: colorScheme.surfaceContainerHigh,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadiusGeometry.only(
                 topLeft: Radius.circular(16),
@@ -65,6 +64,7 @@ class _TextFieldViewState extends State<TextFieldView> {
                     field.label,
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w600,
+                      color: colorScheme.primary,
                     ),
                   ),
                 ],
@@ -92,7 +92,6 @@ class _TextFieldViewState extends State<TextFieldView> {
                     'No text set',
                     style: theme.textTheme.bodyLarge?.copyWith(
                       color: colorScheme.onSurfaceVariant,
-                      fontSize: 15,
                       fontStyle: FontStyle.italic,
                     ),
                   ),
@@ -113,11 +112,14 @@ class _TextFieldViewState extends State<TextFieldView> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          // Leading icon
+          Icon(Icons.text_fields, size: 20, color: colorScheme.primary),
+          SizedBox(width: 12),
           // Text value
           Expanded(
             child: Text(
               value,
-              style: theme.textTheme.bodyLarge?.copyWith(fontSize: 15),
+              style: theme.textTheme.bodyLarge,
               overflow: TextOverflow.ellipsis,
               maxLines: 3,
             ),
