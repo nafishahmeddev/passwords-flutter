@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 // provider already imported above
 import '../../business/providers/backup_provider.dart';
 import '../../business/services/google_drive_backup_service.dart';
@@ -22,7 +23,7 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
   }
 
   Future<void> _initChecks() async {
-    if (!mounted) return;
+  if (!mounted) { return; }
     final backupProvider = Provider.of<BackupProvider>(context, listen: false);
     final services = backupProvider.availableServices;
     debugPrint('[BackupScreen] initChecks: found ${services.length} services');
@@ -68,8 +69,8 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
       }
     }
 
-    // finished init checks
-    if (!mounted) return;
+  // finished init checks
+  if (!mounted) { return; }
   }
 
   Future<void> _fetchBackupsFor(dynamic service) async {
@@ -181,18 +182,90 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
   Widget build(BuildContext context) {
     final backupProvider = Provider.of<BackupProvider>(context);
     final services = backupProvider.availableServices;
+    // Platform decisions:
+    // - Web: not supported
+    // - Android: use Google Drive only
+    // - iOS / macOS: show iCloud Coming Soon
+    if (kIsWeb) {
+      return Scaffold(
+        appBar: AppBar(title: Text('Backup & Restore')),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Text(
+              'Backup & Restore is not supported on Web.',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ),
+        ),
+      );
+    }
+
+    // iOS / macOS: show iCloud placeholder
+    if (defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.macOS) {
+      return Scaffold(
+        appBar: AppBar(title: Text('Backup & Restore')),
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: ListView(
+            children: [
+              Card(
+                margin: EdgeInsets.only(bottom: 24),
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: ListTile(
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  leading: Container(
+                    padding: EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.cloud,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
+                  ),
+                  title: Text('iCloud'),
+                  subtitle: Text('Coming Soon — iCloud backup integration'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
     debugPrint(
       '[BackupScreen] build: ${services.length} services -> ${services.map((s) => s.serviceName).join(', ')}',
     );
 
     // (helpers _runWithProgress and _ensureSignedIn are implemented at class level)
 
+    // On Android we only support Google Drive as the single service.
+    final displayServices = <dynamic>[];
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      // pick the Google Drive service if available
+      final gdList = services
+          .where((s) => s.serviceName == 'Google Drive')
+          .toList(growable: false);
+      if (gdList.isNotEmpty) displayServices.add(gdList.first);
+    } else {
+      displayServices.addAll(services);
+    }
+
     return Scaffold(
       appBar: AppBar(title: Text('Backup & Restore')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView(
-          children: services.map((service) {
+          children: displayServices.map((service) {
             return Card(
               margin: EdgeInsets.only(bottom: 24),
               elevation: 0,
@@ -267,145 +340,215 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
                         final size = snap.data;
                         final hasBackup =
                             _hasRemoteBackup[service.serviceName] ?? false;
+
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: FilledButton.icon(
-                                    icon: Icon(Icons.backup_outlined),
-                                    label: Text('Create Backup'),
-                                    onPressed:
-                                        backupProvider.status ==
-                                                BackupStatus.backingUp ||
-                                            backupProvider.status ==
-                                                BackupStatus.restoring
-                                        ? null
-                                        : () async {
-                                            final ok = await _ensureSignedIn(
-                                              service,
-                                            );
-                                            if (!ok) return;
-                                            await backupProvider.createBackup(
-                                              service,
-                                            );
-                                            await _fetchBackupsFor(service);
-                                          },
-                                  ),
-                                ),
-                                SizedBox(width: 12),
-                                Expanded(
-                                  child: OutlinedButton.icon(
-                                    icon: Icon(Icons.restore_outlined),
-                                    label: Text('Restore'),
-                                    onPressed:
-                                        (!hasBackup ||
-                                            backupProvider.status ==
-                                                BackupStatus.backingUp ||
-                                            backupProvider.status ==
-                                                BackupStatus.restoring)
-                                        ? null
-                                        : () async {
-                                            final ok = await _ensureSignedIn(
-                                              service,
-                                            );
-                                            if (!ok) return;
-                                            await _runWithProgress(
-                                              operation: () => backupProvider
-                                                  .restoreBackup(service),
-                                              title: 'Restoring...',
-                                            );
-                                            await _fetchBackupsFor(service);
-                                          },
-                                  ),
-                                ),
-                              ],
-                            ),
+                            // If the user is not signed in to this service show a single
+                            // Enable Backup button which triggers sign-in. If signed
+                            // in, show the normal Create / Restore controls.
+                            FutureBuilder<bool>(
+                              future: Provider.of<BackupProvider>(
+                                context,
+                                listen: false,
+                              ).isServiceSignedIn(service),
+                              builder: (ctx2, signedSnap) {
+                                final signedIn = signedSnap.data ?? false;
+                                if (!signedSnap.hasData) {
+                                  // while checking sign-in show a placeholder
+                                  return SizedBox(
+                                    height: 56,
+                                    child: Center(
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                  );
+                                }
 
-                            SizedBox(height: 12),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                if (!signedIn) {
+                                  return SizedBox(
+                                    height: 56,
+                                    child: Center(
+                                      child: ElevatedButton.icon(
+                                        icon: Icon(Icons.login_outlined),
+                                        label: Text('Enable Backup'),
+                                        onPressed:
+                                            backupProvider.status ==
+                                                    BackupStatus.backingUp ||
+                                                backupProvider.status ==
+                                                    BackupStatus.restoring
+                                            ? null
+                                            : () async {
+                                                final ok =
+                                                    await _ensureSignedIn(
+                                                      service,
+                                                    );
+                                                if (!ok) return;
+                                                await _fetchBackupsFor(service);
+                                              },
+                                      ),
+                                    ),
+                                  );
+                                }
+
+                                // Signed in — show create/restore and auto-backup UI
+                                return Column(
                                   children: [
-                                    Text(
-                                      'Remote backup',
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodySmall,
-                                    ),
-                                    SizedBox(height: 6),
-                                    Text(
-                                      hasBackup
-                                          ? (size != null
-                                                ? '${(size / 1024).toStringAsFixed(1)} KB'
-                                                : 'Available')
-                                          : 'No remote backup',
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodyMedium,
-                                    ),
-                                  ],
-                                ),
-                                Consumer<SettingsProvider>(
-                                  builder: (c, settings, _) {
-                                    return Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.end,
+                                    Row(
                                       children: [
-                                        Row(
-                                          children: [
-                                            Text('Auto backup'),
-                                            Switch(
-                                              value: settings.autoBackupEnabled,
-                                              onChanged: (v) async {
-                                                await settings
-                                                    .setAutoBackupEnabled(v);
-                                              },
-                                            ),
-                                          ],
+                                        Expanded(
+                                          child: FilledButton.icon(
+                                            icon: Icon(Icons.backup_outlined),
+                                            label: Text('Create Backup'),
+                                            onPressed:
+                                                backupProvider.status ==
+                                                        BackupStatus
+                                                            .backingUp ||
+                                                    backupProvider.status ==
+                                                        BackupStatus.restoring
+                                                ? null
+                                                : () async {
+                                                    final ok =
+                                                        await _ensureSignedIn(
+                                                          service,
+                                                        );
+                                                    if (!ok) return;
+                                                    await backupProvider
+                                                        .createBackup(service);
+                                                    await _fetchBackupsFor(
+                                                      service,
+                                                    );
+                                                  },
+                                          ),
                                         ),
-                                        SizedBox(height: 6),
-                                        Row(
-                                          children: [
-                                            Text('Every'),
-                                            SizedBox(width: 8),
-                                            DropdownButton<int>(
-                                              value:
-                                                  settings.autoBackupFrequency,
-                                              items: [60, 6 * 60, 12 * 60, 24 * 60]
-                                                  .map(
-                                                    (
-                                                      m,
-                                                    ) => DropdownMenuItem<int>(
-                                                      value: m,
-                                                      child: Text(
-                                                        m >= 60
-                                                            ? (m ~/ 60 == 24
-                                                                  ? '24 hours'
-                                                                  : '${m ~/ 60} hours')
-                                                            : '$m minutes',
-                                                      ),
-                                                    ),
-                                                  )
-                                                  .toList(),
-                                              onChanged: (v) async {
-                                                if (v != null)
-                                                  await settings
-                                                      .setAutoBackupFrequency(
-                                                        v,
-                                                      );
-                                              },
-                                            ),
-                                          ],
+                                        SizedBox(width: 12),
+                                        Expanded(
+                                          child: OutlinedButton.icon(
+                                            icon: Icon(Icons.restore_outlined),
+                                            label: Text('Restore'),
+                                            onPressed:
+                                                (!hasBackup ||
+                                                    backupProvider.status ==
+                                                        BackupStatus
+                                                            .backingUp ||
+                                                    backupProvider.status ==
+                                                        BackupStatus.restoring)
+                                                ? null
+                                                : () async {
+                                                    final ok =
+                                                        await _ensureSignedIn(
+                                                          service,
+                                                        );
+                                                    if (!ok) return;
+                                                    await _runWithProgress(
+                                                      operation: () =>
+                                                          backupProvider
+                                                              .restoreBackup(
+                                                                service,
+                                                              ),
+                                                      title: 'Restoring...',
+                                                    );
+                                                    await _fetchBackupsFor(
+                                                      service,
+                                                    );
+                                                  },
+                                          ),
                                         ),
                                       ],
-                                    );
-                                  },
-                                ),
-                              ],
+                                    ),
+
+                                    SizedBox(height: 12),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Remote backup',
+                                              style: Theme.of(
+                                                context,
+                                              ).textTheme.bodySmall,
+                                            ),
+                                            SizedBox(height: 6),
+                                            Text(
+                                              hasBackup
+                                                  ? (size != null
+                                                        ? '${(size / 1024).toStringAsFixed(1)} KB'
+                                                        : 'Available')
+                                                  : 'No remote backup',
+                                              style: Theme.of(
+                                                context,
+                                              ).textTheme.bodyMedium,
+                                            ),
+                                          ],
+                                        ),
+                                        Consumer<SettingsProvider>(
+                                          builder: (c, settings, _) {
+                                            return Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.end,
+                                              children: [
+                                                Row(
+                                                  children: [
+                                                    Text('Auto backup'),
+                                                    Switch(
+                                                      value: settings
+                                                          .autoBackupEnabled,
+                                                      onChanged: (v) async {
+                                                        await settings
+                                                            .setAutoBackupEnabled(
+                                                              v,
+                                                            );
+                                                      },
+                                                    ),
+                                                  ],
+                                                ),
+                                                SizedBox(height: 6),
+                                                Row(
+                                                  children: [
+                                                    Text('Every'),
+                                                    SizedBox(width: 8),
+                                                    DropdownButton<int>(
+                                                      value: settings
+                                                          .autoBackupFrequency,
+                                                      items: [60, 6 * 60, 12 * 60, 24 * 60]
+                                                          .map(
+                                                            (
+                                                              m,
+                                                            ) => DropdownMenuItem<int>(
+                                                              value: m,
+                                                              child: Text(
+                                                                m >= 60
+                                                                    ? (m ~/ 60 ==
+                                                                              24
+                                                                          ? '24 hours'
+                                                                          : '${m ~/ 60} hours')
+                                                                    : '$m minutes',
+                                                              ),
+                                                            ),
+                                                          )
+                                                          .toList(),
+                                                      onChanged: (v) async {
+                                                        if (v != null)
+                                                          await settings
+                                                              .setAutoBackupFrequency(
+                                                                v,
+                                                              );
+                                                      },
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                );
+                              },
                             ),
                           ],
                         );
