@@ -4,8 +4,7 @@ class PinInput extends StatefulWidget {
   final ValueChanged<String> onCompleted;
   final int pinLength;
 
-  const PinInput({Key? key, required this.onCompleted, this.pinLength = 4})
-    : super(key: key);
+  const PinInput({super.key, required this.onCompleted, this.pinLength = 4});
 
   @override
   PinInputState createState() => PinInputState();
@@ -88,7 +87,7 @@ class PinInputState extends State<PinInput> {
                       ? _error
                             ? Theme.of(context).colorScheme.error
                             : Theme.of(context).colorScheme.primary
-                      : Theme.of(context).colorScheme.surfaceVariant,
+                      : Theme.of(context).colorScheme.surfaceContainer,
                 ),
               ),
             ),
@@ -143,7 +142,7 @@ class PinInputState extends State<PinInput> {
               children: [
                 SizedBox(width: 80), // Spacer
                 _buildKeypadButton('0'),
-                Container(
+                SizedBox(
                   width: 80,
                   height: 80,
                   child: InkWell(
@@ -167,7 +166,7 @@ class PinInputState extends State<PinInput> {
   }
 
   Widget _buildKeypadButton(String digit) {
-    return Container(
+    return SizedBox(
       width: 80,
       height: 80,
       child: InkWell(
@@ -179,7 +178,7 @@ class PinInputState extends State<PinInput> {
             style: TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.w500,
-              color: Theme.of(context).colorScheme.onBackground,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
         ),

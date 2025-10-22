@@ -53,7 +53,7 @@ class GroupedFieldsFormView extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+              color: Theme.of(context).colorScheme.outline.withAlpha(51),
               style: BorderStyle.solid,
               width: 1,
             ),
@@ -69,7 +69,7 @@ class GroupedFieldsFormView extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Theme.of(
                       context,
-                    ).colorScheme.primaryContainer.withOpacity(0.3),
+                    ).colorScheme.primaryContainer.withAlpha(77),
                     borderRadius: BorderRadius.circular(32),
                   ),
                   child: Icon(

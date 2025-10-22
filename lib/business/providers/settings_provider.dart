@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
-import 'package:local_auth/error_codes.dart' as auth_error;
 
 enum AuthStatus { initial, authenticated, unauthenticated, error }
 
@@ -276,12 +275,7 @@ class SettingsProvider extends ChangeNotifier {
       debugPrint("Attempting biometric authentication");
       final result = await _localAuth.authenticate(
         localizedReason: 'Authenticate to access your passwords',
-        options: const AuthenticationOptions(
-          stickyAuth: false, // Changed to false to avoid hanging auth sessions
-          biometricOnly:
-              true, // Use biometric only to avoid alternate auth methods
-          useErrorDialogs: true,
-        ),
+        biometricOnly: true,
       );
 
       debugPrint("Authentication result: $result");
@@ -300,16 +294,7 @@ class SettingsProvider extends ChangeNotifier {
       debugPrint(
         "PlatformException in biometric auth: ${e.code} - ${e.message}",
       );
-
-      if (e.code == auth_error.notAvailable ||
-          e.code == auth_error.notEnrolled ||
-          e.code == auth_error.passcodeNotSet) {
-        // Handle case when biometrics is not available or not enrolled
-        _isBiometricAvailable = false;
-        _errorMessage = 'Biometric authentication not available: ${e.message}';
-        notifyListeners();
-        return false;
-      }
+      _isBiometricAvailable = false;
       _errorMessage = 'Biometric authentication failed: ${e.message}';
       notifyListeners();
       return false;

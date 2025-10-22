@@ -89,12 +89,10 @@ class AddFieldDialogState extends State<AddFieldDialog> {
                 decoration: BoxDecoration(
                   color: Theme.of(
                     context,
-                  ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                  ).colorScheme.surfaceContainerHighest.withAlpha(77),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.outline.withOpacity(0.2),
+                    color: Theme.of(context).colorScheme.outline.withAlpha(51),
                   ),
                 ),
                 child: TextField(
@@ -159,18 +157,18 @@ class AddFieldDialogState extends State<AddFieldDialog> {
                           color: isSelected
                               ? Theme.of(
                                   context,
-                                ).colorScheme.primaryContainer.withOpacity(0.3)
+                                ).colorScheme.primaryContainer.withAlpha(77)
                               : Theme.of(context)
                                     .colorScheme
                                     .surfaceContainerHighest
-                                    .withOpacity(0.2),
+                                    .withAlpha(51),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: isSelected
                                 ? Theme.of(context).colorScheme.primary
                                 : Theme.of(
                                     context,
-                                  ).colorScheme.outline.withOpacity(0.2),
+                                  ).colorScheme.outline.withAlpha(51),
                             width: isSelected ? 2 : 1,
                           ),
                         ),

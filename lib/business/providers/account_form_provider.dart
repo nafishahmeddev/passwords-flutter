@@ -77,8 +77,9 @@ class AccountFormProvider extends ChangeNotifier {
   /// Save a favicon candidate to a file and return the file path
   Future<String?> saveFaviconCandidateToFile(String url, int index) async {
     final candidates = _cachedFavicons[url];
-    if (candidates == null || index < 0 || index >= candidates.length)
+    if (candidates == null || index < 0 || index >= candidates.length) {
       return null;
+    }
     try {
       final bytes = candidates[index];
       final dir = await getApplicationDocumentsDirectory();
@@ -405,8 +406,8 @@ class AccountFormProvider extends ChangeNotifier {
           savedAccountId = await repository.insertAccount(accountToInsert);
         } else {
           debugPrint('Updating account in edit mode');
-          print(_account?.logo ?? "<no logo>");
-          print(_account?.logoType ?? "<no website>");
+          debugPrint(_account?.logo ?? "<no logo>");
+          debugPrint(_account?.logoType?.toString() ?? "<no website>");
           // Edit mode: update existing account
           await repository.updateAccount(
             _account!.copyWith(
@@ -471,8 +472,9 @@ class AccountFormProvider extends ChangeNotifier {
   Future<void> _autoFetchFaviconIfNeeded(AccountField websiteField) async {
     final url = websiteField.getMetadata('value');
     if (url.isEmpty || !FaviconService.isValidUrl(url)) return;
-    if (_cachedFavicons.containsKey(url) || _loadingFavicons[url] == true)
+    if (_cachedFavicons.containsKey(url) || _loadingFavicons[url] == true) {
       return;
+    }
     _loadingFavicons[url] = true;
     notifyListeners();
     try {

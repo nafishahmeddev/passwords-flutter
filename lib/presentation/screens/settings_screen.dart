@@ -804,7 +804,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: [
           for (final duration in [1, 5, 10, 30, 60])
             RadioListTile<int>(
-              title: Text('${duration} minute${duration > 1 ? 's' : ''}'),
+              title: Text('$duration minute${duration > 1 ? 's' : ''}'),
               value: duration,
               groupValue: settingsProvider.autoLockDuration,
               onChanged: (value) async {

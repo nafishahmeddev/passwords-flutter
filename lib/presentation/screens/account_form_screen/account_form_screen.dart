@@ -208,7 +208,7 @@ class _AccountEditBodyState extends State<_AccountEditBody> {
                             color: !canSave
                                 ? Theme.of(
                                     context,
-                                  ).colorScheme.onSurface.withOpacity(0.38)
+                                  ).colorScheme.onSurface.withAlpha(97)
                                 : null,
                           ),
                         ),

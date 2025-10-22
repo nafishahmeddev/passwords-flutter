@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
@@ -197,7 +196,7 @@ class FaviconService {
 
             if (contentLength > _maxFileSize) {
               debugPrint(
-                'Favicon too large: ${contentLength} bytes for $faviconUrl',
+                'Favicon too large: $contentLength bytes for $faviconUrl',
               );
               continue;
             }
@@ -286,7 +285,7 @@ class FaviconService {
         return true;
       }
       // Sometimes favicons are served with generic content types
-      if (lowerContentType.contains('octet-stream') && data.length > 0) {
+      if (lowerContentType.contains('octet-stream') && data.isNotEmpty) {
         // Fall through to magic byte check
       } else if (!lowerContentType.startsWith('image/')) {
         return false;

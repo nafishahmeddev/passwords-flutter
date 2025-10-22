@@ -301,8 +301,8 @@ class _OtpFieldViewState extends State<OtpFieldView> {
                           width: 36,
                           height: 36,
                           decoration: BoxDecoration(
-                            color: colorScheme.secondaryContainer.withOpacity(
-                              0.7,
+                            color: colorScheme.secondaryContainer.withAlpha(
+                              180,
                             ),
                             shape: BoxShape.circle,
                           ),
@@ -317,7 +317,7 @@ class _OtpFieldViewState extends State<OtpFieldView> {
                           width: 36,
                           height: 36,
                           decoration: BoxDecoration(
-                            color: colorScheme.errorContainer.withOpacity(0.7),
+                            color: colorScheme.errorContainer.withAlpha(180),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(

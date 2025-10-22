@@ -241,7 +241,7 @@ class _AccountDetailScreenContentState
                                     account.note!,
                                     style: theme.textTheme.bodyLarge?.copyWith(
                                       color: colorScheme.onPrimaryContainer
-                                          .withOpacity(0.8),
+                                          .withAlpha(180),
                                       fontSize: 15,
                                     ),
                                     maxLines: 2,
@@ -305,7 +305,7 @@ class _AccountDetailScreenContentState
                         margin: EdgeInsets.symmetric(horizontal: 32),
                         padding: EdgeInsets.all(24),
                         decoration: BoxDecoration(
-                          color: colorScheme.errorContainer.withOpacity(0.7),
+                          color: colorScheme.errorContainer.withAlpha(180),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Column(
@@ -330,8 +330,8 @@ class _AccountDetailScreenContentState
                               provider.errorMessage ??
                                   'An unexpected error occurred',
                               style: theme.textTheme.bodyLarge?.copyWith(
-                                color: colorScheme.onErrorContainer.withOpacity(
-                                  0.8,
+                                color: colorScheme.onErrorContainer.withAlpha(
+                                  180,
                                 ),
                                 fontSize: 15,
                               ),
@@ -355,10 +355,10 @@ class _AccountDetailScreenContentState
                         margin: EdgeInsets.symmetric(horizontal: 32),
                         padding: EdgeInsets.all(24),
                         decoration: BoxDecoration(
-                          color: colorScheme.surfaceVariant.withOpacity(0.5),
+                          color: colorScheme.surfaceContainer.withAlpha(80),
                           borderRadius: BorderRadius.circular(24),
                           border: Border.all(
-                            color: colorScheme.outline.withOpacity(0.2),
+                            color: colorScheme.outline.withAlpha(51),
                             width: 1,
                           ),
                         ),
@@ -490,10 +490,10 @@ class _AccountDetailScreenContentState
             Container(
               padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: colorScheme.errorContainer.withOpacity(0.3),
+                color: colorScheme.errorContainer.withAlpha(76),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: colorScheme.error.withOpacity(0.2),
+                  color: colorScheme.error.withAlpha(51),
                   width: 1,
                 ),
               ),
@@ -509,7 +509,7 @@ class _AccountDetailScreenContentState
                     child: Text(
                       'This action cannot be undone. All associated fields will be permanently deleted.',
                       style: theme.textTheme.bodyLarge?.copyWith(
-                        color: colorScheme.error.withOpacity(0.8),
+                        color: colorScheme.error.withAlpha(204),
                         fontSize: 15,
                       ),
                     ),

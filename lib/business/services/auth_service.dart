@@ -1,7 +1,7 @@
 import 'dart:async';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
-import 'package:local_auth/error_codes.dart' as auth_error;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class AuthService {
@@ -44,22 +44,18 @@ class AuthService {
     try {
       final bool biometricsEnabled =
           await isAuthEnabled() && await isBiometricEnabled();
-      if (!biometricsEnabled)
+      if (!biometricsEnabled) {
         return true; // If biometric not enabled, allow access
+      }
 
       return await _localAuth.authenticate(
         localizedReason: 'Authenticate to access your passwords',
-        options: const AuthenticationOptions(
-          stickyAuth: true,
-          biometricOnly: true,
-        ),
+        biometricOnly: true,
       );
     } on PlatformException catch (e) {
-      if (e.code == auth_error.notAvailable ||
-          e.code == auth_error.notEnrolled) {
-        // Handle case when biometrics is not available or not enrolled
-        return false;
-      }
+      debugPrint(
+        "PlatformException in biometric auth: ${e.code} - ${e.message}",
+      );
       return false;
     } catch (e) {
       return false;

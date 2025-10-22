@@ -114,7 +114,7 @@ class _CredentialFieldState extends State<CredentialField> {
                     style: IconButton.styleFrom(
                       backgroundColor: Theme.of(
                         context,
-                      ).colorScheme.errorContainer.withOpacity(0.1),
+                      ).colorScheme.errorContainer.withAlpha(26),
                       foregroundColor: Theme.of(context).colorScheme.error,
                     ),
                   ),
@@ -143,10 +143,9 @@ class _CredentialFieldState extends State<CredentialField> {
                     children: [
                       Container(
                         decoration: BoxDecoration(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .surfaceContainerHighest
-                              .withOpacity(0.3),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHighest.withAlpha(77),
                           borderRadius: BorderRadius.circular(8),
                           border: hasError
                               ? Border.all(
@@ -210,10 +209,9 @@ class _CredentialFieldState extends State<CredentialField> {
                     children: [
                       Container(
                         decoration: BoxDecoration(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .surfaceContainerHighest
-                              .withOpacity(0.3),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHighest.withAlpha(77),
                           borderRadius: BorderRadius.circular(8),
                           border: hasError
                               ? Border.all(
