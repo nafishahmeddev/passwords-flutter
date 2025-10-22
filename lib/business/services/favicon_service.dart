@@ -240,8 +240,8 @@ class FaviconService {
 
   /// Backwards-compatible single favicon fetch - returns first candidate or null
   static Future<Uint8List?> fetchFavicon(String websiteUrl) async {
-    final favs = await fetchFavicons(websiteUrl);
-    return favs.isNotEmpty ? favs.first : null;
+    final favicons = await fetchFavicons(websiteUrl);
+    return favicons.isNotEmpty ? favicons.first : null;
   }
 
   /// Generate potential favicon URLs for a given website
@@ -323,7 +323,7 @@ class FaviconService {
         return true;
       }
 
-      // WebP: RIFF...WEBP
+      // WebP: RIFF...WebP
       if (data.length >= 12 &&
           data[0] == 0x52 &&
           data[1] == 0x49 &&

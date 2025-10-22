@@ -478,9 +478,9 @@ class AccountFormProvider extends ChangeNotifier {
     _loadingFavicons[url] = true;
     notifyListeners();
     try {
-      final favs = await FaviconService.fetchFavicons(url);
-      if (favs.isNotEmpty) {
-        _cachedFavicons[url] = favs;
+      final favicons = await FaviconService.fetchFavicons(url);
+      if (favicons.isNotEmpty) {
+        _cachedFavicons[url] = favicons;
       } else {
         _cachedFavicons[url] = [];
       }

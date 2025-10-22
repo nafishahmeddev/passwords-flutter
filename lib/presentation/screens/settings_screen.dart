@@ -797,22 +797,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
       listen: false,
     );
 
+    void onChanged(int? value) async {
+      if (value != null) {
+        Navigator.pop(context);
+        await settingsProvider.setAutoLockDuration(value);
+      }
+    }
+
     showDialog(
       context: context,
       builder: (context) => SimpleDialog(
         title: Text('Auto Lock Duration'),
         children: [
           for (final duration in [1, 5, 10, 30, 60])
-            RadioListTile<int>(
-              title: Text('$duration minute${duration > 1 ? 's' : ''}'),
-              value: duration,
+            RadioGroup<int>(
               groupValue: settingsProvider.autoLockDuration,
-              onChanged: (value) async {
-                if (value != null) {
-                  await settingsProvider.setAutoLockDuration(value);
-                  Navigator.pop(context);
-                }
-              },
+              onChanged: onChanged,
+              child: Row(
+                children: [
+                  Radio<int>(value: duration),
+                  Text('$duration minute${duration > 1 ? 's' : ''}'),
+                ],
+              ),
             ),
         ],
       ),
